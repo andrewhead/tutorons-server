@@ -2,12 +2,12 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
+from enum import Enum
 import argparse
 import json
+import jsonpickle
 from bs4 import BeautifulSoup
 import re
-from enum import Enum
-import jsonpickle
 
 
 class Answer(object):
@@ -99,4 +99,5 @@ if __name__ == '__main__':
     parser.add_argument("answer_file", help="JSON formatted answers from StackOverflow")
     args = parser.parse_args()
     answers = parseAnswers(args.answer_file)
+    jsonpickle.set_encoder_options('json', indent=2)
     print jsonpickle.encode(answers, unpicklable=False)
