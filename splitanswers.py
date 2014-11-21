@@ -62,7 +62,7 @@ def parseAnswers(answerFile):
         for tag in tags:
             if tag.name == 'p':
                 ''' Process text blocks. '''
-                for sentence in tag.decode_contents().split('.\s'):
+                for sentence in re.split('\.[\s]', tag.decode_contents()):
                     if sentence == "":
                         continue
                     sentenceSoup = BeautifulSoup(sentence)
