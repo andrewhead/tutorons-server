@@ -22,10 +22,10 @@ class Answer(object):
 
 class Line(object):
 
-    def __init__(self, text, type_):
+    def __init__(self, text, type_, references=None):
         self.text = text
         self.type_ = type_
-        self.references = []
+        self.references = references or []
 
     def addReference(self, reference):
         self.references.append(reference)
@@ -47,6 +47,55 @@ class CommentState(Enum):
     CLOSED = "closed",
 
 
+def parseText(textTag):
+    lines = []
+    ''' Process text blocks. '''
+    for sentence in re.split('\.[\s]', textTag.decode_contents()):
+        if sentence == "":
+            continue
+        sentenceSoup = BeautifulSoup(sentence, 'html.parser')
+        line = Line(sentenceSoup.text, LineType.TEXT)
+        ''' Look for inline references to variable and class names. '''
+        references = sentenceSoup.findAll('code')
+        for ref in references:
+            line.addReference(ref.text)
+        lines.append(line)
+    return lines
+
+
+def parseCode(codeTag):
+    ''' Process code blocks. '''
+    lines = []
+    commentState = CommentState.CLOSED
+
+    for line in codeTag.text.rstrip().split('\n'):
+
+        ''' Check for comment start. '''
+        if commentState == CommentState.CLOSED and re.match('.*/\*.*', line):
+            commentState = CommentState.OPEN
+
+        ''' Capture references to classes. '''
+        references = []
+        if commentState == CommentState.CLOSED:
+            declMatch = re.match('^\s*([A-Z]\w+)\s+\w+\s*(;|=\s*)', line)
+            if declMatch:
+                references.append(declMatch.group(1))
+
+        ''' Capture comments. '''
+        if commentState == CommentState.OPEN:
+            type_ = LineType.CODE_COMMENT_LONG
+            if re.match('.*\*/.*', line):
+                commentState = CommentState.CLOSED
+        elif commentState == CommentState.CLOSED and re.match('.*//.*', line):
+            type_ = LineType.CODE_COMMENT_INLINE
+        else:
+            type_ = LineType.CODE
+
+        lines.append(Line(line, type_, references))
+
+    return lines
+
+
 def parseAnswers(answerFile):
 
     answerData = json.load(open(answerFile))
@@ -61,38 +110,15 @@ def parseAnswers(answerFile):
         tags = [tag for tag in soup.children if tag != '\n']
         for tag in tags:
             if tag.name == 'p':
-                ''' Process text blocks. '''
-                for sentence in re.split('\.[\s]', tag.decode_contents()):
-                    if sentence == "":
-                        continue
-                    sentenceSoup = BeautifulSoup(sentence, 'html.parser')
-                    line = Line(sentenceSoup.text, LineType.TEXT)
-                    ''' Look for inline references to variable and class names. '''
-                    references = sentenceSoup.findAll('code')
-                    for ref in references:
-                        line.addReference(ref.text)
-                    answer.append(line)
+                answer.lines.extend(parseText(tag))
             elif tag.name == 'pre':
-                ''' Process code blocks. '''
-                commentState = CommentState.CLOSED
-                for line in tag.text.rstrip().split('\n'):
-                    ''' Check for comment start. '''
-                    if commentState == CommentState.CLOSED and re.match('.*/\*.*', line):
-                        commentState = CommentState.OPEN
-                    ''' Capture comments. '''
-                    if commentState == CommentState.OPEN:
-                        answer.append(Line(line, LineType.CODE_COMMENT_LONG))
-                        if re.match('.*\*/.*', line):
-                            commentState = CommentState.CLOSED
-                    elif commentState == CommentState.CLOSED and re.match('.*//.*', line):
-                        answer.append(Line(line, LineType.CODE_COMMENT_INLINE))
-                    else:
-                        answer.append(Line(line, LineType.CODE))
-    
+                answer.lines.extend(parseCode(tag))
+                    
         ''' Add parsed answer to the list of answers. '''
         answers.append(answer)
 
     return answers
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Split and print out StackOverflow answers")
