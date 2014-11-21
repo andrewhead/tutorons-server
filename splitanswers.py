@@ -57,7 +57,7 @@ def parseAnswers(answerFile):
         answer = Answer(item['answer_id'])
 
         ''' Parse the answer to separate lines. '''
-        soup = BeautifulSoup(item['body'])
+        soup = BeautifulSoup(item['body'], 'html.parser')
         tags = [tag for tag in soup.children if tag != '\n']
         for tag in tags:
             if tag.name == 'p':
@@ -65,7 +65,7 @@ def parseAnswers(answerFile):
                 for sentence in tag.decode_contents().split('.\s'):
                     if sentence == "":
                         continue
-                    sentenceSoup = BeautifulSoup(sentence)
+                    sentenceSoup = BeautifulSoup(sentence, 'html.parser')
                     line = Line(sentenceSoup.text, LineType.TEXT)
                     ''' Look for inline references to variable and class names. '''
                     references = sentenceSoup.findAll('code')
