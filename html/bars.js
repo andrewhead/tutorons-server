@@ -59,50 +59,66 @@ $(function () {
             return Number(str.replace("px", ""));
         }
 
+        var REF_COUNT = 20;  // 20 because of category20 colors for D3
         var ref_counts = extract_reference_counts(data);
         var sorted_ref_counts = d3.entries(ref_counts).sort(function(a, b) {
             return b.value - a.value;
-        })
+        }).splice(0, REF_COUNT);
+        var ref_colors = d3.scale.category20()
+            .domain(d3.keys(sorted_ref_counts));
         
+        var ac_margin = {top: 20, bottom: 70, left: 20, right: 20};
         var aggregate_chart = d3.select("#aggregate_chart");
         var acw = px_to_num(aggregate_chart.style("width"));
         var ach = px_to_num(aggregate_chart.style("height"));
-        var ac_bar_width = 20;
-        var ac_bar_horiz_padding = 5;
-        var ac_edge_padding = 20;
+        var x_scale = d3.scale.ordinal()
+            .domain(sorted_ref_counts.map(function(d) { return d.key; }))
+            .rangeRoundBands([ac_margin.left, acw - ac_margin.right], .1);
 
-        var acSvg = aggregate_chart
+        var ac_svg = aggregate_chart
             .append("svg")
             .attr("width", acw)
             .attr("height", ach);
 
         var max_count = d3.max(d3.entries(ref_counts), function(d) { return d.value; })
-        var yScale = d3.scale.linear()
+        var y_scale = d3.scale.linear()
             .domain([0, max_count])
-            .range([ach - ac_edge_padding, ac_edge_padding]);
-        var hScale = d3.scale.linear()
+            .range([ach - ac_margin.bottom, ac_margin.top]);
+        var h_scale = d3.scale.linear()
             .domain([0, max_count])
-            .range([0, ach - ac_edge_padding * 2]);
+            .range([0, ach - (ac_margin.top + ac_margin.bottom)]);
 
-		var acBars = acSvg.selectAll("rect")
+		var acBars = ac_svg.selectAll("rect")
             .data(sorted_ref_counts)
             .enter()
             .append("rect")
-            .attr("x", function (d, i) { 
-                return ac_edge_padding + i * (ac_bar_width + ac_bar_horiz_padding); 
-            })
-            .attr("y", function (d) { return yScale(d.value); })
-            .attr("width", ac_bar_width)
-            .attr("height", function(d) { return hScale(d.value); })
-            .style("fill", function(d) { return "blue"; });
+            .attr("x", function (d, i) { return x_scale(d.key); })
+            .attr("y", function (d) { return y_scale(d.value); })
+            .attr("width", x_scale.rangeBand())
+            .attr("height", function(d) { return h_scale(d.value); })
+            .style("fill", function(d) { return ref_colors(d.key) });
         
+        var acLabels = ac_svg.selectAll("text")
+            .data(sorted_ref_counts)
+            .enter()
+            .append("text")
+            .attr("text-anchor", "end")
+            .attr("class", "ac_label")
+            .text(function(d) { return d.key; })
+            .attr("transform", function(d) {
+                return "translate(" + 
+                    Math.floor(x_scale(d.key) + x_scale.rangeBand() / 2) + "," + 
+                    (ach - ac_margin.bottom + 12) + 
+                    ")rotate(-40)";
+            });
+
         var yAxis = d3.svg.axis()
-            .scale(yScale)
+            .scale(y_scale)
             .ticks(4)
             .orient("left");
-        acSvg.append("g")
+        ac_svg.append("g")
             .attr("class", "axis")
-            .attr("transform", "translate(" + ac_edge_padding + ",0)")
+            .attr("transform", "translate(" + ac_margin.left + ",0)")
             .call(yAxis);
 	});
 });
