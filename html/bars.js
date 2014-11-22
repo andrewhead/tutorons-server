@@ -17,22 +17,35 @@ $(function () {
             .enter()
             .append("g")
 
-		var bars = responses.selectAll("rect")
-            .data(function(d) { return d.lines; })
-            .enter()
-            .append("rect");
-
 	    var bar_width = 10;
 	    var bar_height = 20;
 	    var bar_horizontal_padding = 1;
 	    var bar_vertical_padding = 5;
-		var bar_attributes = bars
+
+		var lines = responses.selectAll("g")
+            .data(function(d) { return d.lines; })
+            .enter()
+            .append("g")
+            .attr("transform", function(d, i, j) { 
+                return "translate(" +
+                    i * (bar_width + bar_horizontal_padding) + "," +
+                    j * (bar_height + bar_vertical_padding) + ")";
+            })
+
+        var bars = lines.append("rect")
             .attr("class", "line_rect")
-			.attr("x", function (d, i) { return i * (bar_width + bar_horizontal_padding); })
-			.attr("y", function (d, i, j) { return j * (bar_height + bar_vertical_padding); })
 			.attr("width", bar_width)
 			.attr("height", bar_height)
 			.style("fill", function(d) { return code_colors(d.type_); });
+
+        var flags = lines.append("svg")
+            .attr("width", bar_width)
+            .attr("height", bar_height)
+            .append("use")
+            .attr("class", "flag")
+            .attr("xlink:href", "icons/sprite.svg#flag")
+            .style("fill", "#fff")
+            .style("fill-opacity", 0.0);
 
         function brighten_lines_with_reference(ref, brightness) {
             d3.selectAll(".line_rect").filter(function(d) { 
@@ -40,6 +53,30 @@ $(function () {
             }).style("fill", function(d) {
                 return d3.rgb(code_colors(d.type_)).brighter(brightness);
             });
+        };
+
+        function show_flags_for_selected_references() {
+
+            function color_flags_with_reference(ref, color) {
+                d3.selectAll(".flag").filter(function(d) { 
+                    return (d.references.indexOf(ref) >= 0); 
+                }).style("fill", function(d) {
+                    return d3.rgb(color);
+                }).style("fill-opacity", 1.0);
+            }
+
+            /* Start by hiding all flags */
+            d3.selectAll(".flag").style("fill-opacity", 0.0);
+
+            /* Fill in flag colors for selected deps, starting with least-used deps.
+             * These will get overwritten by the selected most-used deps. */
+            var selected = d3.selectAll(".dep_bar.selected");
+            if (selected.length > 0) {
+                selected[0].reverse();
+                selected.each(function(d) {
+                    color_flags_with_reference(d.key, ref_colors(d.key));
+                });
+            }
         };
 
         function extract_reference_counts(data) {
@@ -93,26 +130,45 @@ $(function () {
             .domain([0, max_count])
             .range([0, ach - (ac_margin.top + ac_margin.bottom)]);
 
+        function color_dep_bar(element) {
+            var data = element.data()[0];
+            var base_color = ref_colors(data.key);
+            element.style("fill", function(d) {
+                var brightness = (
+                    d3.select(this).classed("selected") || 
+                    d3.select(this).classed("hovered")) ? 
+                    1.5 : 0;
+                console.log(brightness);
+                return d3.rgb(ref_colors(d.key)).brighter(brightness);
+            });
+        }
+
 		var ac_bars = ac_svg.selectAll("rect")
             .data(sorted_ref_counts)
             .enter()
             .append("rect")
+            .attr("class", "dep_bar")
             .attr("x", function (d, i) { return x_scale(d.key); })
             .attr("y", function (d) { return y_scale(d.value); })
             .attr("width", x_scale.rangeBand())
             .attr("height", function(d) { return h_scale(d.value); })
             .style("fill", function(d) { return ref_colors(d.key) })
             .on("mouseover", function(d) {
+                d3.select(this).classed("hovered", true);
                 brighten_lines_with_reference(d.key, 1.5);
-                d3.select(this).style("fill", function(d) { 
-                    return d3.rgb(ref_colors(d.key)).brighter(); 
+                d3.select(this).call(color_dep_bar);
+            })
+            .on("click", function() {
+                d3.select(this).classed("selected", function() {
+                    return ! d3.select(this).classed("selected");
                 });
+                show_flags_for_selected_references();
+                d3.select(this).call(color_dep_bar);
             })
             .on("mouseout", function(d) {
+                d3.select(this).classed("hovered", false);
                 brighten_lines_with_reference(d.key, 0);
-                d3.select(this).style("fill", function(d) { 
-                    return d3.rgb(ref_colors(d.key)); 
-                });
+                d3.select(this).call(color_dep_bar);
             });
         
         var ac_labels = ac_svg.selectAll("text")
