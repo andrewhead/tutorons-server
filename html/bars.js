@@ -96,7 +96,17 @@ $(function () {
             .attr("y", function (d) { return y_scale(d.value); })
             .attr("width", x_scale.rangeBand())
             .attr("height", function(d) { return h_scale(d.value); })
-            .style("fill", function(d) { return ref_colors(d.key) });
+            .style("fill", function(d) { return ref_colors(d.key) })
+            .on("mouseover", function(d) {
+                d3.select(this).style("fill", function(d) { 
+                    return d3.rgb(ref_colors(d.key)).brighter(); 
+                });
+            })
+            .on("mouseout", function(d) {
+                d3.select(this).style("fill", function(d) { 
+                    return d3.rgb(ref_colors(d.key)); 
+                });
+            });
         
         var acLabels = ac_svg.selectAll("text")
             .data(sorted_ref_counts)
