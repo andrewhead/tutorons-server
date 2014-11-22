@@ -131,7 +131,9 @@
       {
         "text": "        StringBuilder sb = new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "        while((ch = is.read())!= -1)", 
@@ -175,7 +177,9 @@
       {
         "text": "StringWriter writer = new StringWriter();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringWriter"
+        ]
       }, 
       {
         "text": "IOUtils.copy(inputStream, writer, encoding);", 
@@ -185,7 +189,9 @@
       {
         "text": "String theString = writer.toString();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "or even", 
@@ -195,7 +201,9 @@
       {
         "text": "String theString = IOUtils.toString(inputStream, encoding)", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "Alternatively, you could use ByteArrayOutputStream if you don't want to mix your Streams and Writers", 
@@ -222,7 +230,9 @@
       {
         "text": "String line = null;", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "while((line = reader.readLine()) != null) {", 
@@ -312,7 +322,9 @@
       {
         "text": "InputStream is = Context.openFileInput(someFileName); // whatever formate you have", 
         "type_": "codecommentinline", 
-        "references": []
+        "references": [
+          "InputStream"
+        ]
       }, 
       {
         "text": "", 
@@ -322,7 +334,9 @@
       {
         "text": "ByteArrayOutputStream bos = new ByteArrayOutputStream();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "ByteArrayOutputStream"
+        ]
       }, 
       {
         "text": "", 
@@ -377,7 +391,9 @@
       {
         "text": "String audioDataString=bytes.toString();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }
     ]
   }, 
@@ -434,12 +450,16 @@
       {
         "text": "InputStream is = ....", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStream"
+        ]
       }, 
       {
         "text": "ByteArrayOutputStream baos = new ByteArrayOutputStream(8192);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "ByteArrayOutputStream"
+        ]
       }, 
       {
         "text": "byte[] buffer = new byte[8192];", 
@@ -519,12 +539,16 @@
       {
         "text": "String charset = \"UTF-8\";", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "String inputStreamAsString = baos.toString(charset);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }
     ]
   }, 
@@ -561,12 +585,16 @@
       {
         "text": "    StringBuilder builder = new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "    InputStreamReader reader = new InputStreamReader(inputStream, charsetName);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStreamReader"
+        ]
       }, 
       {
         "text": "    char[] buffer = new char[BUFFER_SIZE];", 
@@ -651,7 +679,9 @@
       {
         "text": "    ByteArrayOutputStream baos = new ByteArrayOutputStream();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "ByteArrayOutputStream"
+        ]
       }, 
       {
         "text": "    byte[] buffer = new byte[1024];", 
@@ -711,7 +741,9 @@
       {
         "text": "   StringBuilder sb = new StringBuilder(2048); // Define a size if you have an idea of it.", 
         "type_": "codecommentinline", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "   char[] read = new char[128]; // Your buffer size.", 
@@ -756,7 +788,9 @@
       {
         "text": "String result = new String(StreamUtils.getBytes(inputStream));", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }
     ]
   }, 
@@ -799,7 +833,9 @@
       {
         "text": "     StringBuffer sb=new StringBuffer();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuffer"
+        ]
       }, 
       {
         "text": "     while((k=fin.read())!=-1)", 
@@ -859,7 +895,9 @@
       {
         "text": "String data = new ReaderSink(inputStream, Charset.forName(\"UTF-8\")).drain();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "", 
@@ -1224,7 +1262,9 @@
       {
         "text": "        StringWriter stringWriter = new StringWriter();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringWriter"
+        ]
       }, 
       {
         "text": "        drainTo(stringWriter, bufferSize);", 
@@ -1419,7 +1459,9 @@
       {
         "text": "    Reader reader = null;", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "Reader"
+        ]
       }, 
       {
         "text": "    reader = new InputStreamReader(stream, \"UTF-8\");", 
@@ -1474,17 +1516,23 @@
       {
         "text": "   String response;", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "   String url = \"www.blah.com/path?key=value\";", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "   GetMethod method = new GetMethod(url);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "GetMethod"
+        ]
       }, 
       {
         "text": "   int status = client.executeMethod(method);", 
@@ -1509,27 +1557,37 @@
       {
         "text": "InputStream resp = method.getResponseBodyAsStream();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStream"
+        ]
       }, 
       {
         "text": "InputStreamReader is=new InputStreamReader(resp);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStreamReader"
+        ]
       }, 
       {
         "text": "BufferedReader br=new BufferedReader(is);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedReader"
+        ]
       }, 
       {
         "text": "String read = null;", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "StringBuffer sb = new StringBuffer(read);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuffer"
+        ]
       }, 
       {
         "text": "while((read = br.readLine()) != null) {", 
@@ -1559,12 +1617,16 @@
       {
         "text": "InputStream iStream  = method.getResponseBodyAsStream();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStream"
+        ]
       }, 
       {
         "text": "StringWriter writer = new StringWriter();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringWriter"
+        ]
       }, 
       {
         "text": "IOUtils.copy(iStream, writer, \"UTF-8\");", 
@@ -1684,7 +1746,9 @@
       {
         "text": "String myString = IOUtils.toString(myInputStream, \"UTF-8\");", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "Of course, you could choose other character encodings besides UTF-8", 
@@ -1719,22 +1783,30 @@
       {
         "text": "    BufferedReader reader = new BufferedReader(new InputStreamReader(in));", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedReader"
+        ]
       }, 
       {
         "text": "    StringBuilder out = new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "    String newLine = System.getProperty(\"line.separator\");", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "    String line;", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "    while ((line = reader.readLine()) != null) {", 
@@ -1779,7 +1851,9 @@
       {
         "text": "StringBuilder build = new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "byte[] buf = new byte[1024];", 
@@ -1854,7 +1928,9 @@
       {
         "text": "        StringBuilder buffer = new StringBuilder(PKG_SIZE * 10);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "        int size;", 
@@ -1884,7 +1960,9 @@
       {
         "text": "            String str = new String(data, 0, size);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "            buffer.append(str);", 
@@ -1986,17 +2064,23 @@
       {
         "text": "InputStreamReader i=new InputStreamReader(s);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStreamReader"
+        ]
       }, 
       {
         "text": "BufferedReader str=new BufferedReader(i);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedReader"
+        ]
       }, 
       {
         "text": "String msg=str.readLine();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "System.out.println(msg);", 
@@ -2016,7 +2100,9 @@
       {
         "text": "  InputStream IS=new URL(\"http://www.petrol.si/api/gas_prices.json\").openStream();   ", 
         "type_": "codecommentinline", 
-        "references": []
+        "references": [
+          "InputStream"
+        ]
       }, 
       {
         "text": "", 
@@ -2026,7 +2112,9 @@
       {
         "text": "  ByteArrayOutputStream BAOS=new ByteArrayOutputStream();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "ByteArrayOutputStream"
+        ]
       }, 
       {
         "text": "  IOUtils.copy(IS, BAOS);", 
@@ -2036,7 +2124,9 @@
       {
         "text": "  String d= new String(BAOS.toByteArray(),\"UTF-8\");           ", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "", 
@@ -2061,12 +2151,16 @@
       {
         "text": "InputStream stream = ...", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStream"
+        ]
       }, 
       {
         "text": "String content = CharStreams.toString(new InputStreamReader(stream, Charsets.UTF_8));", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "Closeables.closeQuietly(stream);", 
@@ -2269,7 +2363,9 @@
       {
         "text": "        InputStreamReader iStreamReader = new InputStreamReader(iStream);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStreamReader"
+        ]
       }, 
       {
         "text": "        //build a buffered Reader, so that i can read whole line at once", 
@@ -2279,17 +2375,23 @@
       {
         "text": "        BufferedReader bReader = new BufferedReader(iStreamReader);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedReader"
+        ]
       }, 
       {
         "text": "        String line = null;", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "        StringBuilder builder = new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "        while((line = bReader.readLine()) != null) {  //Read till end", 
@@ -2349,12 +2451,16 @@
       {
         "text": "  StringBuilder out = new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "  BufferedReader br = new BufferedReader(new InputStreamReader(in));", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedReader"
+        ]
       }, 
       {
         "text": "  for(String line = br.readLine(); line != null; line = br.readLine()) ", 
@@ -2399,22 +2505,30 @@
       {
         "text": "InputStreamReader is = new InputStreamReader(in);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "InputStreamReader"
+        ]
       }, 
       {
         "text": "StringBuilder sb=new StringBuilder();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "StringBuilder"
+        ]
       }, 
       {
         "text": "BufferedReader br = new BufferedReader(is);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedReader"
+        ]
       }, 
       {
         "text": "String read = br.readLine();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "", 
@@ -2474,12 +2588,16 @@
       {
         "text": "    URL url = MyClass.class.getResource(\"/\" + configFileName);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "URL"
+        ]
       }, 
       {
         "text": "    BufferedInputStream bi = (BufferedInputStream) url.getContent();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedInputStream"
+        ]
       }, 
       {
         "text": "    byte[] buffer = new byte[bi.available() ];", 
@@ -2494,7 +2612,9 @@
       {
         "text": "    String out = new String(buffer);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "Please note, according to Java docs, the available() method might not work with InputStream but always works with BufferedInputStream", 
@@ -2509,17 +2629,23 @@
       {
         "text": "    URL url = MyClass.class.getResource(\"/\" + configFileName);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "URL"
+        ]
       }, 
       {
         "text": "    BufferedInputStream bi = (BufferedInputStream) url.getContent();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "BufferedInputStream"
+        ]
       }, 
       {
         "text": "    File f = new File(url.getPath());", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "File"
+        ]
       }, 
       {
         "text": "    byte[] buffer = new byte[ (int) f.length()];", 
@@ -2534,7 +2660,9 @@
       {
         "text": "    String out = new String(buffer);", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }, 
       {
         "text": "I am not sure if there will be any encoding issues", 
@@ -2559,7 +2687,9 @@
       {
         "text": "String result = (String)new ObjectInputStream( inputStream ).readObject();", 
         "type_": "code", 
-        "references": []
+        "references": [
+          "String"
+        ]
       }
     ]
   }, 
