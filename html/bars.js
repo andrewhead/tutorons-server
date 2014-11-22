@@ -2,12 +2,8 @@ $(function () {
 
 	var DATA_FILE_PATH = "./data/309424.lines.json";
 
-	linetype_2_color = {
-        "text": "red",
-        "code": "blue",
-        "codecommentinline": "green",
-        "codecommentlong": "pink"
-    };
+    var code_colors = d3.scale.category10()
+        .domain(["text", "code", "codecommentinline", "codecommentlong"])
 
  	// width and height
 	var svg = d3.select("#search_bars")
@@ -26,16 +22,25 @@ $(function () {
             .enter()
             .append("rect");
 
-	    var bar_width = 15;
+	    var bar_width = 10;
 	    var bar_height = 20;
 	    var bar_horizontal_padding = 1;
 	    var bar_vertical_padding = 5;
 		var bar_attributes = bars
+            .attr("class", "line_rect")
 			.attr("x", function (d, i) { return i * (bar_width + bar_horizontal_padding); })
 			.attr("y", function (d, i, j) { return j * (bar_height + bar_vertical_padding); })
 			.attr("width", bar_width)
 			.attr("height", bar_height)
-			.style("fill", function(d) { return linetype_2_color[d.type_]; });
+			.style("fill", function(d) { return code_colors(d.type_); });
+
+        function brighten_lines_with_reference(ref, brightness) {
+            d3.selectAll(".line_rect").filter(function(d) { 
+                return (d.references.indexOf(ref) >= 0); 
+            }).style("fill", function(d) {
+                return d3.rgb(code_colors(d.type_)).brighter(brightness);
+            });
+        };
 
         function extract_reference_counts(data) {
             var ref_counts = {};
@@ -53,18 +58,18 @@ $(function () {
                 }
             }
             return ref_counts;
-        }
+        };
 
         function px_to_num(str) {
             return Number(str.replace("px", ""));
-        }
+        };
 
         var REF_COUNT = 20;  // 20 because of category20 colors for D3
         var ref_counts = extract_reference_counts(data);
         var sorted_ref_counts = d3.entries(ref_counts).sort(function(a, b) {
             return b.value - a.value;
         }).splice(0, REF_COUNT);
-        var ref_colors = d3.scale.category20()
+        var ref_colors = d3.scale.category20b()
             .domain(d3.keys(sorted_ref_counts));
         
         var ac_margin = {top: 20, bottom: 70, left: 20, right: 20};
@@ -88,7 +93,7 @@ $(function () {
             .domain([0, max_count])
             .range([0, ach - (ac_margin.top + ac_margin.bottom)]);
 
-		var acBars = ac_svg.selectAll("rect")
+		var ac_bars = ac_svg.selectAll("rect")
             .data(sorted_ref_counts)
             .enter()
             .append("rect")
@@ -98,17 +103,19 @@ $(function () {
             .attr("height", function(d) { return h_scale(d.value); })
             .style("fill", function(d) { return ref_colors(d.key) })
             .on("mouseover", function(d) {
+                brighten_lines_with_reference(d.key, 1.5);
                 d3.select(this).style("fill", function(d) { 
                     return d3.rgb(ref_colors(d.key)).brighter(); 
                 });
             })
             .on("mouseout", function(d) {
+                brighten_lines_with_reference(d.key, 0);
                 d3.select(this).style("fill", function(d) { 
                     return d3.rgb(ref_colors(d.key)); 
                 });
             });
         
-        var acLabels = ac_svg.selectAll("text")
+        var ac_labels = ac_svg.selectAll("text")
             .data(sorted_ref_counts)
             .enter()
             .append("text")
