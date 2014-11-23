@@ -6,6 +6,9 @@
         <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script src="http://d3js.org/queue.v1.min.js"></script>
         <script src="https://code.jquery.com/jquery-2.1.1.js"></script>
+        <script>
+            var data = {{ answers|safe }};
+        </script>
         <script src="{% static "skim/js/bars.js" %}"></script>
     </head>
     <body>

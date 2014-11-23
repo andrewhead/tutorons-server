@@ -11,7 +11,7 @@ $(function () {
         .attr("width", "100%")
         .attr("height", "100%");
 
-	d3.json(DATA_FILE_PATH, function(error, data) {
+	function displayData(data) {
 		var responses = svg.selectAll("g")
             .data(data)
             .enter()
@@ -138,7 +138,6 @@ $(function () {
                     d3.select(this).classed("selected") || 
                     d3.select(this).classed("hovered")) ? 
                     1.5 : 0;
-                console.log(brightness);
                 return d3.rgb(ref_colors(d.key)).brighter(brightness);
             });
         }
@@ -193,5 +192,6 @@ $(function () {
             .attr("class", "axis")
             .attr("transform", "translate(" + ac_margin.left + ",0)")
             .call(yAxis);
-	});
+	};
+    displayData(data);
 });
