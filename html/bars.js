@@ -16,6 +16,9 @@ $(function () {
             .data(data)
             .enter()
             .append("g")
+            .each(function(d,i) {
+                d.index = i;
+            });
 
 	    var bar_width = 10;
 	    var bar_height = 20;
@@ -30,13 +33,44 @@ $(function () {
                 return "translate(" +
                     i * (bar_width + bar_horizontal_padding) + "," +
                     j * (bar_height + bar_vertical_padding) + ")";
-            })
+            });
 
         var bars = lines.append("rect")
             .attr("class", "line_rect")
 			.attr("width", bar_width)
 			.attr("height", bar_height)
-			.style("fill", function(d) { return code_colors(d.type_); });
+			.style("fill", function(d) { return code_colors(d.type_); })
+            .on("mouseover", function(d, i) {
+                var transform = d3.transform(d3.select(this.parentNode).attr("transform")).translate;
+                //console.log(transform);
+                //console.log(d3.event.pageX);
+                //console.log(d3.event.pageY);
+                var xPosition = transform[0];
+                var yPosition = transform[1];
+                // get line for text
+                var response = this.parentNode.parentNode; 
+                var lines = response.__data__.lines;
+                var text = "";
+                var tooltip_text_length = 3;
+                //Update the tooltip position and value
+                d3.select("#tooltip")
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")						
+                    .select("#value")
+                    .text(function() {
+                        for(var li = i; li < lines.length && li < i + tooltip_text_length; li++) {
+                            text += lines[li].text + '\n';
+                        }
+                        return text;
+                    });
+                //Show the tooltip
+                d3.select("#tooltip").classed("hidden", false);
+
+            })
+            .on("mouseout", function() {
+                //Hide the tooltip
+                d3.select("#tooltip").classed("hidden", true);
+            })
 
         var flags = lines.append("svg")
             .attr("width", bar_width)
@@ -45,7 +79,8 @@ $(function () {
             .attr("class", "flag")
             .attr("xlink:href", "icons/sprite.svg#flag")
             .style("fill", "#fff")
-            .style("fill-opacity", 0.0);
+            .style("fill-opacity", 0.0)
+            .style("pointer-events", "none"); // do not block mouse events
 
         function brighten_lines_with_reference(ref, brightness) {
             d3.selectAll(".line_rect").filter(function(d) { 
@@ -194,4 +229,5 @@ $(function () {
             .attr("transform", "translate(" + ac_margin.left + ",0)")
             .call(yAxis);
 	});
+
 });
