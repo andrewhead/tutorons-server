@@ -29,10 +29,14 @@ $(function () {
             .data(function(d) { return d.lines; })
             .enter()
             .append("g")
+            .attr("class", "line_g")
             .attr("transform", function(d, i, j) { 
                 return "translate(" +
                     i * (bar_width + bar_horizontal_padding) + "," +
                     j * (bar_height + bar_vertical_padding) + ")";
+            })
+            .each(function(d,i){
+                d.index = i;
             });
 
         var bars = lines.append("rect")
@@ -71,6 +75,40 @@ $(function () {
                 //Hide the tooltip
                 d3.select("#tooltip").classed("hidden", true);
             })
+            .on("click", function(d,i){
+                var response = this.parentNode.parentNode;
+                sortBars(response);
+            });
+        
+        var sortOrder = false;
+        var sortBars = function(response) {
+            //  flip value of sortOrder
+            sortOrder = !sortOrder;
+            d3.selectAll(response.childNodes)
+                .sort(function(a, b) {
+                    if (sortOrder) {
+                        // sort by type
+                        return d3.ascending(a.type_, b.type_);
+                    } else {
+                        // return to original order
+                        return d3.ascending(a.index, b.index);
+                    }
+                })
+                .transition()
+                //.delay(function(d, i) {
+                    //return i * 50;
+                //})
+                .duration(500)
+                .attr("transform", function(d, i) { 
+                    var transform = d3.transform(d3.select(this).attr("transform")).translate;
+                    //var xPosition = transform[0];
+                    var yPosition = transform[1];
+                    return "translate(" +
+                        i * (bar_width + bar_horizontal_padding) + "," +
+                        yPosition + ")";
+                });
+        };			
+
 
         var flags = lines.append("svg")
             .attr("width", bar_width)
