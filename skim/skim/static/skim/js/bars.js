@@ -1,10 +1,7 @@
 $(function () {	
 
-	var DATA_FILE_PATH = "static/skim/data/309424.lines.json";
-
     var code_colors = d3.scale.category10()
         .domain(["text", "code", "codecommentinline", "codecommentlong"])
-
 
     /* JQuery UI setup */
     $(".keep_cont").resizable({
@@ -28,16 +25,20 @@ $(function () {
             .data(data)
             .enter()
             .append("g")
+            .each(function(d,i) {
+                d.index = i;
+            });
 
 		var lines = responses.selectAll("g")
             .data(function(d) { return d.lines; })
             .enter()
             .append("g")
+            .attr("class", "line_g")
             .attr("transform", function(d, i, j) { 
                 return "translate(" +
                     i * (bar_width + bar_horizontal_padding) + "," +
                     j * (bar_height + bar_vertical_padding) + ")";
-            })
+            });
 
         var codeSelection = undefined;
         var bars = lines.append("rect")
@@ -50,8 +51,65 @@ $(function () {
                     'body': d3.select(this.parentNode.parentNode).datum().body,
                     'line': d.text,
                 }
+            }).on("mouseover", function(d, i) {
+                var transform = d3.transform(d3.select(this.parentNode).attr("transform")).translate;
+                var xPosition = transform[0];
+                var yPosition = transform[1];
+                /* Get line for text */
+                var response = this.parentNode.parentNode; 
+                var lines = response.__data__.lines;
+                var text = "";
+                var tooltip_text_length = 3;
+                /* Update the tooltip position and value */
+                d3.select("#tooltip")
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")						
+                    .select("#value")
+                    .text(function() {
+                        for(var li = i; li < lines.length && li < i + tooltip_text_length; li++) {
+                            text += lines[li].text + '\n';
+                        }
+                        return text;
+                    });
+                //Show the tooltip
+                d3.select("#tooltip").classed("hidden", false);            
+            }).on("mouseout", function() {
+                //Hide the tooltip
+                d3.select("#tooltip").classed("hidden", true);
+            })
+            .on("click", function(d,i){
+                var response = this.parentNode.parentNode;
+                sortBars(response);
             });
 
+        var sortOrder = false;
+        var sortBars = function(response) {
+            //  flip value of sortOrder
+            sortOrder = !sortOrder;
+            d3.selectAll(response.childNodes)
+                .sort(function(a, b) {
+                    if (sortOrder) {
+                        // sort by type
+                        return d3.ascending(a.type_, b.type_);
+                    } else {
+                        // return to original order
+                        return d3.ascending(a.index, b.index);
+                    }
+                })
+                .transition()
+                //.delay(function(d, i) {
+                    //return i * 50;
+                //})
+                .duration(500)
+                .attr("transform", function(d, i) { 
+                    var transform = d3.transform(d3.select(this).attr("transform")).translate;
+                    //var xPosition = transform[0];
+                    var yPosition = transform[1];
+                    return "translate(" +
+                        i * (bar_width + bar_horizontal_padding) + "," +
+                        yPosition + ")";
+                });
+        };			
         /* When mouse is released, if code is being dragged, drop it in a keep. */
         $("body").on("mouseup", function(e) {
             if ($(e.target).closest('.keep_cont').length == 0) {
@@ -76,7 +134,8 @@ $(function () {
             .attr("class", "flag")
             .attr("xlink:href", "static/skim/img/sprite.svg#flag")
             .style("fill", "#fff")
-            .style("fill-opacity", 0.0);
+            .style("fill-opacity", 0.0)
+            .style("pointer-events", "none"); // do not block mouse events
 
         function brighten_lines_with_reference(ref, brightness) {
             d3.selectAll(".line_rect").filter(function(d) { 
