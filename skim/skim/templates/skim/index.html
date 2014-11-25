@@ -1,11 +1,13 @@
 {% load staticfiles %}
 <html>
     <head>
-        <title>Appachu Andrew Bonanza</title>
+        <title>CodeSkim</title>
         <link rel="stylesheet" href="{% static "skim/css/style.css" %}">
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
         <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script src="http://d3js.org/queue.v1.min.js"></script>
         <script src="https://code.jquery.com/jquery-2.1.1.js"></script>
+        <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
         <script>
             var data = {{ answers|safe }};
         </script>
@@ -16,8 +18,20 @@
             <input type="text" name="q" maxlength=100 placeholder="Search..." required>
             <input type="button" value="Search" action="submit">
         </form>
-        <p>Showing search results for {{ query }}</p>
-        <div id="search_bars" style="width: 60%; height: 550px;"></div>
-        <div id="aggregate_chart" style="width: 60%; height: 150px;"></div>
+        <div class="cols">
+            <div class="col" style="width:60%; float: left;">
+                <p>Showing search results for {{ query }}</p>
+                <div id="search_bars" style="width: 60%;"></div>
+                <div id="aggregate_chart" style="width: 60%; height: 150px;"></div>
+            </div>
+            <div class="col" id="keep_col" style="width:40%; float: left;">
+                {% for i in "xxxx" %}
+                <h6 class="noselect ui-widget-header">Snippet {{ forloop.counter0 }}</h3>
+                <div class="keep_cont ui-state-active">
+                    <div class="keep" id="keep{{ forloop.counter0 }}"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </body>
 </html>

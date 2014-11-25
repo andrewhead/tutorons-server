@@ -12,9 +12,10 @@ import re
 
 class Answer(object):
 
-    def __init__(self, id_):
+    def __init__(self, id_, body):
         self.id_ = id_
         self.lines = []
+        self.body = body
  
     def append(self, line):
         self.lines.append(line)
@@ -102,7 +103,7 @@ def parseAnswers(answerData):
     for item in answerData['items']:
 
         ''' Create answer. '''
-        answer = Answer(item['answer_id'])
+        answer = Answer(item['answer_id'], item['body'])
 
         ''' Parse the answer to separate lines. '''
         soup = BeautifulSoup(item['body'], 'html.parser')

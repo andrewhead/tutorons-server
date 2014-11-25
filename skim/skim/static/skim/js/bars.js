@@ -5,22 +5,29 @@ $(function () {
     var code_colors = d3.scale.category10()
         .domain(["text", "code", "codecommentinline", "codecommentlong"])
 
- 	// width and height
-	var svg = d3.select("#search_bars")
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%");
+
+    /* JQuery UI setup */
+    $(".keep_cont").resizable({
+        'containment': '#keep_col',
+    });
 
 	function displayData(data) {
-		var responses = svg.selectAll("g")
+		
+	    var bar_width = 15;
+	    var bar_height = 15;
+	    var bar_horizontal_padding = 1;
+	    var bar_vertical_padding = 4;
+
+        /* Build search bars */
+        var svg = d3.select("#search_bars")
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", data.length * (bar_height + bar_vertical_padding));
+
+        var responses = svg.selectAll("g")
             .data(data)
             .enter()
             .append("g")
-
-	    var bar_width = 10;
-	    var bar_height = 20;
-	    var bar_horizontal_padding = 1;
-	    var bar_vertical_padding = 5;
 
 		var lines = responses.selectAll("g")
             .data(function(d) { return d.lines; })
@@ -32,11 +39,35 @@ $(function () {
                     j * (bar_height + bar_vertical_padding) + ")";
             })
 
+        var codeSelection = undefined;
         var bars = lines.append("rect")
             .attr("class", "line_rect")
 			.attr("width", bar_width)
 			.attr("height", bar_height)
-			.style("fill", function(d) { return code_colors(d.type_); });
+			.style("fill", function(d) { return code_colors(d.type_); })
+            .on("mousedown", function(d) {
+                codeSelection = {
+                    'body': d3.select(this.parentNode.parentNode).datum().body,
+                    'line': d.text,
+                }
+            });
+
+        /* When mouse is released, if code is being dragged, drop it in a keep. */
+        $("body").on("mouseup", function(e) {
+            if ($(e.target).closest('.keep_cont').length == 0) {
+                codeSelection = undefined;
+            } else {
+                if (codeSelection !== undefined) {
+                    var keep = $(e.target).closest('.keep_cont').children('.keep');
+                    keep.empty();
+                    keep.append(codeSelection.body);
+                    /* Focus code to the text selected */
+                    keep.scrollTop(keep.children(
+                        ":contains('" + codeSelection.line + "'):last")
+                        .offset().top);
+                }
+            }
+        });
 
         var flags = lines.append("svg")
             .attr("width", bar_width)
