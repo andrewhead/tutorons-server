@@ -10,16 +10,19 @@ $(function () {
 
 	function displayData(data) {
 		
-	    var bar_width = 15;
+	    var bar_width = 40;
 	    var bar_height = 15;
-	    var bar_horizontal_padding = 1;
-	    var bar_vertical_padding = 4;
+	    var bar_horizontal_padding = 4;
+	    var bar_vertical_padding = 0;
 
         /* Build search bars */
         var svg = d3.select("#search_bars")
             .append("svg")
             .attr("width", "100%")
-            .attr("height", data.length * (bar_height + bar_vertical_padding));
+            //.attr("height", data.length * (bar_height + bar_vertical_padding));
+            .attr("height", d3.max(data, function(d){
+                return d.lines.length * (bar_height + bar_vertical_padding);
+            }));
 
         var responses = svg.selectAll("g")
             .data(data)
@@ -36,8 +39,11 @@ $(function () {
             .attr("class", "line_g")
             .attr("transform", function(d, i, j) { 
                 return "translate(" +
-                    i * (bar_width + bar_horizontal_padding) + "," +
-                    j * (bar_height + bar_vertical_padding) + ")";
+                    j * (bar_width + bar_horizontal_padding) + "," +
+                    i * (bar_height + bar_vertical_padding) + ")";
+            })
+            .each(function(d,i){
+                d.index = i;
             });
 
         var codeSelection = undefined;
@@ -46,6 +52,7 @@ $(function () {
 			.attr("width", bar_width)
 			.attr("height", bar_height)
 			.style("fill", function(d) { return code_colors(d.type_); })
+            .style("stroke", "black")
             .on("mousedown", function(d) {
                 codeSelection = {
                     'body': d3.select(this.parentNode.parentNode).datum().body,
@@ -66,6 +73,7 @@ $(function () {
                     .style("top", yPosition + "px")						
                     .select("#value")
                     .text(function() {
+                        // FIX show lines above and below current line
                         for(var li = i; li < lines.length && li < i + tooltip_text_length; li++) {
                             text += lines[li].text + '\n';
                         }
@@ -103,11 +111,12 @@ $(function () {
                 .duration(500)
                 .attr("transform", function(d, i) { 
                     var transform = d3.transform(d3.select(this).attr("transform")).translate;
-                    //var xPosition = transform[0];
+                    var xPosition = transform[0];
                     var yPosition = transform[1];
                     return "translate(" +
-                        i * (bar_width + bar_horizontal_padding) + "," +
-                        yPosition + ")";
+                        xPosition + "," + 
+                        //yPosition + ")";
+                        i * (bar_height + bar_vertical_padding) + ")";
                 });
         };			
         /* When mouse is released, if code is being dragged, drop it in a keep. */
@@ -132,7 +141,7 @@ $(function () {
             .attr("height", bar_height)
             .append("use")
             .attr("class", "flag")
-            .attr("xlink:href", "static/skim/img/sprite.svg#flag")
+            .attr("xlink:href", "static/skim/img/sprite.svg#media-record")
             .style("fill", "#fff")
             .style("fill-opacity", 0.0)
             .style("pointer-events", "none"); // do not block mouse events
