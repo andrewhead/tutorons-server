@@ -10,19 +10,18 @@ $(function () {
 
 	function displayData(data) {
 		
-	    var bar_width = 40;
+	    var bar_width = 30;
 	    var bar_height = 15;
-	    var bar_horizontal_padding = 4;
+	    var bar_horizontal_padding = 5;
 	    var bar_vertical_padding = 0;
 
         /* Build search bars */
         var svg = d3.select("#search_bars")
             .append("svg")
-            .attr("width", "100%")
+            .attr("width", data.length * (bar_width + bar_horizontal_padding))
             //.attr("height", data.length * (bar_height + bar_vertical_padding));
-            .attr("height", d3.max(data, function(d){
-                return d.lines.length * (bar_height + bar_vertical_padding);
-            }));
+            .attr("height", d3.max(data, function(d) { return d.lines.length }) * 
+                    (bar_height + bar_vertical_padding));
 
         var responses = svg.selectAll("g")
             .data(data)

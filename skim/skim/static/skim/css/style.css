@@ -26,6 +26,11 @@ h6 {
   -webkit-margin-after: 0.2em;
 }
 
+#search_bars {
+  width: 95%;
+  margin: auto;
+}
+
 .keep_cont {
   border: 2px solid black;
   height: 150px;
