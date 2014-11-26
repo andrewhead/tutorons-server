@@ -4,10 +4,12 @@
         <title>CodeSkim</title>
         <link rel="stylesheet" href="{% static "skim/css/style.css" %}">
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/vs.min.css">
         <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script src="http://d3js.org/queue.v1.min.js"></script>
         <script src="https://code.jquery.com/jquery-2.1.1.js"></script>
         <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
         <script>
             var data = {{ answers|safe }};
         </script>
@@ -19,14 +21,13 @@
             <input type="button" value="Search" action="submit">
         </form>
         <div id="tooltip" class="hidden">
-            <p><strong>Title</strong></p>
-            <p><span id="value">100</span></p>
+            <p><span id="value"></span></p>
         </div>
         <div class="cols">
             <div class="col" style="width:60%; float: left;">
                 <p>Showing search results for {{ query }}</p>
-                <div id="search_bars" style="width: 60%;"></div>
-                <div id="aggregate_chart" style="width: 60%; height: 150px;"></div>
+                <div id="preview_pane" style="height: 35%; overflow: auto;"></div>
+                <div id="search_bars" style="height: 55%; overflow: auto;"></div>
             </div>
             <div class="col" id="keep_col" style="width:40%; float: left;">
                 {% for i in "xxx" %}
@@ -35,6 +36,7 @@
                     <div class="keep" id="keep{{ forloop.counter0 }}"></div>
                 </div>
                 {% endfor %}
+                <div id="aggregate_chart" style="width: 100%; height: 150px;"></div>
             </div>
         </div>
     </body>
