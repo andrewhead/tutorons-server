@@ -32,10 +32,17 @@ $(function () {
             return body;
         }
 
+        function highlightCode(body) {
+           body.find("pre").each(function(_, block) {
+               hljs.highlightBlock(block);
+           });
+        }
+
         /* Add spans for each line of each answer body so we can look move the
          * preview window to focus precisely at that line. */
         for (var i = 0; i < data.length; i++) {
             data[i].body = addSpans($("<div>" + data[i].body + "</div>"));
+            highlightCode(data[i].body);
         }
     }
 
@@ -89,16 +96,22 @@ $(function () {
                 var previewPane = $("#preview_pane");
                 previewPane.empty();
                 previewPane.append(body);
-                previewPane.find('span').removeClass("highlight");
                 var textSpan = previewPane.find('span:contains(' + d.text + ')');
+
                 /* We don't scroll to lines with less than 5 characters, as they might be
-                 * a false match to another blank line! */
+                 * a false match to another blank line or "try {" line ! */
                 if (textSpan.length > 0 && d.text.length > 10) {
+
+                    /* Move highlighting to new terms */
+                    previewPane.find('span').removeClass("highlight");
                     textSpan.addClass("highlight");
+
+                    /* Animate a scroll to the current line */
                     previewPane.stop(true)
                         .animate({
                             scrollTop: textSpan.offset().top - 
-                                previewPane.offset().top + previewPane.scrollTop(),
+                                previewPane.offset().top + previewPane.scrollTop() -
+                                previewPane.height() / 3,
                             duration: 300
                     });
                 }

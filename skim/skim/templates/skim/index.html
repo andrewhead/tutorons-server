@@ -4,10 +4,12 @@
         <title>CodeSkim</title>
         <link rel="stylesheet" href="{% static "skim/css/style.css" %}">
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/vs.min.css">
         <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script src="http://d3js.org/queue.v1.min.js"></script>
         <script src="https://code.jquery.com/jquery-2.1.1.js"></script>
         <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
         <script>
             var data = {{ answers|safe }};
         </script>
