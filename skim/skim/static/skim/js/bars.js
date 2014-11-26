@@ -28,6 +28,7 @@ $(function () {
             .data(data)
             .enter()
             .append("g")
+            .attr("class", "response_g")
             .each(function(d,i) {
                 d.index = i;
             });
@@ -86,14 +87,19 @@ $(function () {
                 d3.select("#tooltip").classed("hidden", true);
             })
             .on("click", function(d,i){
-                var response = this.parentNode.parentNode;
-                sortBars(response);
+                //  flip value of sortOrder
+                sortOrder = !sortOrder;
+                var rs = d3.selectAll(".response_g")
+                    .each(function(d,i){
+                        sortBars(this);
+                    });
+                //sortBars(response);
             });
 
         var sortOrder = false;
         var sortBars = function(response) {
             //  flip value of sortOrder
-            sortOrder = !sortOrder;
+            //sortOrder = !sortOrder;
             d3.selectAll(response.childNodes)
                 .sort(function(a, b) {
                     if (sortOrder) {
@@ -119,6 +125,7 @@ $(function () {
                         i * (bar_height + bar_vertical_padding) + ")";
                 });
         };			
+
         /* When mouse is released, if code is being dragged, drop it in a keep. */
         $("body").on("mouseup", function(e) {
             if ($(e.target).closest('.keep_cont').length == 0) {
