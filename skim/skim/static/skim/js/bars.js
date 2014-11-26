@@ -8,6 +8,37 @@ $(function () {
         'containment': '#keep_col',
     });
 
+    function preprocessData(data) {
+
+        function addSpans(body) {
+            var code = body.children("pre");
+            if (code.length > 0) {
+                code.each(function() {
+                    $(this).html(function(_, text) {
+                        return text.replace(/^<code>/, "<span>")
+                            .replace(/(\r\n|\n|\r)/gm, "</span>\r\n<span>")
+                            .replace(/<\/code>$/, "</span>");
+                    });
+                });
+            }
+            var par = body.children("p");
+            if (par.length > 0) {
+                par.each(function() {
+                    $(this).html(function(_, text) {
+                        return "<span>" + text.replace(/\.\s/gm, "</span>\r\n<span>") + "</span>";
+                    });
+                });
+            }
+            return body;
+        }
+
+        /* Add spans for each line of each answer body so we can look move the
+         * preview window to focus precisely at that line. */
+        for (var i = 0; i < data.length; i++) {
+            data[i].body = addSpans($("<div>" + data[i].body + "</div>"));
+        }
+    }
+
 	function displayData(data) {
 		
 	    var bar_width = 30;
@@ -52,39 +83,32 @@ $(function () {
 			.attr("height", bar_height)
 			.style("fill", function(d) { return code_colors(d.type_); })
             .style("stroke", "black")
+            .style("pointer-events", "all")
+            .on("mouseover", function(d, i) {
+                var body = d3.select(this.parentNode.parentNode).datum().body;
+                var previewPane = $("#preview_pane");
+                previewPane.empty();
+                previewPane.append(body);
+                previewPane.find('span').removeClass("highlight");
+                var textSpan = previewPane.find('span:contains(' + d.text + ')');
+                /* We don't scroll to lines with less than 5 characters, as they might be
+                 * a false match to another blank line! */
+                if (textSpan.length > 0 && d.text.length > 10) {
+                    textSpan.addClass("highlight");
+                    previewPane.stop(true)
+                        .animate({
+                            scrollTop: textSpan.offset().top - 
+                                previewPane.offset().top + previewPane.scrollTop(),
+                            duration: 300
+                    });
+                }
+            })
             .on("mousedown", function(d) {
                 codeSelection = {
                     'body': d3.select(this.parentNode.parentNode).datum().body,
                     'line': d.text,
-                }
-            }).on("mouseover", function(d, i) {
-                var transform = d3.transform(d3.select(this.parentNode).attr("transform")).translate;
-                var xPosition = transform[0];
-                var yPosition = transform[1];
-                /* Get line for text */
-                var response = this.parentNode.parentNode; 
-                var lines = response.__data__.lines;
-                var text = "";
-                var tooltip_text_length = 3;
-                /* Update the tooltip position and value */
-                d3.select("#tooltip")
-                    .style("left", xPosition + "px")
-                    .style("top", yPosition + "px")						
-                    .select("#value")
-                    .text(function() {
-                        // FIX show lines above and below current line
-                        for(var li = i; li < lines.length && li < i + tooltip_text_length; li++) {
-                            text += lines[li].text + '\n';
-                        }
-                        return text;
-                    });
-                //Show the tooltip
-                d3.select("#tooltip").classed("hidden", false);            
-            }).on("mouseout", function() {
-                //Hide the tooltip
-                d3.select("#tooltip").classed("hidden", true);
-            })
-            .on("click", function(d,i){
+                };
+            }).on("click", function(d,i){
                 var response = this.parentNode.parentNode;
                 sortBars(response);
             });
@@ -117,7 +141,8 @@ $(function () {
                         //yPosition + ")";
                         i * (bar_height + bar_vertical_padding) + ")";
                 });
-        };			
+        };
+
         /* When mouse is released, if code is being dragged, drop it in a keep. */
         $("body").on("mouseup", function(e) {
             if ($(e.target).closest('.keep_cont').length == 0) {
@@ -291,5 +316,7 @@ $(function () {
             .attr("transform", "translate(" + ac_margin.left + ",0)")
             .call(yAxis);
 	};
+
+    preprocessData(data);
     displayData(data);
 });

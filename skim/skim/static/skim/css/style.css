@@ -26,13 +26,24 @@ h6 {
   -webkit-margin-after: 0.2em;
 }
 
+#preview_pane {
+  border: 1px solid black;
+  width: 90%;
+  margin: auto;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.highlight {
+  background-color: #ddeeff;
+}
+
 #search_bars {
   width: 95%;
   margin: auto;
 }
 
 .keep_cont {
-  border: 2px solid black;
   height: 150px;
   padding-left: 5px;
   padding-right: 5px;
