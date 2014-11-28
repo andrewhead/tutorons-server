@@ -27,6 +27,15 @@
             <div class="col" style="width:60%; float: left;">
                 <p>Showing search results for {{ query }}</p>
                 <div id="preview_pane" style="height: 35%; overflow: auto;"></div>
+                <div id="sort_options">
+                    <select id="sort_type_dropdown">
+                        <option value="length">Length</option>
+                        <option value="code_lines">Code Lines</option>
+                        <option value="text_lines">Text Lines</option>
+                        <option value="votes">Votes</option>
+                        <option value="reputation">Reputation</option>
+                    </select>
+                </div>
                 <div id="search_bars" style="height: 55%; overflow: auto;"></div>
             </div>
             <div class="col" id="keep_col" style="width:40%; float: left;">

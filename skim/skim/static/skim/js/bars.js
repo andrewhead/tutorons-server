@@ -47,7 +47,55 @@ $(function () {
     }
 
 	function displayData(data) {
-		
+
+        var sortResponses = function(sort_type) {
+            console.log(sort_type);
+            d3.selectAll(".response_g")
+                .sort(function(a, b) {
+                    console.log(a);
+                    switch(sort_type) {
+                        case "length":
+                            return d3.descending(a.lines.length, b.lines.length);
+                            break;
+                        case "code_lines":
+                            return d3.descending(
+                                a.lines.filter(function(d,i) { return d.type_ == "code"; }).length,
+                                b.lines.filter(function(d,i) { return d.type_ == "code"; }).length);
+                                //d3.selectAll(".response_g")[0][0].__data__.lines.filter(function(d,i){ return d.type_ == "code"; })
+                            return d3.descending(a.lines.length, b.lines.length);
+                            break;
+                        case "text_lines":
+                            return d3.descending(
+                                a.lines.filter(function(d,i) { return d.type_ == "text"; }).length,
+                                b.lines.filter(function(d,i) { return d.type_ == "text"; }).length);
+                            break;
+                        case "votes":
+                            return d3.descending(a.lines.length, b.lines.length);
+                            break;
+                        case "reputation":
+                            return d3.descending(a.lines.length, b.lines.length);
+                            break;
+                    }
+                })
+                .transition()
+                .duration(500)
+                .attr("transform", function(d, i) { 
+                    var transform = d3.transform(d3.select(this).attr("transform")).translate;
+                    var xPosition = transform[0];
+                    var yPosition = transform[1];
+                    return "translate(" +
+                        i * (bar_width + bar_horizontal_padding) + "," + 
+                        yPosition + ")";
+                });
+        };
+        
+        // Sort Type Drop Down Menu
+        var sort_drop_down = d3.select("#sort_type_dropdown")
+            .on("change", function(){
+                var sort_type = d3.select(this).property('value');
+                sortResponses(sort_type);
+            });
+            
 	    var bar_width = 30;
 	    var bar_height = 15;
 	    var bar_horizontal_padding = 5;
@@ -66,6 +114,10 @@ $(function () {
             .enter()
             .append("g")
             .attr("class", "response_g")
+            .attr("transform", function(d, i) {
+                return "translate(" +
+                    i * (bar_width + bar_horizontal_padding) + ", 0)";
+            })
             .each(function(d,i) {
                 d.index = i;
             });
@@ -76,8 +128,8 @@ $(function () {
             .append("g")
             .attr("class", "line_g")
             .attr("transform", function(d, i, j) { 
-                return "translate(" +
-                    j * (bar_width + bar_horizontal_padding) + "," +
+                return "translate(0," +
+                    //j * (bar_width + bar_horizontal_padding) + "," +
                     i * (bar_height + bar_vertical_padding) + ")";
             })
             .each(function(d,i){
