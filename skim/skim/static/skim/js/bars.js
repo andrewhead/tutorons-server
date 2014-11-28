@@ -140,7 +140,10 @@ $(function () {
                 .sort(function(a, b) {
                     if (sortOrder) {
                         // sort by type
-                        return d3.ascending(a.type_, b.type_);
+                        if (a.type_ === b.type_)
+                            return d3.ascending(a.index, b.index);
+                        else
+                            return d3.ascending(a.type_, b.type_);
                     } else {
                         // return to original order
                         return d3.ascending(a.index, b.index);
