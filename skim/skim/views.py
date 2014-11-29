@@ -10,7 +10,7 @@ import jsonpickle
 import parse
 
 
-# @cache_page(60 * 60)
+@cache_page(60 * 60)
 def home(request):
     query = request.GET.get('q', "Java sleep milliseconds")
     questionUrl = 'https://api.stackexchange.com/2.2/search/advanced'
@@ -20,6 +20,7 @@ def home(request):
         'sort': 'votes',
         'q': query,
         'site': 'stackoverflow',
+        'tagged': 'java',
         'filter': '!9YdnSK0R1',
         }).json()
 

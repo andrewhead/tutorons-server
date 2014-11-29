@@ -18,16 +18,20 @@
         <script src="{% static "skim/js/bars.js" %}"></script>
     </head>
     <body>
-        <form method="get" action="http://www.celere.com">
-            <input type="text" name="q" maxlength=100 placeholder="Search..." required>
-            <input type="button" value="Search" action="submit">
-        </form>
+        <div id="search_pane">
+            <form method="get" action="http://www.celere.com">
+                <input class="input" type="text" name="q" maxlength=100 placeholder="Search..." required>
+                <input class="input" type="button" value="Search" action="submit">
+                <label id="query_text">Showing search results for {{ query }}</p>
+            </form>
+        </div>
         <div class="cols">
-            <div class="col" style="width:60%; float: left;">
-                <p>Showing search results for {{ query }}</p>
-                <div id="preview_pane" style="height: 35%; overflow: auto;"></div>
+            <div class="col" style="width:45%; float: left;">
+                <h4>Search Results</h4>
+                <div id="search_results" class="main_cont" style="height: 55%;"></div>
                 <div class="cols">
                     <div class="col" style="width: 30%; float: left;" id="sort_options">
+                        <h5>Sort</h5>
                         <form id="sort_options_form">
                             <select id="sort_type_dropdown">
                                 <option value="none">None</option>
@@ -37,16 +41,30 @@
                                 <option value="votes">Votes</option>
                                 <option value="reputation">Reputation</option>
                             </select>
-                            <input type="radio" name="sort_order" value="descending" checked>Descending<br>
-                            <input type="radio" name="sort_order" value="ascending">Ascending
+                            <br>
+                            <label><input type="radio" name="sort_order" value="ascending">Ascending</label>
+                            <br>
+                            <label><input type="radio" name="sort_order" value="descending" checked>Descending</label>
                         </form>
                     </div>
-                    <div class="col" id="aggregate_chart" style="width: 35%; float: left; height: 150px;"></div>
-                    <div class="col" id="concept_chart" style="width: 35%; float: left; height: 150px;"></div>
+                    <div class="col cols" style="float: left; width: 70%;">
+                        <h5>Markup</h5>
+                        <div class="col" style="width: 50%; float: left;">
+                            <h6>Classes</h6>
+                            <div class="agg_chart" id="aggregate_chart"></div>
+                        </div>
+                        <div class="col" style="width: 50%; float: left;">
+                            <h6>Concepts</h6>
+                            <div class="agg_chart" id="concept_chart"></div>
+                        </div>
+                    </div>
                 </div>
-                <div id="search_bars" style="height: 55%; overflow: auto;"></div>
             </div>
-            <div class="col" id="keep_col" style="width:40%; float: left;">
+            <div class="col" style="width:55%; float: left;">
+                <h4>Source Preview</h4>
+                <div id="preview_pane" class="main_cont" style="height: 35%; overflow: auto;"></div>
+                <h4>Snippets</h4>
+                <div id="keep_cont"></div>
             </div>
         </div>
     </body>
