@@ -10,10 +10,18 @@ from bs4 import BeautifulSoup
 import re
 
 
+class Question(object):
+    
+    def __init__(self, id_, title):
+        self.id_ = id_
+        self.title = title
+
+
 class Answer(object):
 
-    def __init__(self, id_, body, votes, reputation):
+    def __init__(self, id_, qid_, body, votes, reputation):
         self.id_ = id_
+        self.qid_ = qid_ # question id
         self.lines = []
         self.body = body
         self.votes = votes
@@ -104,7 +112,7 @@ def parseAnswers(answerData):
     answers = []
     for item in answerData['items']:
         ''' Create answer. '''
-        answer = Answer(item['answer_id'], item['body'], item['score'], item['owner']['reputation'])
+        answer = Answer(item['answer_id'], item['question_id'], item['body'], item['score'], item['owner']['reputation'])
 
         ''' Parse the answer to separate lines. '''
         soup = BeautifulSoup(item['body'], 'html.parser')
@@ -119,3 +127,13 @@ def parseAnswers(answerData):
         answers.append(answer)
 
     return answers
+
+
+def parseQuestions(questionData):
+    
+    questions = []
+    for item in questionData['items']:
+        ''' Create Question '''
+        question = Question(item['question_id'], item['title'])
+        questions.append(question)
+    return questions

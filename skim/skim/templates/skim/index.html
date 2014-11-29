@@ -12,6 +12,7 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
         <script>
             var data = {{ answers|safe }};
+            var questions = {{ questions|safe }};
         </script>
         <script src="{% static "skim/js/bars.js" %}"></script>
     </head>
