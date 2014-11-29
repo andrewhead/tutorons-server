@@ -11,26 +11,32 @@ import jsonpickle
 def home(request):
     query = request.GET.get('q', "Java sleep milliseconds")
     questionUrl = 'https://api.stackexchange.com/2.2/search/advanced'
-    question = requests.get(questionUrl, params={
+
+    questions = requests.get(questionUrl, params={
         'order': 'desc',
         'sort': 'votes',
         'q': query,
         'site': 'stackoverflow',
         'filter': '!9YdnSK0R1',
-    }).json()['items'][0]
-    questionId = int(question['question_id'])
+        }).json()
 
-    answerUrl = 'https://api.stackexchange.com/2.2/questions/' + str(questionId) + '/answers'
+    parsedQuestions = parse.parseQuestions(questions)
+
+    questionIds = ';'.join(str(q.id_) for q in parsedQuestions);
+    answerUrl = 'https://api.stackexchange.com/2.2/questions/' + str(questionIds) + '/answers'
     answers = requests.get(answerUrl, params={
         'order': 'desc',
         'sort': 'activity',
         'site': 'stackoverflow',
         'filter': '!b0OfNZ*ohL7Iue',
-    }).json()
+        }).json()
     parsedAnswers = parse.parseAnswers(answers)
-
+    
     context = {
         'query': query,
         'answers': jsonpickle.encode(parsedAnswers, unpicklable=False),
+        'questions': jsonpickle.encode(parsedQuestions, unpicklable=False), 
     }
     return render(request, 'skim/index.html', context)
+        
+

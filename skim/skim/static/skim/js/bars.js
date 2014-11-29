@@ -2,8 +2,6 @@ $(function () {
 
 	function setupCodeBars(data) {
 
-        console.log(code_colors);
-
 	    var bar_width = 30;
 	    var bar_height = 15;
 	    var bar_horizontal_padding = 5;
