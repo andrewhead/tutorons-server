@@ -265,7 +265,7 @@ $(function () {
         };
 	};
 
-    function setupCountChart(divId, data, extract) {
+    function setupCountChart(divId, data, featureKey) {
 
         var chart = d3.select(divId);
         var w = px_to_num(chart.style("width"));
@@ -277,23 +277,25 @@ $(function () {
         var margin = {
             top: 20,
             bottom: 70,
-            left: 20,
+            left: 30,
             right: 20
         };
 
-        var REF_COUNT = 20;  // 20 because of category20 colors for D3
-        var ref_counts = extract(data);
-        var sorted_ref_counts = d3.entries(ref_counts)
+        var REF_COUNT = 10;  // 20 because of category20 colors for D3
+        var ref_counts = countCodeFeatures(data, featureKey);
+        var sortedFeatCounts = d3.entries(ref_counts)
             .sort(function(a, b) {
                 return b.value - a.value;
             })
             .splice(0, REF_COUNT);
         var ref_colors = d3.scale.category20b()
-            .domain(d3.keys(sorted_ref_counts));
+            .domain(d3.keys(sortedFeatCounts));
+
+        console.log(sortedFeatCounts);
 
         var max_refs = d3.max(d3.entries(ref_counts), function(d) { return d.value; });
         var x_scale = d3.scale.ordinal()
-            .domain(sorted_ref_counts.map(function(d) { return d.key; }))
+            .domain(sortedFeatCounts.map(function(d) { return d.key; }))
             .rangeRoundBands([margin.left, w - margin.right], .1);
         var y_scale = d3.scale.linear()
             .domain([0, max_refs])
@@ -301,17 +303,9 @@ $(function () {
         var h_scale = d3.scale.linear()
             .domain([0, max_refs])
             .range([0, h - (margin.top + margin.bottom)]);
-        var yAxis = d3.svg.axis()
-            .scale(y_scale)
-            .ticks(4)
-            .orient("left");
-        svg.append("g")
-            .attr("class", "axis")
-            .attr("transform", "translate(" + margin.left + ",0)")
-            .call(yAxis);
 
         var bars = svg.selectAll("rect")
-            .data(sorted_ref_counts)
+            .data(sortedFeatCounts)
             .enter()
             .append("rect")
             .attr("class", "dep_bar")
@@ -325,7 +319,7 @@ $(function () {
             .on("mouseout", mouseout);
 
         var labels = svg.selectAll("text")
-            .data(sorted_ref_counts)
+            .data(sortedFeatCounts)
             .enter()
             .append("text")
             .attr("text-anchor", "end")
@@ -338,9 +332,18 @@ $(function () {
                     ")rotate(-40)";
             });
 
+        var yAxis = d3.svg.axis()
+            .scale(y_scale)
+            .ticks(4)
+            .orient("left");
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + margin.left + ",0)")
+            .call(yAxis);
+
         function mouseover(d) {
             d3.select(this).classed("hovered", true);
-            brighten_lines_with_reference(d.key, 1.5);
+            brighten_lines_with_feature(featureKey, d.key, 1.5);
             d3.select(this).call(color_dep_bar);
         }
 
@@ -348,13 +351,13 @@ $(function () {
             d3.select(this).classed("selected", function() {
                 return ! d3.select(this).classed("selected");
             });
-            show_flags_for_selected_references();
+            show_flags_for_selected_features(featureKey);
             d3.select(this).call(color_dep_bar);
         }
 
         function mouseout(d) {
             d3.select(this).classed("hovered", false);
-            brighten_lines_with_reference(d.key, 0);
+            brighten_lines_with_feature(featureKey, d.key, 0);
             d3.select(this).call(color_dep_bar);
         }
 
@@ -370,19 +373,19 @@ $(function () {
             });
         }
 
-        function brighten_lines_with_reference(ref, brightness) {
+        function brighten_lines_with_feature(key, ref, brightness) {
             d3.selectAll(".line_rect").filter(function(d) { 
-                return (d.references.indexOf(ref) >= 0); 
+                return (d[key].indexOf(ref) >= 0); 
             }).style("fill", function(d) {
                 return d3.rgb(code_colors(d.type_)).brighter(brightness);
             });
         };
 
-        function show_flags_for_selected_references() {
+        function show_flags_for_selected_features(featureKey) {
 
-            function color_flags_with_reference(ref, color) {
+            function color_flags_with_feature(featureKey, ref, color) {
                 d3.selectAll(".flag").filter(function(d) { 
-                    return (d.references.indexOf(ref) >= 0); 
+                    return (d[featureKey].indexOf(ref) >= 0); 
                 }).style("fill", function(d) {
                     return d3.rgb(color);
                 }).style("fill-opacity", 1.0);
@@ -397,29 +400,29 @@ $(function () {
             if (selected.length > 0) {
                 selected[0].reverse();
                 selected.each(function(d) {
-                    color_flags_with_reference(d.key, ref_colors(d.key));
+                    color_flags_with_feature(featureKey, d.key, ref_colors(d.key));
                 });
             }
         };
     }
 
     /* Utilities */
-    function codeDepCounts(data) {
-        var ref_counts = {};
+    function countCodeFeatures(data, key) {
+        var feat_counts = {};
         for (var i = 0; i < data.length; i++) {
             var lines = data[i].lines;
             for (var j = 0; j < lines.length ; j++) {
-                var references = lines[j].references;
-                for (var k = 0; k < references.length; k++) {
-                    var ref = references[k];
-                    if (!(ref in ref_counts)) {
-                        ref_counts[ref] = 0;
+                var features = lines[j][key];
+                for (var k = 0; k < features.length; k++) {
+                    var feat = features[k];
+                    if (!(feat in feat_counts)) {
+                        feat_counts[feat] = 0;
                     }
-                    ref_counts[ref]++;
+                    feat_counts[feat]++;
                 }
             }
         }
-        return ref_counts;
+        return feat_counts;
     };
 
     function px_to_num(str) {
@@ -472,5 +475,6 @@ $(function () {
     /* MAIN */
     preprocessData(data);
     setupCodeBars(data);
-    setupCountChart("#aggregate_chart", data, codeDepCounts);
+    setupCountChart("#aggregate_chart", data, "references");
+    setupCountChart("#concept_chart", data, "concepts");
 });

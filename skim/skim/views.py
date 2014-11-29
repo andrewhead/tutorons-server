@@ -3,11 +3,14 @@
 
 from __future__ import unicode_literals
 from django.shortcuts import render
-import parse
+from django.views.decorators.cache import cache_page
 import requests
 import jsonpickle
 
+import parse
 
+
+# @cache_page(60 * 60)
 def home(request):
     query = request.GET.get('q', "Java sleep milliseconds")
     questionUrl = 'https://api.stackexchange.com/2.2/search/advanced'
