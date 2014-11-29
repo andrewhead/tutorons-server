@@ -224,8 +224,6 @@ $(function () {
             var sort_type = "length", sort_order="descending";
             sort_type = d3.select("#sort_type_dropdown").property('value');
             sort_order = d3.select("#sort_options_form input[type='radio']:checked").property('value');
-            //console.log("sort_type:", sort_type);
-            //console.log("sort_order:", sort_order);
             var d3_sort_order = sort_order === "ascending"? d3.ascending : d3.descending;
             d3.selectAll(".response_g")
                 .sort(function(a, b) {
@@ -290,8 +288,6 @@ $(function () {
             .splice(0, REF_COUNT);
         var ref_colors = d3.scale.category20b()
             .domain(d3.keys(sortedFeatCounts));
-
-        console.log(sortedFeatCounts);
 
         var max_refs = d3.max(d3.entries(ref_counts), function(d) { return d.value; });
         var x_scale = d3.scale.ordinal()
@@ -429,6 +425,26 @@ $(function () {
         return Number(str.replace("px", ""));
     };
 
+    function addJavadocsLinks(divId, linksData) {
+        $("#aggregate_chart text.ac_label").each(function() {
+            var className = $(this).text();
+            var link = undefined;
+            if (linksData.hasOwnProperty(className)) {
+                link = linksData[className];
+            } else {
+                link = "https://docs.oracle.com/javase/7/docs/api";
+            }
+            $(this).data("href", link)
+            .on('click', function() {
+                window.open($(this).data('href'), '_blank');
+            })
+            .css({
+                cursor: 'pointer',
+                cursor: 'hand'
+            });
+        });
+    }
+
     /* Routines for processing input data */
     function preprocessData(data) {
 
@@ -473,8 +489,11 @@ $(function () {
         .domain(["text", "code", "codecommentinline", "codecommentlong"]);
 
     /* MAIN */
-    preprocessData(data);
-    setupCodeBars(data);
-    setupCountChart("#aggregate_chart", data, "references");
-    setupCountChart("#concept_chart", data, "concepts");
+    d3.json("/static/skim/data/javadocs_links.json", function(linksData) {
+        preprocessData(data);
+        setupCodeBars(data);
+        setupCountChart("#aggregate_chart", data, "references");
+        addJavadocsLinks("#aggregate_chart", linksData);
+        setupCountChart("#concept_chart", data, "concepts");
+    });
 });
