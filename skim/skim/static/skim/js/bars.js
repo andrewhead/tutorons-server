@@ -48,7 +48,62 @@ $(function () {
     }
 
 	function displayData(data) {
-		
+
+        var sortResponses = function() {
+            var sort_type = "length", sort_order="descending";
+            sort_type = d3.select("#sort_type_dropdown").property('value');
+            sort_order = d3.select("#sort_options_form input[type='radio']:checked").property('value');
+            //console.log("sort_type:", sort_type);
+            //console.log("sort_order:", sort_order);
+            var d3_sort_order = sort_order === "ascending"? d3.ascending : d3.descending;
+            d3.selectAll(".response_g")
+                .sort(function(a, b) {
+                    switch(sort_type) {
+                        case "length":
+                            //return d3.descending(a.lines.length, b.lines.length);
+                            return d3_sort_order(a.lines.length, b.lines.length);
+                            break;
+                        case "code_lines":
+                            return d3_sort_order(
+                                a.lines.filter(function(d,i) { return d.type_ == "code"; }).length,
+                                b.lines.filter(function(d,i) { return d.type_ == "code"; }).length);
+                            break;
+                        case "text_lines":
+                            return d3_sort_order(
+                                a.lines.filter(function(d,i) { return d.type_ == "text"; }).length,
+                                b.lines.filter(function(d,i) { return d.type_ == "text"; }).length);
+                            break;
+                        case "votes":
+                            return d3_sort_order(a.votes, b.votes);
+                            break;
+                        case "reputation":
+                            return d3_sort_order(a.reputation, b.reputation);
+                            break;
+                    }
+                })
+                .transition()
+                .duration(500)
+                .attr("transform", function(d, i) { 
+                    var transform = d3.transform(d3.select(this).attr("transform")).translate;
+                    var xPosition = transform[0];
+                    var yPosition = transform[1];
+                    return "translate(" +
+                        i * (bar_width + bar_horizontal_padding) + "," + 
+                        yPosition + ")";
+                });
+        };
+        
+        // Sort Type Drop Down Menu
+        d3.select("#sort_type_dropdown")
+            .on("change", function(){
+                sortResponses();
+            });
+        // Sort Type Radio Button
+        d3.selectAll("input[type=radio][name=sort_order]")
+            .on("change", function(){
+                sortResponses();
+            });
+            
 	    var bar_width = 30;
 	    var bar_height = 15;
 	    var bar_horizontal_padding = 5;
@@ -67,6 +122,10 @@ $(function () {
             .enter()
             .append("g")
             .attr("class", "response_g")
+            .attr("transform", function(d, i) {
+                return "translate(" +
+                    i * (bar_width + bar_horizontal_padding) + ", 0)";
+            })
             .each(function(d,i) {
                 d.index = i;
             });
@@ -77,8 +136,8 @@ $(function () {
             .append("g")
             .attr("class", "line_g")
             .attr("transform", function(d, i, j) { 
-                return "translate(" +
-                    j * (bar_width + bar_horizontal_padding) + "," +
+                return "translate(0," +
+                    //j * (bar_width + bar_horizontal_padding) + "," +
                     i * (bar_height + bar_vertical_padding) + ")";
             })
             .each(function(d,i){
