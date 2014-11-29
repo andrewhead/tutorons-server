@@ -70,10 +70,10 @@ $(function () {
                                 b.lines.filter(function(d,i) { return d.type_ == "text"; }).length);
                             break;
                         case "votes":
-                            return d3.descending(a.lines.length, b.lines.length);
+                            return d3.descending(a.votes, b.votes);
                             break;
                         case "reputation":
-                            return d3.descending(a.lines.length, b.lines.length);
+                            return d3.descending(a.reputation, b.reputation);
                             break;
                     }
                 })
