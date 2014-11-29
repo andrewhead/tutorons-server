@@ -8,6 +8,7 @@ $(function () {
         'containment': '#keep_col',
     });
 
+    /* Routines for processing incoming data */
     function preprocessData(data) {
 
         function addSpans(body) {
@@ -84,7 +85,31 @@ $(function () {
                 d.index = i;
             });
 
-        var codeSelection = undefined;
+        function setPreview(selector, body, line) {
+            preview = $(selector);
+            preview.empty();
+            preview.append(body);
+            var textSpan = preview.find('span:contains(' + line + ')');
+
+            /* We don't scroll to lines with less than 5 characters, as they might be
+             * a false match to another blank line or "try {" line ! */
+            if (textSpan.length > 0 && line.length > 10) {
+
+                /* Move highlighting to new terms */
+                preview.find('span').removeClass("highlight");
+                textSpan.addClass("highlight");
+
+                /* Animate a scroll to the current line */
+                preview.stop(true)
+                    .animate({
+                        scrollTop: textSpan.offset().top - 
+                            preview.offset().top + preview.scrollTop() -
+                            preview.height() / 3,
+                        duration: 300
+                });
+            }
+        }
+
         var bars = lines.append("rect")
             .attr("class", "line_rect")
 			.attr("width", bar_width)
@@ -92,45 +117,99 @@ $(function () {
 			.style("fill", function(d) { return code_colors(d.type_); })
             .style("stroke", "black")
             .style("pointer-events", "all")
-            .on("mouseover", function(d, i) {
+            .on("mouseover", function(d) {
                 var body = d3.select(this.parentNode.parentNode).datum().body;
-                var previewPane = $("#preview_pane");
-                previewPane.empty();
-                previewPane.append(body);
-                var textSpan = previewPane.find('span:contains(' + d.text + ')');
-
-                /* We don't scroll to lines with less than 5 characters, as they might be
-                 * a false match to another blank line or "try {" line ! */
-                if (textSpan.length > 0 && d.text.length > 10) {
-
-                    /* Move highlighting to new terms */
-                    previewPane.find('span').removeClass("highlight");
-                    textSpan.addClass("highlight");
-
-                    /* Animate a scroll to the current line */
-                    previewPane.stop(true)
-                        .animate({
-                            scrollTop: textSpan.offset().top - 
-                                previewPane.offset().top + previewPane.scrollTop() -
-                                previewPane.height() / 3,
-                            duration: 300
-                    });
-                }
+                setPreview("#preview_pane", body, d.text);
             })
-            .on("mousedown", function(d) {
-                codeSelection = {
-                    'body': d3.select(this.parentNode.parentNode).datum().body,
-                    'line': d.text,
-                }
-            }).on("click", function(d,i){
+            .on("mousedown", dragStart)
+            .on("mouseup", dragEnd)
+            .on("click", function(d, i){
                 //  flip value of sortOrder
                 sortOrder = !sortOrder;
                 var rs = d3.selectAll(".response_g")
-                    .each(function(d,i){
+                    .each(function(d, i){
                         sortBars(this);
                     });
-                //sortBars(response);
             });
+
+        var dragStartParent, dragEndParent;
+        var dragStartLine, dragEndLine;
+        
+        function dragStart(d, i) {
+            dragEndParent = undefined;
+            dragEndLine = undefined;
+            dragStartParent = d3.select(this.parentNode.parentNode);
+            dragStartLine = d3.select(this.parentNode);
+        };
+
+        function dragEnd(d, i) {
+
+            function posFromTranslate(string) {
+                tokens = string.split(/[(,)]/);
+                return {
+                    x: tokens[1],
+                    y: tokens[2]
+                };
+            }
+
+            dragEndParent = d3.select(this.parentNode.parentNode);
+            dragEndLine = d3.select(this.parentNode);
+            if (dragEndParent.datum().index === dragStartParent.datum().index) {
+                startPos = posFromTranslate(dragStartLine.attr("transform"));
+                endPos = posFromTranslate(dragEndLine.attr("transform"));
+                var rectX = startPos.x;
+                var rectY = Math.min(startPos.y, endPos.y);
+                var rectW = Number(d3.select(this).attr("width"));
+                var rectH = Math.abs(startPos.y - endPos.y) + Number(d3.select(this).attr("height"));
+                dragEndParent.append("rect")
+                    .attr("x", rectX)
+                    .attr("y", rectY)
+                    .attr("width", rectW)
+                    .attr("height", rectH)
+                    .style("fill-opacity", 0)
+                    .style("stroke", "black")
+                    .style("stroke-width", 5)
+                    .style("pointer-events", "none");
+            }
+
+            /* Keep only the lines in the body that have been selected by the user */
+            var body = $(dragStartParent.datum().body).clone();
+            var startIndex = Math.min(dragStartLine.datum().index, dragEndLine.datum().index);
+            var endIndex = Math.max(dragStartLine.datum().index, dragEndLine.datum().index);
+            for (var i = startIndex; i <= endIndex; i++) {
+                var lineText = dragStartParent.datum().lines[i].text;
+                if (lineText.length > 0) {
+                    var spans = body.find('span:contains(' + lineText + ')')
+                            .addClass('keep');
+                }
+            }
+            body.find("pre > span").not(".keep").remove();
+            body.find("p > span").not(".keep").remove();
+            body.find("p:not(:has(*))").remove();
+            body.find("pre:not(:has(*))").remove();
+            body.css("height", "150px")
+                .css("overflow", "auto");
+            body.html(body.html().replace(/^\s*[\r\n]/gm, ""));
+
+            var newEntry = $("<div></div>");
+            var header = newEntry.append("<h3>" + window.query + "</h3>")
+                .prop("contenteditable", "true")
+                .on("keypress", function(e) {
+                    if (e.keyCode == 13) {
+                        $("#target").blur().next().focus();
+                        return false;
+                    }
+                });
+            newEntry.append(body);
+            $("#keep_col").prepend(newEntry);
+            newEntry.accordion({
+                collapsible: true,
+                heightStyle: "content"
+            });
+
+            dragStartParent = undefined;
+            dragStartLine = undefined;
+        };
 
         var sortOrder = false;
         var sortBars = function(response) {
@@ -164,23 +243,6 @@ $(function () {
                         i * (bar_height + bar_vertical_padding) + ")";
                 });
         };
-
-        /* When mouse is released, if code is being dragged, drop it in a keep. */
-        $("body").on("mouseup", function(e) {
-            if ($(e.target).closest('.keep_cont').length == 0) {
-                codeSelection = undefined;
-            } else {
-                if (codeSelection !== undefined) {
-                    var keep = $(e.target).closest('.keep_cont').children('.keep');
-                    keep.empty();
-                    keep.append(codeSelection.body);
-                    /* Focus code to the text selected */
-                    keep.scrollTop(keep.children(
-                        ":contains('" + codeSelection.line + "'):last")
-                        .offset().top);
-                }
-            }
-        });
 
         var flags = lines.append("svg")
             .attr("width", bar_width)
@@ -339,6 +401,8 @@ $(function () {
             .call(yAxis);
 	};
 
+    /* MAIN */
     preprocessData(data);
     displayData(data);
+
 });

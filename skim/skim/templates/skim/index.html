@@ -9,9 +9,10 @@
         <script src="http://d3js.org/queue.v1.min.js"></script>
         <script src="https://code.jquery.com/jquery-2.1.1.js"></script>
         <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
         <script>
             var data = {{ answers|safe }};
+            var query = "{{ query|safe }}";
         </script>
         <script src="{% static "skim/js/bars.js" %}"></script>
     </head>
@@ -28,15 +29,9 @@
                 <p>Showing search results for {{ query }}</p>
                 <div id="preview_pane" style="height: 35%; overflow: auto;"></div>
                 <div id="search_bars" style="height: 55%; overflow: auto;"></div>
+                <div id="aggregate_chart" style="width: 100%; height: 150px;"></div>
             </div>
             <div class="col" id="keep_col" style="width:40%; float: left;">
-                {% for i in "xxx" %}
-                <h6 class="noselect ui-widget-header">Snippet {{ forloop.counter0 }}</h3>
-                <div class="keep_cont ui-state-active">
-                    <div class="keep" id="keep{{ forloop.counter0 }}"></div>
-                </div>
-                {% endfor %}
-                <div id="aggregate_chart" style="width: 100%; height: 150px;"></div>
             </div>
         </div>
     </body>

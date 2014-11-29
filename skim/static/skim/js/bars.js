@@ -1,17 +1,16 @@
 $(function () {	
 
-	var DATA_FILE_PATH = "./data/309424.lines.json";
-
     var code_colors = d3.scale.category10()
         .domain(["text", "code", "codecommentinline", "codecommentlong"])
 
- 	// width and height
 	var svg = d3.select("#search_bars")
         .append("svg")
         .attr("width", "100%")
         .attr("height", "100%");
 
 	d3.json(DATA_FILE_PATH, function(error, data) {
+
+        /* Create g for each response */
 		var responses = svg.selectAll("g")
             .data(data)
             .enter()
@@ -22,6 +21,7 @@ $(function () {
 	    var bar_horizontal_padding = 1;
 	    var bar_vertical_padding = 5;
 
+        /* Create lines for each response */
 		var lines = responses.selectAll("g")
             .data(function(d) { return d.lines; })
             .enter()
@@ -32,6 +32,7 @@ $(function () {
                     j * (bar_height + bar_vertical_padding) + ")";
             })
 
+        /* Add code rectangles for each line */
         var bars = lines.append("rect")
             .attr("class", "line_rect")
 			.attr("width", bar_width)
