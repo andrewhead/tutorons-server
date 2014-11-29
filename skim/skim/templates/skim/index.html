@@ -22,6 +22,9 @@
             <input type="text" name="q" maxlength=100 placeholder="Search..." required>
             <input type="button" value="Search" action="submit">
         </form>
+        <div id="question_list">
+            <h3>Questions related to query: {{ query }}</h3>
+        </div>
         <div class="cols">
             <div class="col" style="width:60%; float: left;">
                 <p>Showing search results for {{ query }}</p>
@@ -37,8 +40,10 @@
                                 <option value="votes">Votes</option>
                                 <option value="reputation">Reputation</option>
                             </select>
-                            <input type="radio" name="sort_order" value="descending" checked>Descending<br>
-                            <input type="radio" name="sort_order" value="ascending">Ascending
+                            <br>
+                            <label for="descending"><input id="descending" type="radio" name="sort_order" value="descending" checked/>Descending</label>
+                            <br>
+                            <label for="ascending"><input id="ascending" type="radio" name="sort_order" value="ascending"/>Ascending</label>
                         </form>
                     </div>
                     <div class="col" id="aggregate_chart" style="width: 35%; float: left; height: 150px;"></div>
