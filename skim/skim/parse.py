@@ -177,7 +177,7 @@ def parseAnswers(answerData):
     answers = []
     for item in answerData['items']:
         ''' Create answer. '''
-        answer = Answer(item['answer_id'], item['question_id'], item['body'], item['score'], item['owner']['reputation'])
+        answer = Answer(item['answer_id'], item['question_id'], item['body'], item['score'], item['owner'].get('reputation', 0))
 
         ''' Parse the answer to separate lines. '''
         soup = BeautifulSoup(item['body'], 'html.parser')

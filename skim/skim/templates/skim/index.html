@@ -22,8 +22,11 @@
             <input type="text" name="q" maxlength=100 placeholder="Search..." required>
             <input type="button" value="Search" action="submit">
         </form>
-        <div id="question_list">
-            <h3>Questions related to query: {{ query }}</h3>
+        <div id="question_panel">
+            <div id="question_list">
+                <h3>Select Questions Related to your Query: {{ query }}</h3>
+            </div>
+            <button id="question_done_button" type="button">Done</button>
         </div>
         <div class="cols">
             <div class="col" style="width:60%; float: left;">

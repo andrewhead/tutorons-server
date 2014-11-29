@@ -20,6 +20,7 @@ def home(request):
         'sort': 'votes',
         'q': query,
         'site': 'stackoverflow',
+        'pagesize': '10',           # No of Questions
         'filter': '!9YdnSK0R1',
         }).json()
 
@@ -29,12 +30,13 @@ def home(request):
     answerUrl = 'https://api.stackexchange.com/2.2/questions/' + str(questionIds) + '/answers'
     answers = requests.get(answerUrl, params={
         'order': 'desc',
-        'sort': 'activity',
+        'sort': 'votes',
         'site': 'stackoverflow',
+        'pagesize': '100',           # No of Answers
         'filter': '!b0OfNZ*ohL7Iue',
         }).json()
     parsedAnswers = parse.parseAnswers(answers)
-    
+
     context = {
         'query': query,
         'answers': jsonpickle.encode(parsedAnswers, unpicklable=False),

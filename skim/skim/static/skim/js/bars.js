@@ -1,5 +1,40 @@
 $(function () {	
 
+    function setupQuestionList(questions, data, linksData) {
+        var questionList = d3.select("#question_list");
+        questionList.selectAll("input")
+            .data(questions)
+            .enter()
+            .append("p")
+            .append("label")
+                .attr("for", function(d,i) { return 'q' + d.id_; })
+                .text(function(d) { return d.title; })
+            .append("input")
+                .attr("type", "checkbox")
+                .attr("name", "question")
+                .attr("id", function(d,i) { return 'q' + d.id_; })
+            ;
+        d3.select("#question_done_button")
+            .on("click", function() {
+                // build set (dictionary) of selected question id's
+                var selected_qids = {};
+                d3.selectAll("input[type=checkbox][name=question]:checked")
+                    .each(function(d,i) {
+                        selected_qids[ d.id_ ] = true;
+                    });
+                // filter answers
+                answers = data.filter(function(elem) {
+                    return (elem.qid_ in selected_qids);
+                });
+                $("#question_panel").slideUp("slow", function() {
+                    setupCodeBars(answers);
+                    setupCountChart("#aggregate_chart", answers, "references");
+                    addJavadocsLinks("#aggregate_chart", linksData);
+                    setupCountChart("#concept_chart", answers, "concepts");
+                });
+            });
+    }
+
 	function setupCodeBars(data) {
 
 	    var bar_width = 30;
@@ -444,6 +479,8 @@ $(function () {
             });
         });
     }
+    
+
 
     /* Routines for processing input data */
     function preprocessData(data) {
@@ -491,9 +528,6 @@ $(function () {
     /* MAIN */
     d3.json("/static/skim/data/javadocs_links.json", function(linksData) {
         preprocessData(data);
-        setupCodeBars(data);
-        setupCountChart("#aggregate_chart", data, "references");
-        addJavadocsLinks("#aggregate_chart", linksData);
-        setupCountChart("#concept_chart", data, "concepts");
+        setupQuestionList(questions, data, linksData);
     });
 });
