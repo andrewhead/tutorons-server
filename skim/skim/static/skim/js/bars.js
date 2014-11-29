@@ -37,12 +37,12 @@ $(function () {
 
 	function setupCodeBars(data) {
 
-	    var bar_width = 30;
-	    var bar_height = 15;
+	    var bar_width = 15;
+	    var bar_height = 10;
 	    var bar_horizontal_padding = 5;
 	    var bar_vertical_padding = 0;
 
-        var svg = d3.select("#search_bars")
+        var svg = d3.select("#search_results")
             .append("svg")
             .attr("width", data.length * (bar_width + bar_horizontal_padding))
             //.attr("height", data.length * (bar_height + bar_vertical_padding));
@@ -83,9 +83,12 @@ $(function () {
 			.style("fill", function(d) { return code_colors(d.type_); })
             .style("stroke", "black")
             .style("pointer-events", "all")
-            .on("mouseover", function(d) {
+            .on("mouseover", function(d, i) {
                 var body = d3.select(this.parentNode.parentNode).datum().body;
                 setPreview("#preview_pane", body, d.text);
+                if (dragStartParent !== undefined) {
+                    dragging(this, d, i);
+                }
             })
             .on("mousedown", dragStart)
             .on("mouseup", dragEnd)
@@ -145,7 +148,8 @@ $(function () {
 
         var dragStartParent, dragEndParent;
         var dragStartLine, dragEndLine;
-        
+        var tempDragRect;        
+
         function dragStart(d, i) {
             dragEndParent = undefined;
             dragEndLine = undefined;
@@ -153,7 +157,7 @@ $(function () {
             dragStartLine = d3.select(this.parentNode);
         };
 
-        function dragEnd(d, i) {
+        function drawDragRect(target, d, i) {
 
             function posFromTranslate(string) {
                 tokens = string.split(/[(,)]/);
@@ -164,16 +168,16 @@ $(function () {
             }
 
             /* Draw rectangle over selected region */
-            dragEndParent = d3.select(this.parentNode.parentNode);
-            dragEndLine = d3.select(this.parentNode);
+            dragEndParent = d3.select(target.parentNode.parentNode);
+            dragEndLine = d3.select(target.parentNode);
             if (dragEndParent.datum().index === dragStartParent.datum().index) {
                 startPos = posFromTranslate(dragStartLine.attr("transform"));
                 endPos = posFromTranslate(dragEndLine.attr("transform"));
                 var rectX = startPos.x;
                 var rectY = Math.min(startPos.y, endPos.y);
-                var rectW = Number(d3.select(this).attr("width"));
-                var rectH = Math.abs(startPos.y - endPos.y) + Number(d3.select(this).attr("height"));
-                dragEndParent.append("rect")
+                var rectW = Number(d3.select(target).attr("width"));
+                var rectH = Math.abs(startPos.y - endPos.y) + Number(d3.select(target).attr("height"));
+                var rect = dragEndParent.append("rect")
                     .attr("x", rectX)
                     .attr("y", rectY)
                     .attr("width", rectW)
@@ -182,7 +186,31 @@ $(function () {
                     .style("stroke", "black")
                     .style("stroke-width", 5)
                     .style("pointer-events", "none");
+                return rect;
             }
+        }
+
+        function resetDrag() {
+            dragStartParent = undefined;
+            dragStartLine = undefined;
+            if (tempDragRect !== undefined) {
+                tempDragRect.remove();
+            }
+        }
+
+        $("body").mouseup(resetDrag);
+
+        function dragging(target, d, i) {
+            if (tempDragRect !== undefined) {
+                tempDragRect.remove();
+            }
+            tempDragRect = drawDragRect(target, d, i);
+        };
+
+        function dragEnd(d, i) {
+
+            dragging(this, d, i);
+            tempDragRect = undefined;  // hide the rectangle so it can't be overwritten
 
             /* Keep only the lines in the body that have been selected by the user */
             var body = $(dragStartParent.datum().body).clone();
@@ -199,9 +227,11 @@ $(function () {
             body.find("p > span").not(".keep").remove();
             body.find("p:not(:has(*))").remove();
             body.find("pre:not(:has(*))").remove();
+            body.find("span").removeClass("highlight");
             body.html(body.html().replace(/^\s*[\r\n]/gm, ""));
 
-            var snippet = $("<div></div>");
+            var snippet = $("<div></div>")
+                .addClass("keep");
             var header = snippet.append("<h5>" + window.query + "</h5>")
                 .addClass("keep_header")
                 .prop("contenteditable", "true")
@@ -212,14 +242,18 @@ $(function () {
                     }
                 });
             snippet.append(body);
-            $("#keep_col").prepend(snippet);
+            $("#keep_cont").prepend(snippet);
             snippet.accordion({
                 collapsible: true,
                 heightStyle: "content"
             });
-
-            dragStartParent = undefined;
-            dragStartLine = undefined;
+            $(".ui-accordion-header").css({ 
+                padding: "1px 1px 1px 1px",
+                "font-size": "12px"
+            });
+            $(".ui-accordion-content").css({ 
+                padding: "1px 1px 1px 1px",
+            });
         };
 
         var sortOrder = false;
@@ -308,10 +342,10 @@ $(function () {
             .attr("width", w)
             .attr("height", h);
         var margin = {
-            top: 20,
-            bottom: 70,
-            left: 30,
-            right: 20
+            top: 10,
+            bottom: 60,
+            left: 50,
+            right: 0
         };
 
         var REF_COUNT = 10;  // 20 because of category20 colors for D3
@@ -335,19 +369,34 @@ $(function () {
             .domain([0, max_refs])
             .range([0, h - (margin.top + margin.bottom)]);
 
-        var bars = svg.selectAll("rect")
+        var barConts = svg.selectAll("g")
             .data(sortedFeatCounts)
             .enter()
+            .append("g")
+            .attr("transform", function(d, i) { 
+                return "translate(" + x_scale(d.key) + ",0)" 
+            });
+
+        var bars = barConts
             .append("rect")
             .attr("class", "dep_bar")
-            .attr("x", function (d, i) { return x_scale(d.key); })
             .attr("y", function (d) { return y_scale(d.value); })
             .attr("width", x_scale.rangeBand())
             .attr("height", function(d) { return h_scale(d.value); })
-            .style("fill", function(d) { return ref_colors(d.key) })
-            .on("mouseover", mouseover)
-            .on("click", click)
-            .on("mouseout", mouseout);
+            .style("fill", function(d) { return ref_colors(d.key) });
+
+        /* These bars capture all of the mouse events for the displayed bars*/
+        var phantomBars = barConts
+            .append("rect")
+            .attr("class", "phantom_bar")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", x_scale.rangeBand())
+            .attr("height", h)
+            .style("fill-opacity", 0)
+            .on("mouseover", function() { mouseover(d3.select(this)); })
+            .on("click", function() { click(d3.select(this)); })
+            .on("mouseout", function(d) { mouseout(d3.select(this), d); });
 
         var labels = svg.selectAll("text")
             .data(sortedFeatCounts)
@@ -372,28 +421,32 @@ $(function () {
             .attr("transform", "translate(" + margin.left + ",0)")
             .call(yAxis);
 
-        function mouseover(d) {
-            d3.select(this).classed("hovered", true);
-            brighten_lines_with_feature(featureKey, d.key, 1.5);
-            d3.select(this).call(color_dep_bar);
+        function getBrotherBar(element) {
+            return d3.select(element.node().parentNode).select(".dep_bar");
         }
 
-        function click() {
-            d3.select(this).classed("selected", function() {
+        function mouseover(element) {
+            getBrotherBar(element).classed("hovered", true);
+            brighten_lines_with_feature(featureKey, element.data()[0].key, 1.5);
+            getBrotherBar(element).call(color_dep_bar);
+        }
+
+        function click(element) {
+            getBrotherBar(element).classed("selected", function() {
                 return ! d3.select(this).classed("selected");
             });
             show_flags_for_selected_features(featureKey);
-            d3.select(this).call(color_dep_bar);
+            getBrotherBar(element).call(color_dep_bar);
         }
 
-        function mouseout(d) {
-            d3.select(this).classed("hovered", false);
+        function mouseout(element, d) {
+            getBrotherBar(element).classed("hovered", false);
             brighten_lines_with_feature(featureKey, d.key, 0);
-            d3.select(this).call(color_dep_bar);
+            getBrotherBar(element).call(color_dep_bar);
         }
 
         function color_dep_bar(element) {
-            var data = element.data()[0];
+            var data = element.datum();
             var base_color = ref_colors(data.key);
             element.style("fill", function(d) {
                 var brightness = (
