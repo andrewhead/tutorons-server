@@ -49,10 +49,8 @@ $(function () {
 	function displayData(data) {
 
         var sortResponses = function(sort_type) {
-            console.log(sort_type);
             d3.selectAll(".response_g")
                 .sort(function(a, b) {
-                    console.log(a);
                     switch(sort_type) {
                         case "length":
                             return d3.descending(a.lines.length, b.lines.length);
