@@ -48,30 +48,35 @@ $(function () {
 
 	function displayData(data) {
 
-        var sortResponses = function(sort_type) {
+        var sortResponses = function() {
+            var sort_type = "length", sort_order="descending";
+            sort_type = d3.select("#sort_type_dropdown").property('value');
+            sort_order = d3.select("#sort_options_form input[type='radio']:checked").property('value');
+            //console.log("sort_type:", sort_type);
+            //console.log("sort_order:", sort_order);
+            var d3_sort_order = sort_order === "ascending"? d3.ascending : d3.descending;
             d3.selectAll(".response_g")
                 .sort(function(a, b) {
                     switch(sort_type) {
                         case "length":
-                            return d3.descending(a.lines.length, b.lines.length);
+                            //return d3.descending(a.lines.length, b.lines.length);
+                            return d3_sort_order(a.lines.length, b.lines.length);
                             break;
                         case "code_lines":
-                            return d3.descending(
+                            return d3_sort_order(
                                 a.lines.filter(function(d,i) { return d.type_ == "code"; }).length,
                                 b.lines.filter(function(d,i) { return d.type_ == "code"; }).length);
-                                //d3.selectAll(".response_g")[0][0].__data__.lines.filter(function(d,i){ return d.type_ == "code"; })
-                            return d3.descending(a.lines.length, b.lines.length);
                             break;
                         case "text_lines":
-                            return d3.descending(
+                            return d3_sort_order(
                                 a.lines.filter(function(d,i) { return d.type_ == "text"; }).length,
                                 b.lines.filter(function(d,i) { return d.type_ == "text"; }).length);
                             break;
                         case "votes":
-                            return d3.descending(a.votes, b.votes);
+                            return d3_sort_order(a.votes, b.votes);
                             break;
                         case "reputation":
-                            return d3.descending(a.reputation, b.reputation);
+                            return d3_sort_order(a.reputation, b.reputation);
                             break;
                     }
                 })
@@ -88,10 +93,14 @@ $(function () {
         };
         
         // Sort Type Drop Down Menu
-        var sort_drop_down = d3.select("#sort_type_dropdown")
+        d3.select("#sort_type_dropdown")
             .on("change", function(){
-                var sort_type = d3.select(this).property('value');
-                sortResponses(sort_type);
+                sortResponses();
+            });
+        // Sort Type Radio Button
+        d3.selectAll("input[type=radio][name=sort_order]")
+            .on("change", function(){
+                sortResponses();
             });
             
 	    var bar_width = 30;
