@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 import requests
@@ -13,6 +14,19 @@ import parse
 @cache_page(60 * 60)
 def home(request):
     query = request.GET.get('q', "Java sleep milliseconds")
+    context = _getSearchResponse(query)
+    return render(request, 'skim/index.html', context)
+
+
+@cache_page(60 * 60)
+def search(request):
+    query = request.GET.get('q', "Java sleep milliseconds")
+    context = _getSearchResponse(query)
+    print context
+    return HttpResponse(jsonpickle.encode(context, unpicklable=False), content_type="application/json")
+
+
+def _getSearchResponse(query):
     questionUrl = 'https://api.stackexchange.com/2.2/search/advanced'
 
     questions = requests.get(questionUrl, params={
@@ -38,11 +52,8 @@ def home(request):
         }).json()
     parsedAnswers = parse.parseAnswers(answers)
 
-    context = {
+    return {
         'query': query,
         'answers': jsonpickle.encode(parsedAnswers, unpicklable=False),
         'questions': jsonpickle.encode(parsedQuestions, unpicklable=False), 
     }
-    return render(request, 'skim/index.html', context)
-        
-

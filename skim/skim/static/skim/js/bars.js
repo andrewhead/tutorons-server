@@ -1,7 +1,19 @@
 $(function () {	
 
-    function setupQuestionList(questions, data, linksData) {
+    function setupSearchResults(answers) {
+        setupCodeBars(answers);
+        setupCountChart("#aggregate_chart", answers, "references");
+        addJavadocsLinks("#aggregate_chart", linksData);
+        setupCountChart("#concept_chart", answers, "concepts");
+    }
+
+    function setupQuestionList(questions, answers) {
+ 
+        /* Flush existing questions first */
+        $("#question_panel").slideDown("slow");        
         var questionList = d3.select("#question_list");
+        questionList.selectAll("p, label, input").remove();
+        
         questionList.selectAll("input")
             .data(questions)
             .enter()
@@ -23,14 +35,11 @@ $(function () {
                         selected_qids[ d.id_ ] = true;
                     });
                 // filter answers
-                answers = data.filter(function(elem) {
+                answers = answers.filter(function(elem) {
                     return (elem.qid_ in selected_qids);
                 });
                 $("#question_panel").slideUp("slow", function() {
-                    setupCodeBars(answers);
-                    setupCountChart("#aggregate_chart", answers, "references");
-                    addJavadocsLinks("#aggregate_chart", linksData);
-                    setupCountChart("#concept_chart", answers, "concepts");
+                    setupSearchResults(answers, linksData);
                 });
             });
     }
@@ -41,6 +50,9 @@ $(function () {
 	    var bar_height = 10;
 	    var bar_horizontal_padding = 5;
 	    var bar_vertical_padding = 0;
+
+        /* Delete old SVG if it's there */
+        d3.select("#search_results > svg").remove();
 
         var svg = d3.select("#search_results")
             .append("svg")
@@ -334,6 +346,9 @@ $(function () {
 
     function setupCountChart(divId, data, featureKey) {
 
+        /* Delete old chart if it's there. */
+        d3.select(divId + " > svg").remove();
+
         var chart = d3.select(divId);
         var w = px_to_num(chart.style("width"));
         var h = px_to_num(chart.style("height"));
@@ -532,8 +547,25 @@ $(function () {
             });
         });
     }
-    
 
+    function setupUI() {
+        
+        var submit = function(event) {
+            $.getJSON("search", data={
+                q: $("#query").val()
+            }, function(data) {
+                var answers = $.parseJSON(data['answers']);
+                var questions = $.parseJSON(data['questions']);
+                preprocessData(answers);
+                setupQuestionList(questions, answers);
+                $("#query_text").text(data['query']);
+            });
+            event.preventDefault();
+        }
+
+        $("#search_form").on("submit", submit);
+        $("#search_button").on("click", submit);
+    }
 
     /* Routines for processing input data */
     function preprocessData(data) {
@@ -577,10 +609,13 @@ $(function () {
     /* Globals */
     var code_colors = d3.scale.category10()
         .domain(["text", "code", "codecommentinline", "codecommentlong"]);
+    var linksData;
 
     /* MAIN */
-    d3.json("/static/skim/data/javadocs_links.json", function(linksData) {
-        preprocessData(data);
-        setupQuestionList(questions, data, linksData);
+    d3.json("/static/skim/data/javadocs_links.json", function(data) {
+        setupUI();
+        linksData = data;
+        preprocessData(window.answers);
+        setupQuestionList(window.questions, window.answers);
     });
 });

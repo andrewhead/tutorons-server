@@ -11,7 +11,7 @@
         <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
         <script>
-            var data = {{ answers|safe }};
+            var answers = {{ answers|safe }};
             var questions = {{ questions|safe }};
             var query = "{{ query|safe }}";
         </script>
@@ -25,9 +25,9 @@
             <button id="question_done_button" type="button">Done</button>
         </div>
         <div id="search_pane">
-            <form method="get" action="http://www.celere.com">
-                <input class="input" type="text" name="q" maxlength=100 placeholder="Search..." required>
-                <input class="input" type="button" value="Search" action="submit">
+            <form id="search_form" method="get" action="http://www.celere.com">
+                <input id="query" class="input" type="text" name="q" maxlength=100 placeholder="Search..." required>
+                <input id="search_button" class="input" type="button" value="Search" action="submit">
                 <label id="query_text">Showing search results for {{ query }}</p>
             </form>
         </div>
