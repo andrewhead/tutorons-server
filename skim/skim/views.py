@@ -11,7 +11,7 @@ import jsonpickle
 import parse
 
 
-# @cache_page(60 * 60)
+@cache_page(60 * 60)
 def home(request):
     query = request.GET.get('q', "Java sleep milliseconds")
     context = _getSearchResponse(query)

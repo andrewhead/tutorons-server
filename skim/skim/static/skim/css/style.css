@@ -35,8 +35,8 @@ body {
 
 #question_list input[type=checkbox] {
   margin-left: 30px;
-  transform: scale(1.5);;
-  -webkit-transform: scale(1.5);
+  transform: scale(1.2);
+  -webkit-transform: scale(1.2);
 }
 
 #question_done_button {
