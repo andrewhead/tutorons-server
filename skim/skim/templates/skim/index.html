@@ -18,18 +18,17 @@
         <script src="{% static "skim/js/bars.js" %}"></script>
     </head>
     <body>
-        <div id="question_panel">
-            <div id="question_list">
-                <h3>Select Questions Related to your Query: {{ query }}</h3>
-            </div>
-            <button id="question_done_button" type="button">Done</button>
-        </div>
         <div id="search_pane">
             <form id="search_form" method="get" action="http://www.celere.com">
                 <input id="query" class="input" type="text" name="q" maxlength=100 placeholder="Search..." required>
                 <input id="search_button" class="input" type="button" value="Search" action="submit">
                 <label id="query_text">Showing search results for {{ query }}</p>
             </form>
+        </div>
+        <div id="question_panel">
+            <h4>Pick Related Questions</h4>
+            <div id="question_list"></div>
+            <div id="question_done_div"><button id="question_done_button" type="button">Search!</button></div>
         </div>
         <div class="cols">
             <div class="col" style="width:45%; float: left;">
@@ -48,9 +47,9 @@
                                 <option value="reputation">Reputation</option>
                             </select>
                             <br>
-                            <label for="descending"><input id="descending" type="radio" name="sort_order" value="descending" checked/>Descending</label>
+                            <label for="ascending"><input class="radio" id="ascending" type="radio" name="sort_order" value="ascending" checked/>Ascending</label>
                             <br>
-                            <label for="ascending"><input id="ascending" type="radio" name="sort_order" value="ascending"/>Ascending</label>
+                            <label for="descending"><input class="radio" id="descending" type="radio" name="sort_order" value="descending"/>Descending</label>
                         </form>
                     </div>
                     <div class="col cols" style="float: left; width: 70%;">

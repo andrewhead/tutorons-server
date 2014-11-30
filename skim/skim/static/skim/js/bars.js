@@ -10,7 +10,7 @@ $(function () {
     function setupQuestionList(questions, answers) {
  
         /* Flush existing questions first */
-        $("#question_panel").slideDown("slow");        
+        $("#question_panel").fadeIn("slow");        
         var questionList = d3.select("#question_list");
         questionList.selectAll("p, label, input").remove();
         
@@ -38,7 +38,7 @@ $(function () {
                 answers = answers.filter(function(elem) {
                     return (elem.qid_ in selected_qids);
                 });
-                $("#question_panel").slideUp("slow", function() {
+                $("#question_panel").fadeOut("slow", function() {
                     setupSearchResults(answers, linksData);
                 });
             });
@@ -607,8 +607,9 @@ $(function () {
     }
 
     /* Globals */
-    var code_colors = d3.scale.category10()
-        .domain(["text", "code", "codecommentinline", "codecommentlong"]);
+    var code_colors = d3.scale.ordinal()
+        .domain(["text", "code", "codecommentinline", "codecommentlong"])
+        .range(["#9edae5", "#ffbb78", "#98df8a", "#ff9896"]);
     var linksData;
 
     /* MAIN */
