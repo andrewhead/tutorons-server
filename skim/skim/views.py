@@ -22,7 +22,6 @@ def home(request):
 def search(request):
     query = request.GET.get('q', "Java sleep milliseconds")
     context = _getSearchResponse(query)
-    print context
     return HttpResponse(jsonpickle.encode(context, unpicklable=False), content_type="application/json")
 
 

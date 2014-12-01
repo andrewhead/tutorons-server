@@ -2,9 +2,9 @@ $(function () {
 
     function setupSearchResults(answers) {
         setupCodeBars(answers);
-        setupCountChart("#aggregate_chart", answers, "references");
+        setupCountChart("#aggregate_chart", answers, "references", class_colors);
         addJavadocsLinks("#aggregate_chart", linksData);
-        setupCountChart("#concept_chart", answers, "concepts");
+        setupCountChart("#concept_chart", answers, "concepts", concept_colors);
     }
 
     function setupQuestionList(questions, answers) {
@@ -103,7 +103,8 @@ $(function () {
                 }
             })
             .on("mousedown", dragStart)
-            .on("mouseup", dragEnd)
+            .on("mouseup", dragEnd);
+            /*
             .on("click", function(d, i){
                 //  flip value of sortOrder
                 sortOrder = !sortOrder;
@@ -112,6 +113,20 @@ $(function () {
                         sortBars(this);
                     });
             });
+            */
+
+        var shadowScale = 1.2;
+        var flagBkgds = lines.append("svg")
+            .attr("width", bar_width * shadowScale)
+            .attr("height", bar_height * shadowScale)
+            .attr("x", - (bar_width * (shadowScale - 1) / 2))
+            .attr("y", - (bar_height * (shadowScale - 1) / 2))
+            .append("use")
+            .attr("class", "flag_bkgd")
+            .attr("xlink:href", "static/skim/img/sprite.svg#media-record")
+            .style("fill", "#000")
+            .style("fill-opacity", 0.0)
+            .style("pointer-events", "none"); // do not block mouse events
 
         var flags = lines.append("svg")
             .attr("width", bar_width)
@@ -344,7 +359,7 @@ $(function () {
         };
 	};
 
-    function setupCountChart(divId, data, featureKey) {
+    function setupCountChart(divId, data, featureKey, colors) {
 
         /* Delete old chart if it's there. */
         d3.select(divId + " > svg").remove();
@@ -370,8 +385,12 @@ $(function () {
                 return b.value - a.value;
             })
             .splice(0, REF_COUNT);
-        var ref_colors = d3.scale.category20b()
-            .domain(d3.keys(sortedFeatCounts));
+
+        var ref_colors = colors.domain(sortedFeatCounts.map(function(e) { return e.key; }));
+        sortedFeatCounts.forEach(function(element) {
+            element.featureKey = featureKey;
+            element.color = ref_colors(element.key);
+        });
 
         var max_refs = d3.max(d3.entries(ref_counts), function(d) { return d.value; });
         var x_scale = d3.scale.ordinal()
@@ -398,7 +417,7 @@ $(function () {
             .attr("y", function (d) { return y_scale(d.value); })
             .attr("width", x_scale.rangeBand())
             .attr("height", function(d) { return h_scale(d.value); })
-            .style("fill", function(d) { return ref_colors(d.key) });
+            .style("fill", function(d) { return d.color; });
 
         /* These bars capture all of the mouse events for the displayed bars*/
         var phantomBars = barConts
@@ -461,21 +480,29 @@ $(function () {
         }
 
         function color_dep_bar(element) {
-            var data = element.datum();
-            var base_color = ref_colors(data.key);
             element.style("fill", function(d) {
                 var brightness = (
                     d3.select(this).classed("selected") || 
                     d3.select(this).classed("hovered")) ? 
                     1.5 : 0;
-                return d3.rgb(ref_colors(d.key)).brighter(brightness);
+                return d3.rgb(d.color).brighter(brightness);
+            })
+            .style("stroke-width", function() {
+                return d3.select(this).classed("selected") ? 2 : 0;
+            })
+            .style("stroke", function(d) {
+                return d3.select(this).classed("selected") ? d.color : "black";
+             })
+            .style("stroke-dasharray", function() {
+                return d3.select(this).classed("selected") ? "0" : "5,5";
             });
         }
 
         function brighten_lines_with_feature(key, ref, brightness) {
             d3.selectAll(".line_rect").filter(function(d) { 
                 return (d[key].indexOf(ref) >= 0); 
-            }).style("fill", function(d) {
+            })
+            .style("fill", function(d) {
                 return d3.rgb(code_colors(d.type_)).brighter(brightness);
             });
         };
@@ -483,15 +510,21 @@ $(function () {
         function show_flags_for_selected_features(featureKey) {
 
             function color_flags_with_feature(featureKey, ref, color) {
-                d3.selectAll(".flag").filter(function(d) { 
+                function selectFunc(d) {
                     return (d[featureKey].indexOf(ref) >= 0); 
-                }).style("fill", function(d) {
+                }
+                d3.selectAll(".flag, .flag_bkgd")
+                    .filter(selectFunc)
+                    .style("fill-opacity", 1.0);
+                d3.selectAll(".flag")
+                    .filter(selectFunc)
+                    .style("fill", function(d) {
                     return d3.rgb(color);
-                }).style("fill-opacity", 1.0);
+                });
             }
 
             /* Start by hiding all flags */
-            d3.selectAll(".flag").style("fill-opacity", 0.0);
+            d3.selectAll(".flag, .flag_bkgd").style("fill-opacity", 0.0);
 
             /* Fill in flag colors for selected deps, starting with least-used deps.
              * These will get overwritten by the selected most-used deps. */
@@ -499,7 +532,7 @@ $(function () {
             if (selected.length > 0) {
                 selected[0].reverse();
                 selected.each(function(d) {
-                    color_flags_with_feature(featureKey, d.key, ref_colors(d.key));
+                    color_flags_with_feature(d.featureKey, d.key, d.color);
                 });
             }
         };
@@ -507,18 +540,30 @@ $(function () {
 
     /* Utilities */
     function countCodeFeatures(data, key) {
+        
         var feat_counts = {};
         for (var i = 0; i < data.length; i++) {
+            var answer_features = [];
             var lines = data[i].lines;
+
+            /* For each answer, get list of features. */
             for (var j = 0; j < lines.length ; j++) {
                 var features = lines[j][key];
                 for (var k = 0; k < features.length; k++) {
                     var feat = features[k];
-                    if (!(feat in feat_counts)) {
-                        feat_counts[feat] = 0;
+                    if (answer_features.indexOf(feat) === -1) {
+                        answer_features.push(feat);
                     }
-                    feat_counts[feat]++;
                 }
+            }
+
+            /* Compile counts of how many examples each featuer occurs in. */
+            for (var j = 0; j < answer_features.length; j++) {
+                var feat = answer_features[j];
+                if (!(feat in feat_counts)) {
+                    feat_counts[feat] = 0;
+                }
+                feat_counts[feat]++;
             }
         }
         return feat_counts;
@@ -610,6 +655,12 @@ $(function () {
     var code_colors = d3.scale.ordinal()
         .domain(["text", "code", "codecommentinline", "codecommentlong"])
         .range(["#9edae5", "#ffbb78", "#98df8a", "#ff9896"]);
+    var category10 = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+        "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
+    var class_colors = d3.scale.ordinal()
+        .range(category10)
+    var concept_colors = d3.scale.ordinal()
+        .range(category10.slice(0).reverse())
     var linksData;
 
     /* MAIN */
