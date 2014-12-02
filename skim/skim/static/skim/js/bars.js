@@ -9,6 +9,17 @@ $(function () {
 
     function setupQuestionList(questions, answers) {
  
+        function finish() {
+            $("#question_panel").fadeOut("slow", function() {
+                setupSearchResults(answers, linksData);
+            });
+        }
+
+        if (window.skipQuestions) {
+            finish();
+            return;
+        }
+
         /* Flush existing questions first */
         $("#question_panel").fadeIn("slow");        
         var questionList = d3.select("#question_list");
@@ -20,7 +31,7 @@ $(function () {
             .append("p")
             .append("label")
                 .attr("for", function(d,i) { return 'q' + d.id_; })
-                .text(function(d) { return d.title; })
+                .html(function(d) { return d.title; })
             .append("input")
                 .attr("type", "checkbox")
                 .attr("name", "question")
@@ -36,11 +47,9 @@ $(function () {
                     });
                 // filter answers
                 answers = answers.filter(function(elem) {
-                    return (elem.qid_ in selected_qids);
+                    return (selected_qids.hasOwnProperty(elem.qid_));
                 });
-                $("#question_panel").fadeOut("slow", function() {
-                    setupSearchResults(answers, linksData);
-                });
+                finish();
             });
     }
 
@@ -603,7 +612,8 @@ $(function () {
                 var questions = $.parseJSON(data['questions']);
                 preprocessData(answers);
                 setupQuestionList(questions, answers);
-                $("#query_text").text(data['query']);
+                window.query = data['query'];
+                $("#query_text").text("Showing search results for \"" + data['query'] + "\"");
             });
             event.preventDefault();
         }

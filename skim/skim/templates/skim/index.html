@@ -1,7 +1,7 @@
 {% load staticfiles %}
 <html>
     <head>
-        <title>CodeSkim</title>
+        <title>StackSkim</title>
         <link rel="stylesheet" href="{% static "skim/css/style.css" %}">
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
         <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/vs.min.css">
@@ -14,6 +14,7 @@
             var answers = {{ answers|safe }};
             var questions = {{ questions|safe }};
             var query = "{{ query|safe }}";
+            var skipQuestions = {% if skipQuestionSelect %}true{% else %}false{% endif %};
         </script>
         <script src="{% static "skim/js/bars.js" %}"></script>
     </head>
