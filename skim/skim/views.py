@@ -31,11 +31,11 @@ def search(request):
 # @cache_page(60 * 60)
 def tutorial(request):
     answers = json.load(open(os.path.join(
-        settings.STATIC_ROOT, "skim/data/write_answers_201412010847.json"
+        settings.STATIC_ROOT, "skim/data/audio_answers_201412012142.json"
     )))
     parsedAnswers = parse.parseAnswers(answers)
     context = {
-        'query': "write to file",
+        'query': "play audio",
         'answers': jsonpickle.encode(parsedAnswers, unpicklable=False),
         'questions': [],
         'skipQuestionSelect': True,
