@@ -30,12 +30,19 @@ def search(request):
 
 # @cache_page(60 * 60)
 def tutorial(request):
+    context = _getSearchResponse("record audio")
+    context['skipQuestionSelect'] = True
+    return render(request, 'skim/index.html', context)
+
+
+# @cache_page(60 * 60)
+def tasks(request):
     answers = json.load(open(os.path.join(
         settings.STATIC_ROOT, "skim/data/audio_answers_201412012142.json"
     )))
     parsedAnswers = parse.parseAnswers(answers)
     context = {
-        'query': "play audio",
+        'query': "record audio",
         'answers': jsonpickle.encode(parsedAnswers, unpicklable=False),
         'questions': [],
         'skipQuestionSelect': True,
@@ -75,8 +82,6 @@ def _getSearchResponse(query):
         moreAnswers = answers['has_more']
         pageNumber += 1
         allAnswers['items'].extend(answers['items'])
-    print "Pages: " + str(pageNumber - 1)
-    print "Answers: " + str(len(allAnswers['items']))
     parsedAnswers = parse.parseAnswers(allAnswers)
 
     return {

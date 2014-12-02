@@ -16,6 +16,8 @@ $(function () {
         }
 
         if (window.skipQuestions) {
+            /* Only skip questions the first time */
+            window.skipQuestions = false;
             finish();
             return;
         }
