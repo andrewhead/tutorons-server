@@ -2,11 +2,12 @@ $(function () {
 
     function setupSearchResults(answers) {
         setupCodeBars(answers);
+        setupLegend();
         setupCountChart("#aggregate_chart", answers, "references", class_colors);
         addJavadocsLinks("#aggregate_chart", linksData);
         setupCountChart("#concept_chart", answers, "concepts", concept_colors);
     }
-
+    
     function setupQuestionList(questions, answers) {
  
         function finish() {
@@ -370,6 +371,33 @@ $(function () {
         };
 	};
 
+    function setupLegend() {
+        var legend_rect_length = 14;
+        var legend_padding = 3;
+        var svg = d3.select("#legend")
+            .insert("svg")
+            .attr("width", "100%")     
+            .attr("height", legend_rect_length + legend_padding);
+        var legend = svg.selectAll(".legend") 
+            .data(code_colors.domain())
+            .enter()
+            .append('g')
+            .attr('class', 'legend')
+            .attr('transform', function(d,i) {
+                // should calculate length and dimensions of rendered text
+                return 'translate(' + (20 + (i * 120)) +  ',0)';
+            });
+        legend.append('rect')
+                .attr('width', legend_rect_length)
+                .attr('height', legend_rect_length)
+                .style('fill', code_colors)
+                .style('stroke', code_colors);
+        legend.append('text')
+                .attr('x', legend_rect_length + legend_padding)
+                .attr('y', legend_rect_length - legend_padding)
+                .text(function(d) { return code_types_2_readable[d]; });
+    }
+
     function setupCountChart(divId, data, featureKey, colors) {
 
         /* Delete old chart if it's there. */
@@ -664,9 +692,16 @@ $(function () {
     }
 
     /* Globals */
+    /* Colors for code bars from color brewer: http://colorbrewer2.org */
+    //#a6cee3, #1f78b4, #b2df8a, #33a02c
     var code_colors = d3.scale.ordinal()
         .domain(["text", "code", "codecommentinline", "codecommentlong"])
-        .range(["#9edae5", "#ffbb78", "#98df8a", "#ff9896"]);
+        .range(["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c"]);
+    var code_types_2_readable = {"text": "Text", 
+                                 "code": "Code",
+                                 "codecommentinline": "Inline Comment",
+                                 "codecommentlong": "Long Comment"};
+
     var category10 = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
         "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"];
     var class_colors = d3.scale.ordinal()
@@ -674,6 +709,9 @@ $(function () {
     var concept_colors = d3.scale.ordinal()
         .range(category10.slice(0).reverse())
     var linksData;
+    
+
+            
 
     /* MAIN */
     d3.json("/static/skim/data/javadocs_links.json", function(data) {

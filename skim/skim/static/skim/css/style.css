@@ -159,3 +159,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 5px;
   margin-bottom: 5px;
 }
+
+.legend {
+    font-size: 12px;
+}
+
+legend_rect {
+    stroke-width: 2;
+}
