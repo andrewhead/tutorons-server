@@ -127,7 +127,7 @@ $(function () {
             });
             */
 
-        var shadowScale = 1.2;
+        var shadowScale = 1.3;
         var flagBkgds = lines.append("svg")
             .attr("width", bar_width * shadowScale)
             .attr("height", bar_height * shadowScale)
@@ -136,7 +136,7 @@ $(function () {
             .append("use")
             .attr("class", "flag_bkgd")
             .attr("xlink:href", "static/skim/img/sprite.svg#media-record")
-            .style("fill", "#000")
+            .style("fill", "#fff")
             .style("fill-opacity", 0.0)
             .style("pointer-events", "none"); // do not block mouse events
 
