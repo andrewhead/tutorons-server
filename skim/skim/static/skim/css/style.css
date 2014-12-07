@@ -119,7 +119,6 @@ form {
 
 .main_cont {
   border: 1px dashed black;
-  overflow: scroll;
 }
 
 form {
@@ -161,10 +160,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 5px;
 }
 
-.legend {
+#legend {
+  padding-left: 30px;
+  padding-top: 5px;
   font-size: 12px;
-  padding-left: 10px;
-  padding-top: 100px;
+  width: 95%;
+  border: 1px dotted black;
+  margin: auto;
+  margin-bottom: 5px;
 }
 
 legend_rect {
