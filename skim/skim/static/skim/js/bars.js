@@ -372,30 +372,36 @@ $(function () {
 	};
 
     function setupLegend() {
-        var legend_rect_length = 14;
-        var legend_padding = 3;
-        var svg = d3.select("#legend")
-            .insert("svg")
-            .attr("width", "100%")     
-            .attr("height", legend_rect_length + legend_padding);
-        var legend = svg.selectAll(".legend") 
+
+        var resultsSvg = d3.select("#legend");
+        var w = 100;
+        var h = 80;
+
+        d3.select("svg.legend").remove()
+        var svg = resultsSvg
+            .append("svg")
+            .attr("class", "legend")
+            .attr("width", w)
+            .attr("height", h);
+
+        var legend = svg.selectAll("g") 
             .data(code_colors.domain())
             .enter()
-            .append('g')
-            .attr('class', 'legend')
+            .append("g")
+            .attr("class", 'legend_g')
             .attr('transform', function(d,i) {
-                // should calculate length and dimensions of rendered text
-                return 'translate(' + (20 + (i * 120)) +  ',0)';
+                return 'translate(0,' + i * 20 + ')';
             });
+
         legend.append('rect')
-                .attr('width', legend_rect_length)
-                .attr('height', legend_rect_length)
-                .style('fill', code_colors)
-                .style('stroke', code_colors);
+            .attr('width', 15)
+            .attr('height', 15)
+            .style('fill', code_colors)
+            .style('stroke', code_colors);
         legend.append('text')
-                .attr('x', legend_rect_length + legend_padding)
-                .attr('y', legend_rect_length - legend_padding)
-                .text(function(d) { return code_types_2_readable[d]; });
+            .attr('x', 20)
+            .attr('y', 12)
+            .text(function(d) { return code_types_2_readable[d]; });
     }
 
     function setupCountChart(divId, data, featureKey, colors) {
@@ -696,7 +702,7 @@ $(function () {
     //#a6cee3, #1f78b4, #b2df8a, #33a02c
     var code_colors = d3.scale.ordinal()
         .domain(["text", "code", "codecommentinline", "codecommentlong"])
-        .range(["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c"]);
+        .range(["#a6cee3", "#ba9cd4", "#b2df8a", "#33a02c"]);
     var code_types_2_readable = {"text": "Text", 
                                  "code": "Code",
                                  "codecommentinline": "Inline Comment",

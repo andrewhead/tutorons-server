@@ -119,6 +119,7 @@ form {
 
 .main_cont {
   border: 1px dashed black;
+  overflow: scroll;
 }
 
 form {
@@ -161,7 +162,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .legend {
-    font-size: 12px;
+  font-size: 12px;
+  padding-left: 10px;
+  padding-top: 100px;
 }
 
 legend_rect {
