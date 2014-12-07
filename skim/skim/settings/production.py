@@ -6,7 +6,7 @@ import os.path
 DEBUG = False
 TEMPLATE_DEBUG = False
 
-STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'gallery', 'static')
+STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'stackskim', 'static')
 
 ALLOWED_HOSTS = [
     '.stackskim.info',

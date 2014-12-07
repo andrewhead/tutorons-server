@@ -31,6 +31,9 @@
   - gunicorn
   - django
   - jsonpickle
+  - enum34
+  - requests
+  - beautifulsoup4
 
 - name: Configure nginx sites
   template: src=nginx-site.j2 dest=/etc/nginx/sites-enabled/{{ appname }}
@@ -62,11 +65,19 @@
   template: src=supervisor.j2 dest=/etc/supervisor/conf.d/{{ appname }}.conf
   sudo: true
 
-- name: Start server
+- name: Stop application
   supervisorctl: name={{ appname }} state={{ item }}
   with_items:
   - present
-  - restarted
+  - stopped
+  sudo: true
+
+- name: Cleanup after last application run
+  file: dest=/tmp/{{ appname }}.pid state=absent
+  sudo: true
+
+- name: Start application
+  supervisorctl: name={{ appname }} state=started
   sudo: true
 
 - name: Restart nginx
