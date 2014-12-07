@@ -1,0 +1,73 @@
+---
+- name: Install server software
+  apt: name={{ item }} update_cache=yes
+  with_items:
+  - git
+  - python-pip
+  - nginx
+  - python-boto
+  - python-dev
+  - supervisor
+  sudo: true
+
+- name: Create project directory
+  file: state=directory path={{ projectdir }} owner=ubuntu
+  sudo: true
+
+- name: Create static files directory
+  file: state=directory path={{ staticdir }} owner=ubuntu
+
+- name: Create log file
+  file: state=touch path=/var/log/stackskim.log owner=ubuntu
+  sudo: true
+
+- name: Install virtualenv
+  pip: name=virtualenv
+  sudo: true
+
+- name: Install server Python dependencies
+  pip: name={{ item }} virtualenv="{{ venv }}"
+  with_items:
+  - gunicorn
+  - django
+  - jsonpickle
+
+- name: Configure nginx sites
+  template: src=nginx-site.j2 dest=/etc/nginx/sites-enabled/{{ appname }}
+  sudo: true
+
+- name: Remove default nginx user
+  lineinfile: dest=/etc/nginx/nginx.conf line="user www-data;" state=absent
+  sudo: true
+
+- name: Add nginx user
+  lineinfile: dest=/etc/nginx/nginx.conf line="user ubuntu ubuntu;"
+  sudo: true
+
+- name: Checkout source code
+  git: repo=https://github.com/andrewhead/StackSkim.git dest={{ src }}
+
+- name: Sync DB with Django models
+  django_manage: >
+    command={{ item }}
+    app_path={{ djdir }}
+    virtualenv={{ venv }}
+    settings={{ djsettings }}
+  with_items:
+  - syncdb
+  - migrate
+  - collectstatic
+
+- name: Copy app to supervisor
+  template: src=supervisor.j2 dest=/etc/supervisor/conf.d/{{ appname }}.conf
+  sudo: true
+
+- name: Start server
+  supervisorctl: name={{ appname }} state={{ item }}
+  with_items:
+  - present
+  - restarted
+  sudo: true
+
+- name: Restart nginx
+  service: name=nginx state=restarted

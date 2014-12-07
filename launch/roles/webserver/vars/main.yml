@@ -1,0 +1,10 @@
+domain: stackskim.info
+localport: 8001
+projectdir: /usr/local/stackskim
+venv: "{{ projectdir }}/venv"
+src: "{{ projectdir }}/src"
+staticdir: "{{ projectdir }}/static"
+djdir: "{{ src }}/skim"
+appname: "skim"
+scriptdir: "{{ projectdir }}/scripts"
+djsettings: "{{ appname }}.settings.production"

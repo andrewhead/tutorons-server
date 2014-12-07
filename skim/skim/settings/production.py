@@ -9,8 +9,8 @@ TEMPLATE_DEBUG = False
 STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'gallery', 'static')
 
 ALLOWED_HOSTS = [
-    '.tinyurl.com',
-    '.tinyurl.com.',
+    '.stackskim.info',
+    '.stackskim.info.',
 ]
 
 LOGGING = {
