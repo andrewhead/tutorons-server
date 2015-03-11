@@ -31,7 +31,26 @@ HTML_TAGS = ['a', 'abbr', 'address', 'area', 'article', 'aside',
     'table', 'tbody', 'td', 'textarea', 'tfoot', 'th', 'thead', 
     'time', 'title', 'tr', 'ul', 'var', 'video', None,
 ]
-HTTP_CHARS = ['/', '.', ':']
+CSS_METHODS = ['CSSSelector', 'cssselect', 'select']
+
+
+class CallVisitor(ast.NodeVisitor):
+    ''' AST Visitor that saves all function calls. '''
+
+    def __init__(self, *args, **kwargs):
+        self.calls = []
+        super(CallVisitor, self).__init__(*args, **kwargs)
+
+    def visit_Call(self, node):
+        self.calls.append(node)
+        name = None
+        if isinstance(node.func, ast.Name):
+            name = node.func.id
+        elif isinstance(node.func, ast.Attribute):
+            name = node.func.attr
+        if name in CSS_METHODS and len(node.args):
+            logging.info("Match_function: %s", node.args[0].s)
+        self.generic_visit(node)
 
 
 class StringVisitor(ast.NodeVisitor):
@@ -97,9 +116,11 @@ def match_strings(body):
             visitor.visit(tree)
             for s in visitor.strings:
                 if is_selector(s):
-                    logging.info("Match: %s", s)
+                    logging.info("Match_string: %s", s)
                 else:
-                    logging.info("Unmatch: %s", s)
+                    logging.info("Unmatch_string: %s", s)
+            visitor = CallVisitor()
+            visitor.visit(tree)
 
 
 def main():
