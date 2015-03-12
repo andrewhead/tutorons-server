@@ -43,13 +43,6 @@ class CallVisitor(ast.NodeVisitor):
 
     def visit_Call(self, node):
         self.calls.append(node)
-        name = None
-        if isinstance(node.func, ast.Name):
-            name = node.func.id
-        elif isinstance(node.func, ast.Attribute):
-            name = node.func.attr
-        if name in CSS_METHODS and len(node.args):
-            logging.info("Match_function: %s", node.args[0].s)
         self.generic_visit(node)
 
 
@@ -92,35 +85,70 @@ def is_selector(string):
         return False
 
 
+class SelectorExtractor(object):
+    ''' Class with routines to extract CSS selectors. '''
+
+    def _code_to_ast(self, code):
+        success = None
+        try:
+            return ast.parse(code)
+        except SyntaxError:
+            logging.debug("Invalid code section: %s", code)
+            return None
+
+    def get_selectors_by_ast_strings(self, code):
+        selectors = []
+        tree = self._code_to_ast(code)
+        if tree:
+            visitor = StringVisitor()
+            visitor.visit(tree)
+            strings = visitor.strings
+            selectors = [s for s in visitor.strings if is_selector(s)]
+        return selectors
+
+    def get_selectors_by_ast_functions(self, code):
+        selectors = []
+        tree = self._code_to_ast(code)
+        if tree:
+            visitor = CallVisitor()
+            visitor.visit(tree)
+            for call in visitor.calls:
+                name = None
+                if isinstance(call.func, ast.Name):
+                    name = call.func.id
+                elif isinstance(call.func, ast.Attribute):
+                    name = call.func.attr
+                if name in CSS_METHODS and len(call.args):
+                    selectors.append(call.args[0].s)
+        return selectors
+
+    def get_selectors_by_regex_functions(self, code):
+        selectors = []
+        FUNC_REGEX = '(' + "|".join(CSS_METHODS) + ')'
+        for line in code.split('\n'):
+            res = re.search(FUNC_REGEX + "\(('|\")(.*?)('|\"),?", line)
+            if res:
+                selectors.append(res.group(3))
+        return selectors
+
+
 def match_strings(body):
     ''' Find and print all strings that appear to be CSS in an HTML doc. '''
 
     # Iterate over all code snippets
     soup = Soup(body)
+    extractor = SelectorExtractor()
     for code_section in soup.select('code'):
 
         # Strip command prompt symbols out of example code
         code_text = re.sub('^(>>> )|(\.\.\. )', '', code_section.text)
-
-        # Parse the code
-        success = False
-        try:
-            tree = ast.parse(code_text)
-            success = True
-        except SyntaxError:
-            logging.debug("Invalid code section: %s", code_section.text)
-
-        # Find all strings in the code extracted
-        if success:
-            visitor = StringVisitor()
-            visitor.visit(tree)
-            for s in visitor.strings:
-                if is_selector(s):
-                    logging.info("Match_string: %s", s)
-                else:
-                    logging.info("Unmatch_string: %s", s)
-            visitor = CallVisitor()
-            visitor.visit(tree)
+        selectors1 = extractor.get_selectors_by_ast_functions(code_text)
+        selectors2 = extractor.get_selectors_by_regex_functions(code_text)
+        selectors3 = extractor.get_selectors_by_ast_strings(code_text)
+        if selectors1 or selectors2 or selectors3:
+            logging.info("Method 1: %s", selectors1)
+            logging.info("Method 2: %s", selectors2)
+            logging.info("Method 3: %s", selectors3)
 
 
 def main():
