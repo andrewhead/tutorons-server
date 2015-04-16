@@ -4,3 +4,4 @@
 ~$*.xlsx
 *.xpi
 node_modules
+.sass-cache

@@ -1,9 +1,0 @@
-{
-  "name": "regex_preview",
-  "title": "RegEx Preview",
-  "id": "jid1-nVWxHzqDasGiAQ",
-  "description": "An add-on for viewing previews for regular expressions",
-  "author": "Andrew Head",
-  "license": "MPL 2.0",
-  "version": "0.1"
-}

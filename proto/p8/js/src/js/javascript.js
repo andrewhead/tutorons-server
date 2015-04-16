@@ -92,7 +92,7 @@ window.showRegex = function(container, pattern) {
         var script = document.createElement("script");
         script.id = "svg-container-base";
         var svgDiv = document.createElement("div");
-        div.className = "svg";
+        svgDiv.className = "svg";
         var svg = document.createElement("svg");
         svgDiv.appendChild(svg);
         script.appendChild(svgDiv);
@@ -108,20 +108,20 @@ window.showRegex = function(container, pattern) {
 
     }
 
+    var renderDiv;
     if (!Boolean(document.getElementsByClassName('results').length)) {
-
         var resDiv = document.createElement("div");
         resDiv.className = "results";
         resDiv.style.display = "block";
-        var renderDiv = document.createElement("div");
+        renderDiv = document.createElement("div");
         renderDiv.id = "regexp-render";
         renderDiv.style.display = "block";
         resDiv.appendChild(renderDiv);
         container.appendChild(resDiv);
-
+    } else {
+        renderDiv = document.getElementById("regexp-render");
     }
 
-    var renderDiv = document.getElementById("regexp-render");
     var parser = new Parser(renderDiv, {});
     parser.parse(pattern).then(parser => { 
         parser.render();
