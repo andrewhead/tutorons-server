@@ -117,7 +117,7 @@ window.showRegex = function(container, pattern) {
         renderDiv.id = "regexp-render";
         renderDiv.style.display = "block";
         resDiv.appendChild(renderDiv);
-        container.appendChild(resDiv);
+        document.body.appendChild(resDiv); // Append to child so it will render
     } else {
         renderDiv = document.getElementById("regexp-render");
     }
@@ -126,5 +126,8 @@ window.showRegex = function(container, pattern) {
     parser.parse(pattern).then(parser => { 
         parser.render();
     });
+
+    document.body.removeChild(resDiv);
+    container.appendChild(resDiv);
     
 }   
