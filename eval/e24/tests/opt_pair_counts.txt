@@ -1,0 +1,3 @@
+wget -r -q -d
+wget -q -r
+wget -v
