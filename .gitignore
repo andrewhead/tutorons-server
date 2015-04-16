@@ -3,3 +3,4 @@
 *.swp
 ~$*.xlsx
 *.xpi
+node_modules
