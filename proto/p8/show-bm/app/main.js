@@ -27,14 +27,38 @@
 
             // Add visualization and explanatory text to tooltip
             var escString = selString.replace(/\//g, '\\/');
+            var explanation = $('<div></div>');
+            var intro = $('<p></p>');
+            var desc = $('<p></p>');
+            intro.text('You found a regular expression!')
+                .css('font-size', '16px');
+            desc.text('We compare text to regular expressions to see if they match ' +
+                'a pattern or not.  To read this regular expression diagram, ' +
+                'follow it from left to right as you see the letters and ' +
+                'symbols it looks for in a line of text.')
+                .css({
+                    'font-size': '12px',
+                    'line-height': '1.2em'
+                });
+            explanation.css({
+                'width': '400px',
+                'margin': 'auto',
+                'padding-left': '10px',
+                'padding-right': '10px'
+            });
+            explanation.append(intro);
+            explanation.append(desc);
+            $(div).append(explanation);
             window.showRegex(div, escString);
             $.get(
                 'http://127.0.0.1:8001/regex/' + encodeURIComponent(selString),
                 {},
                 function(resp) {
                     var pre = document.createElement('pre');
-                    pre.innerHTML = resp;
+                    pre.innerHTML = resp.trim();
                     pre.style.padding = '15px';
+                    pre.style['font-size'] = '14px';
+                    pre.style['line-height'] = '1.2em';
                     div.appendChild(pre);
                 });
 
