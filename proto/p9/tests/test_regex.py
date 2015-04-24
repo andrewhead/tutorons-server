@@ -4,8 +4,7 @@
 from __future__ import unicode_literals
 import logging
 import unittest
-from regex_examples import parse_regex
-from regex_examples import InNode, RepeatNode, BranchNode
+from regex_parse import parse_regex, InNode, RepeatNode, BranchNode, LiteralNode, RangeNode
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -21,13 +20,13 @@ class ParseRegexTest(unittest.TestCase):
         child = self._get_first_child(root)
         self.assertEqual(type(child), InNode)
 
-    def test_repeat_node(self):
+    def test_repeat_plus_node(self):
         root = parse_regex('a+')
         child = self._get_first_child(root)
         self.assertEqual(type(child), RepeatNode)
         self.assertEqual(child.min_repeat, 1)
 
-    def test_asterisk_node(self):
+    def test_repeat_asterisk_node(self):
         root = parse_regex('a*')
         child = self._get_first_child(root)
         self.assertEqual(type(child), RepeatNode)
@@ -41,9 +40,28 @@ class ParseRegexTest(unittest.TestCase):
         self.assertEqual(len(child.children), 2)
 
     def test_literal_node(self):
-        pass
+        root = parse_regex('abc')
+        child = self._get_first_child(root)
+        self.assertEqual(len(root.children), 3)
+        self.assertEqual(type(child), LiteralNode)
+
+    def test_range_node(self):
+        root = parse_regex('[a-z]')
+        rng_node = root.children[0].children[0]
+        self.assertEqual(type(rng_node), RangeNode)
+        self.assertEqual(rng_node.lo, ord('a'))
+        self.assertEqual(rng_node.hi, ord('z'))
+
+
+class SpecialParseTest(unittest.TestCase):
+    ''' Additional cases that broke our parser that we fixed. '''
+    def test_parse_repeating_literal(self):
+        root = parse_regex('a+')
+        rpt_node = root.children[0]
+        self.assertEqual(type(rpt_node), RepeatNode)
+        lit_node = rpt_node.children[0]
+        self.assertEqual(type(lit_node), LiteralNode)
 
 
 if __name__ == '__main__':
     unittest.main()
-
