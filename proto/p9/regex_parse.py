@@ -22,6 +22,8 @@ class LineType(Enum):
     REPEAT = "^max_repeat"
     SUBPATTERN = "^subpattern"
     RANGE = "^range"
+    NEGATE = "^negate"
+    CATEGORY = "^category"
 
     @staticmethod
     def getLineType(string):
@@ -56,6 +58,13 @@ class LiteralNode(Node):
         self.value = value
 
 
+class CategoryNode(Node):
+
+    def __init__(self, classname, *args, **kwargs):
+        super(CategoryNode, self).__init__(*args, **kwargs)
+        self.classname = classname
+
+
 class RangeNode(Node):
 
     def __init__(self, lo, hi, *args, **kwargs):
@@ -64,8 +73,18 @@ class RangeNode(Node):
         self.hi = hi
 
 
-class InNode(Node):
+class NegateNode(Node):
     pass
+
+
+class InNode(Node):
+
+    @property
+    def negated(self):
+        for ch in self.children:
+            if isinstance(ch, NegateNode):
+                return True
+        return False
 
 
 class BranchNode(Node):
@@ -115,6 +134,7 @@ def _count_indents(line):
 
 parse_repeat = lambda line: int(re.match('^max_repeat (\d+)', line).group(1))
 parse_literal = lambda line: int(re.match('^literal (\d+)', line).group(1))
+parse_category = lambda line: re.match('^category category_(\w+)', line).group(1)
 
 def parse_range(line):
     match = re.match('^range \((\d+), (\d+)\)', line)
@@ -138,6 +158,10 @@ def getnode(line):
         node = ChoiceNode(line)
     elif line_type == LineType.SUBPATTERN:
         node = GroupNode(line)
+    elif line_type == LineType.NEGATE:
+        node = NegateNode(line)
+    elif line_type == LineType.CATEGORY:
+        node = CategoryNode(parse_category(line), line)
     else:
         node = Node(line)
     return node

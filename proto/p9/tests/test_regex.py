@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 import logging
 import unittest
-from regex_parse import parse_regex, InNode, RepeatNode, BranchNode, LiteralNode, RangeNode
+from regex_parse import parse_regex, InNode, RepeatNode, BranchNode,\
+    LiteralNode, RangeNode, CategoryNode
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -19,6 +20,18 @@ class ParseRegexTest(unittest.TestCase):
         root = parse_regex('[a-z]')
         child = self._get_first_child(root)
         self.assertEqual(type(child), InNode)
+
+    def test_category_word_node(self):
+        root = parse_regex('\w')
+        cat_node = root.children[0].children[0]
+        self.assertEqual(type(cat_node), CategoryNode)
+        self.assertEqual(cat_node.classname, "word")
+
+    def test_category_space_node(self):
+        root = parse_regex('\s')
+        cat_node = root.children[0].children[0]
+        self.assertEqual(type(cat_node), CategoryNode)
+        self.assertEqual(cat_node.classname, "space")
 
     def test_repeat_plus_node(self):
         root = parse_regex('a+')
@@ -51,6 +64,11 @@ class ParseRegexTest(unittest.TestCase):
         self.assertEqual(type(rng_node), RangeNode)
         self.assertEqual(rng_node.lo, ord('a'))
         self.assertEqual(rng_node.hi, ord('z'))
+
+    def test_in_node_negated(self):
+        root = parse_regex('[^a-z]')
+        in_node = root.children[0]
+        self.assertTrue(in_node.negated)
 
 
 class SpecialParseTest(unittest.TestCase):
