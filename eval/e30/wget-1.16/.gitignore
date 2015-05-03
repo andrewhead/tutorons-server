@@ -52,3 +52,4 @@ src/build_info.c
 src/css.c
 src/css_.c
 src/version.c
+tests/andrew/*.html
