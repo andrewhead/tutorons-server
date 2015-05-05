@@ -1114,10 +1114,8 @@ main (int argc, char **argv)
          option_data array, and to see if we're dealing with the
          negated "--no-FOO" variant of the boolean option "--foo".  */
       cmdopt = &option_data[val & ~BOOLEAN_NEG_MARKER];
-      printf("Long: %s\n", cmdopt->long_name);
-      printf("Short: %c\n", cmdopt->short_name);
-      printf("Type: %d\n", cmdopt->type);
-      printf("Value: %s\n", optarg);
+      printf("LN: %s||SN: %c||Type: %d||Value: %s\n",
+    		  cmdopt->long_name, cmdopt->short_name, cmdopt->type, optarg);
 
       switch (cmdopt->type)
         {
