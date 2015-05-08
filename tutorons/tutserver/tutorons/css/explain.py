@@ -25,9 +25,15 @@ def extract_strings(jscode):
     lexer.input(jscode)
 
     strings = []
-    for tok in lexer:
-        if tok.type == "STRING":
-            strings.append(tok.value[1:-1])
+    while True:
+        try:
+            tok = lexer.token()
+            if not tok:
+                break
+            if tok.type == "STRING":
+                strings.append(tok.value[1:-1])
+        except TypeError:
+            break
 
     return strings
 
