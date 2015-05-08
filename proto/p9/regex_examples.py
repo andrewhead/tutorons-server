@@ -13,6 +13,7 @@ import string
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 RANDOM_WORD_LEN = 5
+SYMBOLS_ADDED = 2
 
 
 def urtext(regex, dictionary=None):
@@ -32,8 +33,9 @@ class UrtextVisitor(object):
     Visitor for parsed regular expression that generates a representative, readable example of a 
     string that matches the regular expression.
     '''
-    def __init__(self, dictionary):
-        self.dictionary = dictionary
+    def __init__(self, dictionary, messy_words=True):
+        self.word_builder = WordBuilder(dictionary)
+        self.messy_words = messy_words
 
     def visit(self, node):
         if isinstance(node, RepeatNode):
@@ -51,8 +53,8 @@ class UrtextVisitor(object):
         # As far as I can tell, repeat only ever has exactly 1 child
         if isinstance(node.children[0], InNode):
             in_node = node.children[0]
-            chars = self._get_valid_characters(in_node)
-            return self._get_dict_term(chars)
+            chars = get_valid_characters(in_node)
+            return self.word_builder.build_word(chars, messy=self.messy_words)
         else:
             return self.visit(node.children[0]) * node.repetitions
  
@@ -60,11 +62,36 @@ class UrtextVisitor(object):
         return self.visit(node.children[node.choice])
 
     def visit_in(self, node):
-        chars = self._get_valid_characters(node)
-        return random.choice(chars)
+        chars = get_valid_characters(node)
+        return self.word_builder.build_word(chars, length=1)
 
     def visit_literal(self, node):
         return unichr(node.value)
+
+
+class WordBuilder(object):
+
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+    
+    def build_word(self, chars, length=None, messy=True):
+        if length:
+            return ''.join(random.choice(chars))
+        else:
+            word = self._get_dict_term(chars)
+            if messy:
+                word = self.add_nonalpha(word, chars)
+            return word
+
+    def add_nonalpha(self, word, chars, count=2):
+        non_alpha = list(set(chars) - set(string.ascii_letters))
+        new_word = list(word)
+        if len(non_alpha) > 0:
+            for _ in range(count):
+                rand_symbol = random.choice(non_alpha)
+                rand_index = random.randint(0, len(word))
+                new_word.insert(rand_index, rand_symbol)
+        return ''.join(new_word)
 
     def _get_dict_term(self, chars):
         
@@ -91,29 +118,40 @@ class UrtextVisitor(object):
                     elif c.lower() in chars:
                         clist[i] = c.lower()
                 return ''.join(clist)
-        return ''.join([random.choice(chars) for _ in range(RANDOM_WORD_LEN)])
-
-
-    def _get_valid_characters(self, in_node):
-        if in_node.negated:
-            op = lambda clist, c: clist.remove(c)
-            chars = list(string.printable)
+        return self._make_random_word(chars)
+ 
+    def _make_random_word(self, chars):
+        # Try to make readable word by only using alphanumeric chars.
+        choices = list(set(chars).intersection(set(string.ascii_letters)))
+        if len(choices) == 0:
+            return ''
         else:
-            op = lambda clist, c: clist.append(c)
-            chars = []
+            return ''.join([random.choice(choices) 
+                for _ in range(RANDOM_WORD_LEN)])
 
-        for child in in_node.children:
-            if isinstance(child, LiteralNode):
-                op(chars, unichr(child.value))
-            elif isinstance(child, RangeNode):
-                for val in range(child.lo, child.hi+1):
-                    op(chars, unichr(val))
-            elif isinstance(child, CategoryNode):
-                if child.classname == 'word':
-                    [op(chars, l) for l in string.ascii_letters]
-                elif child.classname == 'space':
-                    [op(chars, s) for s in string.whitespace]
-        return chars
+
+def get_valid_characters(in_node):
+    if in_node.negated:
+        op = lambda clist, c: clist.remove(c)
+        chars = list(string.printable)
+    else:
+        op = lambda clist, c: clist.append(c)
+        chars = []
+
+    for child in in_node.children:
+        if isinstance(child, LiteralNode):
+            op(chars, unichr(child.value))
+        elif isinstance(child, RangeNode):
+            for val in range(child.lo, child.hi+1):
+                op(chars, unichr(val))
+        elif isinstance(child, CategoryNode):
+            if child.classname == 'word':
+                [op(chars, l) for l in string.ascii_letters]
+            elif child.classname == 'space':
+                [op(chars, s) for s in string.whitespace]
+            elif child.classname == 'digit':
+                [op(chars, s) for s in string.digits]
+    return chars
 
 
 def get_default_dict():

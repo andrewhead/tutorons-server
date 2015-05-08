@@ -10,8 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from bs4 import BeautifulSoup as Soup
 import json
 
-from tutorons.wget.explain import explain as wget_explain
-from tutorons.wget.explain import detect as wget_detect
+from tutorons.wget.explain import detect as wget_detect, explain as wget_explain
+from tutorons.css.explain import detect as css_detect, explain as css_explain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -35,5 +35,23 @@ def wget(request):
                 exp_html = wget_template.render(Context(exp))
                 results[line_clean] = exp_html
 
-    # print json.dumps(results, indent=2)
+    return HttpResponse(json.dumps(results, indent=2))
+
+
+@csrf_exempt
+def css(request):
+
+    results = {}
+    soup = Soup(request.body)
+    css_template = get_template('css.html')
+    
+    for block in soup.find_all('code'):
+        snippet = block.text
+
+        selectors = css_detect(snippet)
+        for sel in selectors:
+            exp = css_explain(sel)
+            exp_html = css_template.render(Context({'exp': exp}))
+            results[sel] = exp_html
+
     return HttpResponse(json.dumps(results, indent=2))

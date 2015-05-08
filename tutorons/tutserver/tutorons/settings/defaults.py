@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+DEPS_DIR = os.path.join(BASE_DIR, 'deps')
 
 
 # Security
@@ -32,6 +33,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'tutorons.middleware.crossdomain-middleware.XsSharing',
 )
 
 ROOT_URLCONF = 'tutorons.urls'

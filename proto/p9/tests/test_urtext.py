@@ -19,7 +19,7 @@ class UrtestVisitorTest(unittest.TestCase):
  
     def setUp(self):
         dictionary = ["aaaa", "bbbb", "gfed", "yxxy"]
-        self.visitor = UrtextVisitor(dictionary)
+        self.visitor = UrtextVisitor(dictionary, messy_words=False)
 
     def test_visit_literal(self):
         lit_node = LiteralNode(ord('a'), "")
@@ -91,6 +91,14 @@ class UrtestVisitorTest(unittest.TestCase):
         ])
         msg = self.visitor.visit(in_node)
         self.assertIn(msg, string.whitespace)
+
+    def test_visit_in_digit_category(self):
+        in_node = InNode("")
+        in_node.children.extend([
+            CategoryNode("digit", ""),
+        ])
+        msg = self.visitor.visit(in_node)
+        self.assertIn(msg, string.digits)
 
     def test_visit_repeat_literal_specified_times(self):
         rpt_node = RepeatNode(1, "")
