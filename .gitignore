@@ -1,11 +1,16 @@
 # Dependencies we don't want to track
 node_modules
-deps
+deps/sp
+deps/*.jar
+
+# Binaries / Generate files
+gen/
+*.class
+*.pyc
+*.xpi
 
 # Junk files
 .DS_Store
-*.pyc
 *.swp
 ~$*.xlsx
-*.xpi
 .sass-cache

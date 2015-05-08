@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="net.sf.py4j:py4j:0.8.2" type="repository">
+    <properties maven-id="net.sf.py4j:py4j:0.8.2" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../py4j-0.8.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

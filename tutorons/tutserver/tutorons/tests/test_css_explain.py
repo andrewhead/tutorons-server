@@ -40,3 +40,7 @@ class SelectorExplanationTest(unittest.TestCase):
         exp = explain('.watch-view-count')
         self.assertEqual(exp, "The selector '.watch-view-count' chooses elements of class " +
             "'watch-view-count'.")
+
+    def test_explain_camelcase(self):
+        exp = explain('.watchView')
+        self.assertIn('.watchView', exp)
