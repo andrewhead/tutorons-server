@@ -1,7 +1,12 @@
 #! /bin/bash
-EXPLAINER_DIR=deps/css-explainer/out/production/css-explainer
+
+EXP_DIR=deps/css-explainer/out/production/css-explainer
 PY4J=$PWD/deps/py4j-0.8.2.jar
 
-(cd $EXPLAINER_DIR && java -cp $CLASSPATH:$PY4J CssExplainerEntryPoint) &
-# DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py runsslserver
+# Run Java Explanation server
+(cd $EXP_DIR && java -cp $CLASSPATH:$PY4J CssExplainerEntryPoint) &
+
+# Start the Python server
 DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py runserver
+
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
