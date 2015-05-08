@@ -40,7 +40,7 @@ class Option(object):
 def detect(cmd):
     """ Detect whether this is a valid wget command line. """
 
-    if len(cmd) == 0 or not re.match('^(.*?\W)?' + WGET_PATT, cmd):
+    if len(cmd) == 0 or not re.match('^(.*?\W)?' + WGET_PATT + " ", cmd):
         return False
 
     optstring = re.sub('^.*?' + WGET_PATT, '', cmd)

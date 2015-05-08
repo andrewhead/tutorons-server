@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from tutorons.wget.explain import build_help, explain, Option, optcombo_explain
+from tutorons.wget.explain import build_help, explain, Option, optcombo_explain, detect
 import unittest
 import logging
 
@@ -27,6 +27,12 @@ class BuildArgumentHelpTest(unittest.TestCase):
     def testDescribeValuedOptionWithNounAppended(self):
         msg = build_help("--config", "myfile")
         self.assertEqual(msg, "specify config file to use (FILE=myfile).")
+
+
+class DetectWgetTest(unittest.TestCase):
+
+    def test_detect_wget_from_wgetrc(self):
+        self.assertFalse(detect('.wgetrc'))
 
 
 class BuildCompoundHelpTest(unittest.TestCase):
