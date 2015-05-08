@@ -11,7 +11,7 @@ DEPS_DIR = os.path.join(BASE_DIR, 'deps')
 # Security
 
 SECRET_KEY_FILE = "/etc/django/tutorons.key"
-
+CORS_ORIGIN_ALLOW_ALL = True  # We're okay accepting connections from anywhere
 
 # Application definition
 
@@ -22,10 +22,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'tutorons',
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

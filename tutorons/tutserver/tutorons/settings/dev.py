@@ -6,6 +6,11 @@ DEBUG = True
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
+# Emulate an SSL server on localhost
+INSTALLED_APPS += (
+    "sslserver",
+)
+
 LOGGING = {
     'version': 1,
     'handlers': {
