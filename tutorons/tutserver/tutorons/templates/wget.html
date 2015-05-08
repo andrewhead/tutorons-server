@@ -1,0 +1,21 @@
+<p>
+    wget is a Terminal command you run to download a page from the Internet.
+    Here, it downloads content from {{ url }}.
+</p>
+{% if combo_exps %}
+<p>
+    {% for exp in combo_exps %}
+    {{ exp|safe }}&nbsp;
+    {% endfor %}
+</p>
+{% endif %}
+{% if opts %}
+<p>It uses these options:</p>
+<ul>
+    {% spaceless %}
+    {% for o in opts %}
+    <li>{{ o.long_name}}{% if o.short_name %} ({{ o.short_name }}){% endif %}: {{ o.help }}</li>
+    {% endfor %}
+    {% endspaceless %}
+</ul>
+{% endif %}
