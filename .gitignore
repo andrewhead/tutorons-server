@@ -2,6 +2,7 @@
 node_modules
 deps/sp
 deps/*.jar
+venv
 
 # Binaries / Generate files
 gen/
