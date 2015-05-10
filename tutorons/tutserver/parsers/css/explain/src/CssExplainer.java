@@ -102,8 +102,8 @@ public class CssExplainer extends CssBaseListener {
 
         if (ctx.selection().qualifier() != null) {
             CssParser.QualifierContext qualifier = ctx.selection().qualifier();
-            if (qualifier.id() != null) {
-                tagNoun.addPostModifier("with the ID '" + qualifier.id().IDENT().getText() + "'");
+            if (qualifier.ident() != null) {
+                tagNoun.addPostModifier("with the ID '" + qualifier.ident().IDENT().getText() + "'");
                 tagNoun.setDeterminer("a");
             } else if (qualifier.klazz() != null) {
                 tagNoun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL);
@@ -113,12 +113,12 @@ public class CssExplainer extends CssBaseListener {
             tagNoun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL);
         }
 
-        /* Choose the noun of the node as the property of the node, if it exists, otherwise the tag itself */
+        /* Choose the noun of the node as the prop of the node, if it exists, otherwise the tag itself */
         NPPhraseSpec nodeNoun;
-        if (ctx.property() == null) {
+        if (ctx.prop() == null) {
             nodeNoun = tagNoun;
         } else {
-            String prop = ctx.property().IDENT().getText();
+            String prop = ctx.prop().IDENT().getText();
             nodeNoun = getPropertyNoun(prop);
             nodeNoun.addPostModifier("from");
             nodeNoun.addPostModifier(tagNoun);

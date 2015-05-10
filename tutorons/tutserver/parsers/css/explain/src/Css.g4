@@ -4,17 +4,17 @@ grammar Css;
 /* Grammar */
 selector : node ;
 
-node      : selection property? attr? (SPACE node)?;
+node      : selection prop? attr? (SPACE node)? '\n'?;
 selection : element? qualifier |
             element qualifier? ;
 element : IDENT;
 
 qualifier : '.' klazz
-          | '#' id ;
+          | '#' ident ;
 klazz : IDENT ;
-id : IDENT ;
+ident : IDENT ;
 
-property : '::' IDENT;
+prop : '::' IDENT;
 
 attr   : '[' attrname rel attrvalue ']';
 attrname  : IDENT;
