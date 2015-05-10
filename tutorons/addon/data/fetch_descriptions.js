@@ -37,7 +37,8 @@
         var selString = selection.toString();
         if (selString.length > 0) {
 
-            // Find the first command that contains this string
+            // Find the snippet that both matches the selected text and
+            // that is the shortest edit distance away from the selected text.
             var explanation;
             var closestDist = Number.MAX_VALUE;
             for (var tutKey in explanations) {
@@ -46,7 +47,7 @@
                     for (var key in tut) {
                         if (tut.hasOwnProperty(key)) {
                             var editDist = levenshtein(selString, key);
-                            if (editDist < closestDist) {
+                            if (editDist < closestDist && key.indexOf(selString) !== -1) {
                                 closestDist = editDist;
                                 explanation = tut[key];
                             }
