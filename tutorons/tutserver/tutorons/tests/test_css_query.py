@@ -26,11 +26,7 @@ class TestRenderDescription(unittest.TestCase):
     def get_example_html(self, payload):
         resp = self.client.post('/css', content_type='raw', data=payload)
         respData = json.loads(resp.content)
-        doms = {
-            k: BeautifulSoup(v).select('#example-dom').prettify()
-                for k,v in respData.items()
-        }
-        return doms
+        return respData
 
     def get_text_short(self, selector):
         return self.get_resp_texts('\n'.join(["<code>", selector, "</code>"]))
@@ -51,11 +47,15 @@ class TestRenderDescription(unittest.TestCase):
         self.assertIn("chooses elements of class 'watch-view-count'", text)
 
     def test_render_example_html(self):
-        doms = self.get_example_html('<code>p.introduction::text</code>')
-        dom = doms['p.introduction::text']
-        self.assertEqual(dom, "\n".join([
-            "<p class='introduction'>",
-            " Text",
-            "</p>",
-            ""
-        ]))
+        doms = self.get_example_html('<code>$("div p");</code>')
+        dom = doms['div p']
+        self.assertIn("\n".join([
+            "<code>",
+            "&lt;div&gt;<br>",
+            "<span class='tutoron_selection'>",
+            "&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;<br>",
+            "&nbsp;&nbsp;&nbsp;&nbsp;&lt;/p&gt;<br>",
+            "</span>",
+            "&lt;/div&gt;<br>",
+            "</code>",
+        ]), dom)

@@ -13,6 +13,7 @@ import json
 
 from tutorons.wget.explain import detect as wget_detect, explain as wget_explain
 from tutorons.css.explain import detect as css_detect, explain as css_explain
+from parsers.css.examples.examplegen import get_example as css_example
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -53,7 +54,7 @@ def css(request):
         selectors = css_detect(snippet)
         for sel in selectors:
             ctx['exp'] = css_explain(sel)
-            ctx['parsetree'] = cssselect.parse(sel)
+            ctx['example'] = css_example(sel)
             exp_html = css_template.render(Context(ctx))
             results[sel] = exp_html
 

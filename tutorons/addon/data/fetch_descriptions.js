@@ -89,6 +89,20 @@
             $(div).find('p, ul, h5').css({
                 'margin-bottom': '.4em',
             });
+            $(div).find('div.example-code').css({
+                'margin-top': '10px',
+                'padding': '10px',
+                'font-size': '14px',
+                'font-weight': 'normal',
+                'background-color': '#F2EEFF',
+                'border': 'gray 1px solid',
+                'line-height': '1.3em',
+                'font-family': '"Lucida Console", Monaco, monospace',
+            });
+            $(div).find('.tutoron_selection').css({
+                'font-weight': 'bolder',
+                'color': '#3A2E62',
+            });
             $(div).find('.wget-opt').css({
                 'font-family': '"Courier New", Courier, monospace',
             });
