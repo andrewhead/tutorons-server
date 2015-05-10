@@ -62,6 +62,10 @@ class TestRenderDescription(unittest.TestCase):
         result = self.request_short("wget --buzzer fakearg")
         self.assertEqual(len(result.keys()), 0)
 
+    def test_describe_negative_flag(self):
+        result = self.request_short("wget -nc http://hello.html")
+        self.assertIn("skip downloads that would download to", result['wget -nc http://hello.html'])
+
     def test_describe_windows_executable(self):
         result = self.request_short("wget.exe http://hello.html")
         self.assertEqual(len(result.keys()), 1)

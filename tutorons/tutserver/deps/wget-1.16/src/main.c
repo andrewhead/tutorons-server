@@ -984,7 +984,7 @@ int
 main (int argc, char **argv)
 {
   char **url, **t;
-  int i, ret, longindex;
+  volatile int i, ret, longindex;
   int nurl;
   bool append_to_log = false;
 
@@ -1114,31 +1114,55 @@ main (int argc, char **argv)
          option_data array, and to see if we're dealing with the
          negated "--no-FOO" variant of the boolean option "--foo".  */
       cmdopt = &option_data[val & ~BOOLEAN_NEG_MARKER];
-      printf("LN: %s||SN: %c||Type: %d||Value: %s\n",
-    		  cmdopt->long_name, cmdopt->short_name, cmdopt->type, optarg);
+
+      printf("LN: %s||Value: %s||",
+    		  cmdopt->long_name, optarg);
 
       switch (cmdopt->type)
         {
         case OPT_VALUE:
+          printf("SN: %c||", cmdopt->short_name);
           break;
         case OPT_BOOLEAN:
+          printf("SN: %c||", cmdopt->short_name);
           break;
         case OPT_FUNCALL:
+          {
+          }
           break;
         case OPT__APPEND_OUTPUT:
+          printf("SN: %c||", cmdopt->short_name);
           break;
         case OPT__EXECUTE:
+          printf("SN: %c||", cmdopt->short_name);
           break;
         case OPT__NO:
+          {
+            /* We support real --no-FOO flags now, but keep these
+               short options for convenience and backward
+               compatibility.  */
+            printf("SN: %c%s||", 'n', optarg);
             break;
+          }
         case OPT__PARENT:
         case OPT__CLOBBER:
+          printf("SN: %c||", cmdopt->short_name);
+          {
+            /* The wgetrc commands are named noparent and noclobber,
+               so we must revert the meaning of the cmdline options
+               before passing the value to setoptval.  */
             break;
+          }
         case OPT__DONT_REMOVE_LISTING:
+          printf("SN: %c||", cmdopt->short_name);
           break;
         }
       longindex = -1;
+
+      printf("\n");
+
     }
+
 
   nurl = argc - optind;
 

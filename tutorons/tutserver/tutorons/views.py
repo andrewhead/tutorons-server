@@ -8,6 +8,7 @@ from django.template.loader import get_template
 from django.template import Context
 from django.views.decorators.csrf import csrf_exempt
 from bs4 import BeautifulSoup as Soup
+import cssselect
 import json
 
 from tutorons.wget.explain import detect as wget_detect, explain as wget_explain
@@ -42,6 +43,7 @@ def wget(request):
 def css(request):
 
     results = {}
+    ctx = {}
     soup = Soup(request.body)
     css_template = get_template('css.html')
     
@@ -50,8 +52,9 @@ def css(request):
 
         selectors = css_detect(snippet)
         for sel in selectors:
-            exp = css_explain(sel)
-            exp_html = css_template.render(Context({'exp': exp}))
+            ctx['exp'] = css_explain(sel)
+            ctx['parsetree'] = cssselect.parse(sel)
+            exp_html = css_template.render(Context(ctx))
             results[sel] = exp_html
 
     return HttpResponse(json.dumps(results, indent=2))

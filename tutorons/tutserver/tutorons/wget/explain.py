@@ -102,10 +102,14 @@ def parse_options(optstring):
 
     for l in lines:
         if l.startswith("LN"):
-            m = re.match("^LN: (.*)\|\|SN: (.*)\|\|Type: (.*)\|\|Value: (.*)$", l)
-            lname = r'--' + m.group(1)
-            sname = (r'-' + m.group(2)) if m.group(2) != '\x00' else ''
-            value = m.group(4) if m.group(4) != "null" else None
+            m = re.match("^LN: (.*)\|\|Value: (.*)\|\|SN: (.*)\|\|$", l)
+            lname = r'--' + m.group(1) if m.group(1) != 'no' else None
+            value = m.group(2) if m.group(2) != "null" else None
+            sname = (r'-' + m.group(3)) if m.group(3) != '\x00' else ''
+            if lname is None and sname is not None:
+                lname = [ln for sn, ln, _ in OPTHELP if sn == sname][0]
+            elif lname is None and sname is None:
+                continue
             opts.append(Option(sname, lname, value))
         elif l.startswith("URL"):
             urlstr = re.sub('^URL: ', '', l)
@@ -119,21 +123,45 @@ _is_valued = lambda longname: True if '=' in longname else False
 _get_value_name = lambda longname: longname.split('=')[1]
 
 
-def build_help(longname, value=None):
+def build_help(longname=None, value=None, shortname=None):
+
+    def _get_opt_by_longname(longname):
+        for opt in OPTHELP:
+            _, help_longname, msg = opt
+            tok = help_longname.split('=')
+            if tok[0] == longname:
+                return opt
+        return None
+
+    def _get_opt_by_shortname(shortname):
+        for opt in OPTHELP:
+            help_shortname, _, msg = opt
+            if help_shortname == shortname:
+                return opt
+        return None
+
     ''' Get an adaptive help message for an argument. '''
-    for _, help_longname, msg in OPTHELP:
-        if help_longname.startswith(longname):
-            if _is_valued(help_longname):
-                vname = _get_value_name(help_longname)
-                if vname in msg:
-                    msg = msg.replace(vname, value)
-                elif get_root_type(msg) == RootType.NOUN:
-                    msg = value + " is a " + msg
-                else:
-                    appendix = " ({0}={1})".format(vname, value)
-                    msg = re.sub("(.?)$", r"{0}\1".format(appendix), msg)
-            return msg
-    return "No help found"
+    if longname is not None:
+        opt = _get_opt_by_longname(longname)
+    elif shortname is not None:
+        opt = _get_opt_by_shortname(shortname)
+    else:
+        return None
+
+    if opt is None:
+        return "No help found"
+
+    _, help_longname, msg = opt
+    if _is_valued(help_longname):
+        vname = _get_value_name(help_longname)
+        if vname in msg:
+            msg = msg.replace(vname, value)
+        elif get_root_type(msg) == RootType.NOUN:
+            msg = value + " is a " + msg
+        else:
+            appendix = " ({0}={1})".format(vname, value)
+            msg = re.sub("(.?)$", r"{0}\1".format(appendix), msg)
+    return msg
 
 
 if __name__ == '__main__':

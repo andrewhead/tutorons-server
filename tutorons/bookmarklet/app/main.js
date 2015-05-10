@@ -17,20 +17,11 @@
         $.post(SERVER_BASE + tutName, document.body.innerHTML, saveExplanation(tutName));
     }
     
-    // Track mouse current cursor.
-    /* REUSE ALERT: code for relative positioning is from 
-     * http://stackoverflow.com/questions/4666367 */
-    var mouseX;
-    var mouseY;
-    $(document).mousemove(function(e) {
-        mouseX = e.pageX; 
-        mouseY = e.pageY;
-    });
-
     // Trigger tooltip on raising mouse after selection
     document.body.onmouseup = function() {
 
-        var selString = window.getSelection().toString();
+        var selection = window.getSelection();
+        var selString = selection.toString();
         if (selString.length > 0) {
 
             // Find the first command that contains this string
@@ -71,8 +62,6 @@
 
             // Style the tooltip
             $(div).css({
-                left: String(mouseX - 300) + 'px',
-                top: String(mouseY + 30) + 'px',
                 width: '600px',
                 position: 'absolute',
                 border: 'gray 2px dashed',
@@ -90,9 +79,24 @@
                 'font-family': '"Courier New", Courier, monospace',
             });
 
-            $(div).click(function() {
-                $(this).css('display', 'none');
+            // Center tooltip beneath text.  Doesn't work in IE9.
+            var selRange = selection.getRangeAt(0);
+            var selRect = selRange.getBoundingClientRect();
+            var selMidX = selRect.left + selRect.width / 2;
+            var selMidY = selRect.top + selRect.height / 2;
+            $(div).css({
+                left: String(selMidX - $(this).width() / 2) + 'px',
+                top: String(selMidY - $(this).height() / 2) + 'px',
             });
+
+            // Hide tooltip when click happens outside it
+            var hide = function() {
+                $(div).css('display', 'none');
+                $(document.body).unbind('click', hide);
+            };
+            $(document.body).bind('click', hide);
+
+            // Fade in the tooltip!
             $(div).fadeIn('slow');
 
         }

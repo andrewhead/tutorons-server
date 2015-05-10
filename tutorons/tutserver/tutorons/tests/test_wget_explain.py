@@ -13,20 +13,24 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 class BuildArgumentHelpTest(unittest.TestCase):
 
     def testDescribeRecursiveOption(self):
-        msg = build_help('--recursive')
+        msg = build_help(longname='--recursive')
         self.assertEqual(msg, "specify recursive download.")
 
     def testDescribeOutputOption(self):
-        msg = build_help("--output-document", "outfile")
+        msg = build_help(longname="--output-document", value="outfile")
         self.assertEqual(msg, "write documents to outfile.")
 
     def testDescribeValuedOptionWithNounPrepended(self):
-        msg = build_help("--include-directories", "mydir")
+        msg = build_help(longname="--include-directories", value="mydir")
         self.assertEqual(msg, "mydir is a list of allowed directories.")
 
     def testDescribeValuedOptionWithNounAppended(self):
-        msg = build_help("--config", "myfile")
+        msg = build_help(longname="--config", value="myfile")
         self.assertEqual(msg, "specify config file to use (FILE=myfile).")
+
+    def testDescribeOptionByShortname(self):
+        msg = build_help(shortname="-nc")
+        self.assertEqual(msg, "skip downloads that would download to existing files (overwriting them).")
 
 
 class DetectWgetTest(unittest.TestCase):
@@ -93,6 +97,7 @@ class BuildCompoundHelpTest(unittest.TestCase):
         self.assertEqual(exps, [
             "Recursively scrape web pages linked from http://google.com of type '*.jpg', following links 4 times."
         ])
+
 
 if __name__ == '__main__':
     unittest.main()

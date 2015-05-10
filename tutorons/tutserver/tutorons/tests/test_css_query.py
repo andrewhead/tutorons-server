@@ -23,17 +23,39 @@ class TestRenderDescription(unittest.TestCase):
         texts = {k: BeautifulSoup(v).text for k,v in respData.items()}
         return texts
 
-    def request_short(self, selector):
+    def get_example_html(self, payload):
+        resp = self.client.post('/css', content_type='raw', data=payload)
+        respData = json.loads(resp.content)
+        doms = {
+            k: BeautifulSoup(v).select('#example-dom').prettify()
+                for k,v in respData.items()
+        }
+        return doms
+
+    def get_text_short(self, selector):
         return self.get_resp_texts('\n'.join(["<code>", selector, "</code>"]))
 
+    def get_example_short(self, selector):
+        return self.get_example_html('\n'.join(["<code>", selector, "</code>"]))
+
     def test_describe_preamble(self):
-        texts = self.request_short('$(".klazz")')
+        texts = self.get_text_short('$(".klazz")')
         text = texts['.klazz']
         self.assertIn("You found a CSS selector!", text)
-        self.assertIn("Selectors pick HTML elements on a page by their names or properties.", text)
+        self.assertIn("selectors pick sections of HTML pages", text)
 
     def test_describe_single_class(self):
-        texts = self.request_short('$(".watch-view-count")')
+        texts = self.get_text_short('$(".watch-view-count")')
         self.assertEqual(len(texts.keys()), 1)
         text = texts['.watch-view-count']
         self.assertIn("chooses elements of class 'watch-view-count'", text)
+
+    def test_render_example_html(self):
+        doms = self.get_example_html('<code>p.introduction::text</code>')
+        dom = doms['p.introduction::text']
+        self.assertEqual(dom, "\n".join([
+            "<p class='introduction'>",
+            " Text",
+            "</p>",
+            ""
+        ]))

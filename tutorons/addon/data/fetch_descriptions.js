@@ -16,21 +16,18 @@
         explanations[tutName] = {};
         $.post(SERVER_BASE + tutName, document.body.innerHTML, saveExplanation(tutName));
     }
-    
-    // Track mouse current cursor.
-    /* REUSE ALERT: code for relative positioning is from 
-     * http://stackoverflow.com/questions/4666367 */
-    var mouseX;
-    var mouseY;
-    $(document).mousemove(function(e) {
-        mouseX = e.pageX; 
-        mouseY = e.pageY;
-    });
+ 
+    var tooltipShowing = false;
 
     // Trigger tooltip on raising mouse after selection
     document.body.onmouseup = function() {
 
-        var selString = window.getSelection().toString();
+        if (tooltipShowing === true) {
+            return;
+        }
+
+        var selection = window.getSelection();
+        var selString = selection.toString();
         if (selString.length > 0) {
 
             // Find the first command that contains this string
@@ -70,34 +67,60 @@
             div.innerHTML = explanation;
 
             // Style the tooltip
+            var width = 600;
             $(div).css({
-                left: Math.max(String(mouseX - 300), 0) + 'px',
-                top: String(mouseY + 30) + 'px',
-                width: '600px',
+                width: String(width) + 'px',
                 position: 'absolute',
                 border: 'gray 2px dashed',
+                display: 'none',
                 'padding-top': '10px',
                 'background-color': 'white',
                 'padding': '20px',
                 'font-family': '"Palatino Linotype", "Book Antiqua", Palatino, serif',
                 'font-size': '14px',
-                display: 'none',
             });
-            $(div).find('p, ul').css({
+            $(div).find('p, ul, h5').css({
                 'margin-bottom': '.4em',
             });
             $(div).find('.wget-opt').css({
                 'font-family': '"Courier New", Courier, monospace',
             });
 
-            $(div).click(function() {
-                $(this).css('display', 'none');
+            // Center tooltip beneath text.  Doesn't work in IE9.
+            var selRange = selection.getRangeAt(0);
+            var selRect = selRange.getBoundingClientRect();
+            var selMidX = window.pageXOffset + selRect.left + selRect.width / 2;
+            var divX = selMidX - width / 2;
+            var divY = selRect.bottom + window.pageYOffset + 10;
+            divX = Math.max(window.pageXOffset, divX);
+            divX = Math.min(divX, window.pageXOffset + window.innerWidth - width);
+            $(div).css({
+                left: String(divX) + 'px',
+                top: String(divY) + 'px',
             });
-            $(div).fadeIn('slow');
+
+            // Hide tooltip when click happens outside it
+            var hide = function(event) {
+                if (!$(event.target).closest('#hint-tooltip').length) {
+                    $(div).css('display', 'none');
+                    $(document.body).unbind('mousedown', hide);
+                    clearSelection();
+                    tooltipShowing = false;
+                }
+            };
+            $(document.body).bind('mousedown', hide);
+
+            // Fade in the tooltip!
+            $(div).show('scale', {}, 200);
+            tooltipShowing = true;
 
         }
     };
 
+    function clearSelection() {
+        if (window.getSelection) window.getSelection().removeAllRanges();
+        else if (document.selection) document.selection.empty();
+    }
 
     // LEVENSHTEIN EDIT DISTANCE
     /*
