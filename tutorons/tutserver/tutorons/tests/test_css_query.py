@@ -50,12 +50,10 @@ class TestRenderDescription(unittest.TestCase):
         doms = self.get_example_html('<code>$("div p");</code>')
         dom = doms['div p']
         self.assertIn("\n".join([
-            "<code>",
             "&lt;div&gt;<br>",
             "<span class='tutoron_selection'>",
             "&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;<br>",
             "&nbsp;&nbsp;&nbsp;&nbsp;&lt;/p&gt;<br>",
             "</span>",
             "&lt;/div&gt;<br>",
-            "</code>",
         ]), dom)
