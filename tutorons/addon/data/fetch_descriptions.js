@@ -4,7 +4,14 @@
     var SERVER_BASE = 'http://127.0.0.1:8000/';
     var TUTORONS = ['wget', 'css'];
 
-    // Get explanations for the full page
+    /* Listen for activation or deactivation of plugin */
+    var enabled = true;
+    self.port.on('detach', function() {
+        console.log("Detached");
+        enabled = false;
+    });
+
+    /* Fetch explanations for the page */
     var explanations = {};
     var saveExplanation = function(tutName) {
         return function(resp) {
@@ -19,10 +26,10 @@
  
     var tooltipShowing = false;
 
-    // Trigger tooltip on raising mouse after selection
+    /* Trigger tooltip to show selection */
     document.body.onmouseup = function() {
 
-        if (tooltipShowing === true) {
+        if (enabled === false || tooltipShowing === true) {
             return;
         }
 
