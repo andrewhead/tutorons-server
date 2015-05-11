@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <style>
+            hr {
+                margin: 50px;
+            }
+            .desc {
+                width: 60%;
+                margin: auto;
+                font-size: 22px;
+                padding: 10px;
+                text-align: center;
+            }
+            .box {
+                border: 1px black solid;
+                padding: 10px;
+                margin-top: 30px;
+                margin-bottom: 10px;
+            }
+            h2 {
+                margin-top: 30px;
+                text-align: center;
+            }
+        </style>
+        <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    </head>
+    <body>
+        <div style="width: 80%; margin: 200px auto;">
+            <p class='desc'>
+                For all of these tasks, you will be downloading files from the url <code>http://andrewhead.info</code>.
+            </p>
+            <h2>Task 1</h2>
+            <p class='desc'>
+                Modify and run <a href='http://stackoverflow.com/questions/1078524/how-to-specify-the-location-with-wget'>this command</a> so it doesn't install images that are on the pages that it scrapes.
+            </p>
+            <h2>Task 2</h2>
+            <p class='desc'>
+            Modify and run <a href='http://stackoverflow.com/questions/273743/using-wget-to-recursively-fetch-a-directory-with-arbitrary-files-in-it#21983475'>the second command in this answer</a> so that the <code>robots</code> flag is still off but wget doesn't fetch any resources from the parent directories of the target URL.
+            </p>
+            <h2>Task 3</h2>
+            <p class='desc'>
+                Modify and run <a href='http://stackoverflow.com/questions/3430810/wget-download-with-multiple-simultaneous-connections#7645245'>this command</a> so that whenever it fetches any file, it overwrites the previous file.
+            </p>
+            <h2>Task 4</h2>
+            <p class='desc'>
+                Modify and run <a href='http://stackoverflow.com/questions/4602153/how-do-i-use-wget-to-download-all-images-into-a-single-folder'>this command</a> so it doesn't fetch any JPEGs while pulling files.
+            </p>
+        </div>
+    </body>
+</html>
