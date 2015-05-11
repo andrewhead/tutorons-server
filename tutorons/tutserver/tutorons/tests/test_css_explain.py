@@ -36,10 +36,34 @@ class SelectorExtractionTest(unittest.TestCase):
 
 class SelectorExplanationTest(unittest.TestCase):
 
+    def test_explain_nested_elements(self):
+        exp = explain('div a')
+        self.assertIn("chooses links from containers", exp)
+
+    def test_explain_classes(self):
+        exp = explain('div.klazz')
+        self.assertIn("chooses containers of class 'klazz'", exp)
+
+    def test_explain_ids(self):
+        exp = explain('div#ident')
+        self.assertIn("chooses a container with the ID 'ident'", exp)
+
+    def test_explain_state(self):
+        exp = explain('input:checked')
+        self.assertIn("chooses checked inputs", exp)
+
     def test_explain_class(self):
         exp = explain('.watch-view-count')
         self.assertEqual(exp, "The selector '.watch-view-count' chooses elements of class " +
             "'watch-view-count'.")
+
+    def test_explain_pre(self):
+        exp = explain('pre')
+        self.assertIn("preformatted text", exp)
+
+    def test_explain_img(self):
+        exp = explain('img')
+        self.assertIn("images", exp)
 
     def test_explain_camelcase(self):
         exp = explain('.watchView')

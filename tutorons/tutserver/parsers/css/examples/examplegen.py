@@ -6,6 +6,7 @@ import logging
 import sys
 from antlr4 import CommonTokenStream, ParseTreeWalker
 from antlr4.InputStream import InputStream
+from antlr4.error.ErrorListener import ErrorListener
 import cgi
 from pyquery import PyQuery as pq
 from bs4 import BeautifulSoup
@@ -19,14 +20,18 @@ from parser.CssListener import CssListener
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-class CssExampleGenerator(CssListener):
+class CssExampleGenerator(CssListener, ErrorListener):
     ''' Generates pretty examples of HTML documents that will satisfy a selector. '''
 
     def __init__(self, indent=4, *args, **kwargs):
         super(CssExampleGenerator, self).__init__(*args, **kwargs)
         self.indent = indent
         self.results = {}
-        self.example = None
+        self.invokingStates = []
+        self.example = ""
+
+    def syntaxError(self, *args, **kwargs):
+        print "Syntax Error!"
 
     def prettify(self, dom):
         return BeautifulSoup(str(dom)).body.next.prettify()
@@ -74,7 +79,9 @@ class CssExampleGenerator(CssListener):
         return '\n'.join(lines)
 
     def exitSelector(self, ctx):
-        pret = self.prettify(self.results.values()[0])
+        if len(self.results) == 0:
+            return
+        pret = self.prettify(self.results[self.invokingStates[-1]])
         esc = self.escape(pret)
         marked = self.formatMark(esc)
         indented = self.unindentMarks(marked)
@@ -93,6 +100,7 @@ class CssExampleGenerator(CssListener):
             el = self.markSelection(el)
 
         self.results[ctx.invokingState] = el
+        self.invokingStates.append(ctx.invokingState)
 
 
 def get_example(selector, indent=4):
@@ -104,7 +112,10 @@ def get_example(selector, indent=4):
     stream = CommonTokenStream(lexer)
     parser = CssParser(stream)
     tree = parser.selector()
-    walker.walk(example_generator, tree)
+    try:
+        walker.walk(example_generator, tree)
+    except Exception:
+        return None
     return example_generator.example
 
 

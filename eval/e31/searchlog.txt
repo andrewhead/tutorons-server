@@ -42,3 +42,7 @@ mark images for download by wget
 check if alphanumeric javascript character
 prettify html osx terminal
 cat theredoc to file bash
+w3schools css selectors
+css syntax
+css selector syntax
+antlr4 python listen for parse error

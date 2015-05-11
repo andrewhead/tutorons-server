@@ -4,9 +4,7 @@ grammar Css;
 /* Grammar */
 selector : node ;
 
-node      : selection prop? attr? (SPACE node)? '\n'?;
-selection : element? qualifier |
-            element qualifier? ;
+node      : element? qualifier? prop? pseudoclass? attr? (SPACE node)? '\n'?;
 element : IDENT;
 
 qualifier : '.' klazz
@@ -14,7 +12,8 @@ qualifier : '.' klazz
 klazz : IDENT ;
 ident : IDENT ;
 
-prop : '::' IDENT;
+pseudoclass : ':' IDENT;
+prop        : '::' IDENT;
 
 attr   : '[' attrname rel attrvalue ']';
 attrname  : IDENT;

@@ -79,6 +79,8 @@ public class CssExplainer extends CssBaseListener {
             else if (tag.equals("div")) string ="container";
             else if (tag.equals("strong")) string ="bolded text";
             else if (tag.equals("a")) string = "link";
+            else if (tag.equals("img")) string = "image";
+            else if (tag.equals("pre")) string = "preformatted text";
             else string = tag;
             return factory.createNounPhrase(string);
         }
@@ -93,18 +95,19 @@ public class CssExplainer extends CssBaseListener {
 
         /* Prepare description of tag */
         NPPhraseSpec tagNoun;
-        if (ctx.selection().element() != null) {
-            String tag = ctx.selection().element().IDENT().getText();
+        if (ctx.element() != null) {
+            String tag = ctx.element().IDENT().getText();
             tagNoun = getTagNoun(tag);
         } else {
             tagNoun = factory.createNounPhrase("element");
         }
 
-        if (ctx.selection().qualifier() != null) {
-            CssParser.QualifierContext qualifier = ctx.selection().qualifier();
+        if (ctx.qualifier() != null) {
+            CssParser.QualifierContext qualifier = ctx.qualifier();
             if (qualifier.ident() != null) {
-                tagNoun.addPostModifier("with the ID '" + qualifier.ident().IDENT().getText() + "'");
+                tagNoun.setFeature(Feature.NUMBER, NumberAgreement.SINGULAR);
                 tagNoun.setDeterminer("a");
+                tagNoun.addPostModifier("with the ID '" + qualifier.ident().IDENT().getText() + "'");
             } else if (qualifier.klazz() != null) {
                 tagNoun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL);
                 tagNoun.addPostModifier("of class '" + qualifier.klazz().IDENT().getText() + "'");
