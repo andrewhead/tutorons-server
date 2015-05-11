@@ -32,6 +32,17 @@ class TestGenerateExamples(unittest.TestCase):
             "&lt;/div&gt;<br>",
         ]))
     
+    def test_render_div_if_no_explicit_element(self):
+        html = get_example('.klazz', indent=1)
+        self.assertIn('div', html)
+
+    def test_add_class_to_element(self):
+        html = get_example('p.klazz', indent=1)
+        self.assertIn('p class="klazz"', html)
+
+    def test_add_id_to_element(self):
+        html = get_example('p#ident', indent=1)
+        self.assertIn('p id="ident"', html)
 
 if __name__ == '__main__':
     unittest.main()

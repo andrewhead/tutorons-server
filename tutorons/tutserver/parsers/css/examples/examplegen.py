@@ -90,8 +90,24 @@ class CssExampleGenerator(CssListener, ErrorListener):
 
     def exitNode(self, ctx):
 
-        en = ctx.children[0].getText()
-        el = pq('<{0}></{0}>'.format(en))
+        def _getChild(ctx, klazz):
+            els = [c for c in ctx.children if isinstance(c, klazz)]
+            return els[0] if len(els) > 0 else None
+
+        element = _getChild(ctx, CssParser.ElementContext)
+        if element is not None:
+            el = pq('<{0}></{0}>'.format(element.getText()))
+        else:
+            el = pq('<div></div>')
+
+        qualifier = _getChild(ctx, CssParser.QualifierContext)
+        if qualifier is not None:
+            klazz = _getChild(qualifier, CssParser.KlazzContext)
+            if klazz is not None:
+                el.toggleClass(klazz.getText())
+            ident = _getChild(qualifier, CssParser.IdentContext)
+            if ident is not None:
+                el.attr('id', ident.getText())
 
         childNodes = [c for c in ctx.children if isinstance(c, CssParser.NodeContext)]
         for c in childNodes:
