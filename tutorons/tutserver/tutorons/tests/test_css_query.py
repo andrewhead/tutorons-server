@@ -37,7 +37,7 @@ class TestRenderDescription(unittest.TestCase):
     def test_describe_preamble(self):
         texts = self.get_text_short('$(".klazz")')
         text = texts['.klazz']
-        self.assertIn("You found a CSS selector!", text)
+        self.assertIn("You found a CSS selector", text)
         self.assertIn("selectors pick sections of HTML pages", text)
 
     def test_describe_single_class(self):
