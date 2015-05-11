@@ -88,7 +88,11 @@
                 'font-size': '14px',
             });
             $(div).find('p, ul, h5').css({
+                'margin-top': '0',
                 'margin-bottom': '.4em',
+            });
+            $(div).find('h5').css({
+                'font-size': '14px',
             });
             $(div).find('div.example-code').css({
                 'margin-top': '10px',
