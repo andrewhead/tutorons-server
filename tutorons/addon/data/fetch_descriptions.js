@@ -35,6 +35,7 @@
 
         var selection = window.getSelection();
         var selString = selection.toString();
+        selString = stripEdgeSymbols(selString);
         if (selString.length > 0) {
 
             // Find the snippet that both matches the selected text and
@@ -146,6 +147,32 @@
     function clearSelection() {
         if (window.getSelection) window.getSelection().removeAllRanges();
         else if (document.selection) document.selection.empty();
+    }
+
+    /**
+     * Remove non-alphanumeric characters at the fringes of strings.
+     */
+    function stripEdgeSymbols(string) {
+        var left = string.length - 1;
+        var right = 0;
+        var alphanumeric = /[a-z0-9]/i;
+        for (var i = 0; i < string.length; i++) {
+            if (string.charAt(i).match(alphanumeric) !== null) {
+                left = i;
+                break;
+            }
+        }
+        for (var i = string.length - 1; i >=0; i--) {
+            if (string.charAt(i).match(alphanumeric) !== null) {
+                right = i;
+                break;
+            }
+        }
+        if (right >= left) {
+            return string.substring(left, right + 1);
+        } else {
+            return "";
+        }
     }
 
     // LEVENSHTEIN EDIT DISTANCE
