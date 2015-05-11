@@ -1,0 +1,8 @@
+# Note that some variation is allowed for the selection to work,
+# although certain selectors capture the exact semantic intent 
+# of the proposed task.
+highlight('pre')
+highlight('p')
+highlight('.myInput')
+highlight('div.cont')
+highlight('button[id^=bid]')
