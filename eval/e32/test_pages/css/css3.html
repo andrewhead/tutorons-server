@@ -9,53 +9,21 @@
     <body>
         <div class='main-cont'>
 
+
             <div class='task-cont'>
-                <h2 class='title'>Task</h2>
+                <h2 class='title'>Step 1: Read This Task</h2>
+                <p class='inst'>Make a CSS selector that selects only the <code>div</code> elements of class <code>cont</code>.</p>
+            </div>
 
-                <p class='inst'>Write a CSS selector that selects only the <code>button</code> elements with IDs starting with <code>bid</code> below.</p>
-                <div style='padding: 5px; border: 1px solid black;'>
-                    Select Me
-                </div>
-                <div class='skip' style='margin-top: 5px;'>
-                    Skip Me
-                </div>
-                <br>
-                <p class='inst'>The source of this HTMl page looks like:</p>
-                <pre class='dom'>
-&lt;div class='cont'&gt;
-    Select Me
-&lt;/div&gt;
-&lt;div class='skip'&gt;
-    Skip Me
-&lt;/div&gt;
-</pre>
-                </p>
-
-                <br>
+            <div class='task-cont'>
+                <h2 class='title'>Step 2: Look at the Snippet for Clues</h2>
                 <p class='inst'>
-                    <b>Before starting</b>,
-                    read the snippet below to find code you can modify to do the task.
+                    Read the snippet below to find code you can modify to do the task.
+                    Small fragments of these snippets can be used to do your task.
                     Ask the proctor if you should view accelerators.
-                    Afterwards,  you can use any strategies or 
-                    other information you want.
+                    Afterwards,  you can use any other strategies or 
+                    information you want.
                 </p>
-                <p class='inst'>
-                    <b>To test your selector</b>:
-                </p>
-                <ul>
-                    <li>Open the console with the <b>command+H</b> command
-                    <li>At the bottom of the console, type <code>highlight('<i>selector</i>')</code>,
-                        where you type a <code><i>selector</i></code>.<br>
-                    </li>
-                    <li>You'll know the selector is correct when all elements reading "<i>Select me</i>" turn yellow.</li>
-                </ul>
-            </div>
-
-            <div class='task-cont'>
-                <h2 class='title'>Snippet</h2>
-                <p class='inst'>
-                </p>
-            </div>
 
 
 <table>
@@ -182,6 +150,42 @@
     </td>
 </tr>    </tbody></table>
         <p class='link_out'><a href='http://stackoverflow.com/questions/1184624/convert-form-data-to-javascript-object-with-jquery#5506718'>&lt;&lt;&lt;&lt; See original page here &gt;&gt;&gt;&gt;</a></p>
+
+            </div>
+
+            <div class='task-cont'>
+                <h2 class='title'>Step 3: Show Your Solution</h2>
+                <p class='inst'>
+                    <b>To test your selector</b>:
+                </p>
+                <ul>
+                    <li>Open the console with the <b>command+H</b> command
+                    <li>Type <code>highlight('<i>MY_SELECTOR</i>')</code>,
+                        where <code><i>MY_SELECTOR</i></code> is the selector you have come
+                        up with to select the answer. Then type <i>Enter</i><br>
+                    </li>
+                    <li><b>Your selector is correct when all elements reading "<i>Select me</i>" turn yellow.</b></li>
+                </ul>
+
+                <div class='cont' style='padding: 5px; border: 1px solid black;'>
+                    Select Me
+                </div>
+                <div class='skip' style='margin-top: 5px;'>
+                    Skip Me
+                </div>
+                <br>
+                <br>
+                <p class='inst'>Note that the source of this testable HTML region looks like:</p>
+                <pre class='dom'>
+&lt;div class='cont'&gt;
+    Select Me
+&lt;/div&gt;
+&lt;div class='skip'&gt;
+    Skip Me
+&lt;/div&gt;
+</pre>
+            </div>
+
     </div>
     </body>
 </html>

@@ -13,33 +13,31 @@
 
                 <p class='inst'>
                     Write a wget command line based on the code snippet at the bottom or this page.
-                    Currently, the command downloads images linked from a webpage.
+                    Currently, the command downloads a single webpage
                 </p>
                 <p class='inst'>
                     <b>Modify the command</b> so that it:
                 </p>
                 <ul>
-                    <li>Downloads from the URL http://eecs.berkeley.edu/~andrewhead.</li>
-                    <li>Does <b>note</b> download PNGs.</li>
+                    <li>Downloads the main page at http://eecs.berkeley.edu/~andrewhead.</li>
                 </ul>
                 <p class='inst'>
                     <b>To test your wget command</b>:
                 </p>
                 <ul>
                     <li>Open the iTerm application from the Dock.</li>
-                    <li>Type in <code>user <i>N</i> 1</code> where <code>N</code> is your participant ID.</li>
+                    <li>Type in <code>user <i>N</i> 0</code> where <code>N</code> is your participant ID.</li>
                     <li>Write your <code>wget</code> command line in iTerm and press Enter to run it.</li>
                     <li>Type <code>tree</code> and make sure that you see:
                         <pre class='tree'>
 .
-└── www.eecs.berkeley.edu
-    └── robots.txt
+└── ~andrewhead
 
-1 directory, 1 file
+0 directories, 1 file
 </pre>
                     </li>
                     <li>
-                        If you need to restart, type <code>restart-user <i>N</i> 1</code> 
+                        If you need to restart, type <code>restart-user <i>N</i> 0</code> 
                         where <code>N</code> is your participant ID.
                     </li>
                 </ul>
@@ -59,11 +57,11 @@
 <div class="vote">
         <input name="_id_" value="4602153" type="hidden">
         <a class="vote-up-off" title="This question shows research effort; it is useful and clear">up vote</a>
-        <span itemprop="upvoteCount" class="vote-count-post ">61</span>
+        <span itemprop="upvoteCount" class="vote-count-post ">42</span>
         <a class="vote-down-off" title="This question does not show any research effort; it is unclear or not useful">down vote</a>
 
         <a class="star-off" href="#" title="This is a favorite question (click again to undo)">favorite</a>
-        <div class="favoritecount"><b>51</b></div>
+        <div class="favoritecount"><b>42</b></div>
 
 
 </div>
@@ -74,9 +72,9 @@
 <div>
     <div class="post-text" itemprop="text">
 
-<p>I am using wget to download all images from a website and it works fine but it stores the original heirarchy of the site with all the subfolders and so the images are dotted around. Is there a way so that it will just download all the images into a single folder? The syntax I'm using at the moment is:</p>
+<p>Use this command:</p>
 
-<pre><code>wget -r -A jpeg,jpg,bmp,gif,png http://www.domain.com
+<pre><code>wget http://www.domain.com
 </code></pre>
     </div>
     <div class="post-taglist">
@@ -139,7 +137,6 @@
         </div>         
     </td>
 </tr>        </tbody></table>
-        <p class='link_out'><a href='http://stackoverflow.com/questions/4602153/how-do-i-use-wget-to-download-all-images-into-a-single-folder'>&lt;&lt;&lt;&lt; See original page here &gt;&gt;&gt;&gt;</a></p>
     </div>
     </body>
 </html>
