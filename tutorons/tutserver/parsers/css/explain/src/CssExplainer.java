@@ -7,6 +7,10 @@ import simplenlg.realiser.english.*;
 import simplenlg.phrasespec.*;
 import simplenlg.features.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 public class CssExplainer extends CssBaseListener {
 
@@ -91,6 +95,15 @@ public class CssExplainer extends CssBaseListener {
         return factory.createNounPhrase(prop);
     }
 
+    public String getPseudoclassAdjective(String pseudoclassName) {
+        List<String> adjList = (List<String>) Arrays.asList(
+                "checked", "hidden", "visible", "enabled", "active", "empty", "visited");
+        if (adjList.contains(pseudoclassName)) return pseudoclassName;
+        else if (pseudoclassName.equals("hover")) return "hovered-over";
+        else if (pseudoclassName.equals("focus")) return "in-focus";
+        return null;
+    }
+
     public void exitNode(CssParser.NodeContext ctx) {
 
         /* Prepare description of tag */
@@ -114,6 +127,19 @@ public class CssExplainer extends CssBaseListener {
             }
         } else {
             tagNoun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL);
+        }
+
+        if (ctx.pseudoclass() != null) {
+            String pseudoclassName = ctx.pseudoclass().IDENT().toString();
+            String adjective = getPseudoclassAdjective(pseudoclassName);
+            if (adjective != null) tagNoun.addPreModifier(adjective);
+            else {
+                String pcGenericMod = "";
+                if (ctx.qualifier() != null) pcGenericMod = "and ";
+                else pcGenericMod = "with ";
+                pcGenericMod += "pseudoclass " + pseudoclassName;
+                tagNoun.addPostModifier(pcGenericMod);
+            }
         }
 
         /* Choose the noun of the node as the prop of the node, if it exists, otherwise the tag itself */

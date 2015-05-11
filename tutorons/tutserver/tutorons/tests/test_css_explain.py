@@ -48,7 +48,28 @@ class SelectorExplanationTest(unittest.TestCase):
         exp = explain('div#ident')
         self.assertIn("chooses a container with the ID 'ident'", exp)
 
-    def test_explain_state(self):
+    def test_explain_pseudoclass_as_state(self):
+        exp = explain('input:checked')
+        self.assertIn("chooses checked inputs", exp)
+        exp = explain('input:hidden')
+        self.assertIn("chooses hidden inputs", exp)
+        exp = explain('input:visible')
+        self.assertIn("chooses visible inputs", exp)
+        exp = explain('input:enabled')
+        self.assertIn("chooses enabled inputs", exp)
+        exp = explain('a:active')
+        self.assertIn("chooses active links", exp)
+        exp = explain('a:visited')
+        self.assertIn("chooses visited links", exp)
+        exp = explain('div:empty')
+        self.assertIn("chooses empty containers", exp)
+        # Tricky ones requiring manual manipulation
+        exp = explain('a:focus')
+        self.assertIn("chooses in-focus links", exp)
+        exp = explain('a:hover')
+        self.assertIn("chooses hovered-over links", exp)
+
+    def test_explain_pseudoclass_as_pseudoclass(self):
         exp = explain('input:checked')
         self.assertIn("chooses checked inputs", exp)
 

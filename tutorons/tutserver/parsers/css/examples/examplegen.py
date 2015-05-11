@@ -109,6 +109,17 @@ class CssExampleGenerator(CssListener, ErrorListener):
             if ident is not None:
                 el.attr('id', ident.getText())
 
+        attr = _getChild(ctx, CssParser.AttrContext)
+        if attr is not None:
+            name = _getChild(attr, CssParser.AttrnameContext).getText()
+            value = _getChild(attr, CssParser.AttrvalueContext).getText()
+            el.attr(name, value)
+
+        pseudoclass = _getChild(ctx, CssParser.PseudoclassContext)
+        if pseudoclass is not None:
+            pcn = pseudoclass.getText().replace(':', '')
+            el.append('<!-- pseudoclass "{0}" -->'.format(pcn))
+
         childNodes = [c for c in ctx.children if isinstance(c, CssParser.NodeContext)]
         for c in childNodes:
             el.append(self.results[c.invokingState])

@@ -48,3 +48,5 @@ css selector syntax
 antlr4 python listen for parse error
 jquery set id
 pseudoclasses html
+jquery set pseudoclass
+css pseudoclasses

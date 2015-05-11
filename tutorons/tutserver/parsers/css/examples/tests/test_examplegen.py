@@ -44,5 +44,13 @@ class TestGenerateExamples(unittest.TestCase):
         html = get_example('p#ident', indent=1)
         self.assertIn('p id="ident"', html)
 
+    def test_add_pseudoclass_to_element(self):
+        html = get_example(':checked', indent=1)
+        self.assertIn('&lt;!-- pseudoclass "checked" --&gt;', html)
+
+    def test_add_attribute_to_element(self):
+        html = get_example('input[id^=Product]', indent=1)
+        self.assertIn('input id="Product"', html)
+
 if __name__ == '__main__':
     unittest.main()
