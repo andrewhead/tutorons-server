@@ -15,7 +15,7 @@
                     <b>Modify the command</b> so that it:
                 </p>
                 <ul>
-                    <li>Downloads from the URL http://eecs.berkeley.edu/~andrewhead.</li>
+                    <li>Downloads from the URL http://eecs.berkeley.edu/~andrewhead/.</li>
                     <li>Overwrites all files downloaded, even if they have not been updated remotely.</li>
                 </ul>					
               </div>
@@ -178,13 +178,19 @@ wget -r -np -N [url]
                         <pre class='tree'>
 .
 └── eecs.berkeley.edu
+    ├── robots.txt
     └── ~andrewhead
+        ├── img
+        │   └── barbies_dinner.png
+        ├── index.html
+        ├── pandemic
+        └── style.css
 
-1 directory, 1 file
+3 directories, 5 files
 </pre>
                         <b>and</b> after running the command a second time, make sure you still see:
                         <pre class='tree'>
-Downloaded: 1 files, 7.2K in 0.05s (137 KB/s)
+Downloaded: 5 files, ***K in ***s (*** MB/s)
 </pre>
                     </li>
                     <li>
