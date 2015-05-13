@@ -91,6 +91,10 @@
             $(div).find('p, ul, h5').css({
                 'margin-top': '0',
                 'margin-bottom': '.4em',
+                'line-height': '1.3em',
+            });
+            $(div).find('ul').css({
+                'padding-left': '20px',
             });
             $(div).find('h5').css({
                 'font-size': '14px',

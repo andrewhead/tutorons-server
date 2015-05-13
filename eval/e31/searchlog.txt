@@ -51,3 +51,21 @@ pseudoclasses html
 jquery set pseudoclass
 css pseudoclasses
 css font families
+tab length in vim text files
+text filetype vim
+subfigures latex
+subfigure margins too big latex
+row spacing subcaption
+includegraphics set height
+subcaption subfigures same height
+applescript display in html format
+applescript show tooltip
+osx applescript tooltip
+applescript summarize
+ieeeauthorblocka
+latex two-column table
+change font size of column latex table
+latex between small and tiny
+insert tab latex
+latex margin table cells
+center first row latex

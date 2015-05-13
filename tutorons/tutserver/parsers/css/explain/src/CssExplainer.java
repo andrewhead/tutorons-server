@@ -29,11 +29,11 @@ public class CssExplainer extends CssBaseListener {
         } else {
             testStrings = new String[]{
                 "div.featured a",
-                "div#footer_inner strong",
                 "div.video-summary-data a[href^=/video]",
                 "p.introduction::text",
                 "div#videobox h3",
-                ".watch-view-count"
+                ".watch-view-count",
+                ".form_box input:checked"
             };
         }
 
