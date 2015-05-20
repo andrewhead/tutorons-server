@@ -94,6 +94,8 @@ public class OptionCounter extends Wget2BaseListener {
 
     public void exitLine(Wget2Parser.LineContext ctx) {
 
+        System.out.println("#### HEEEERE");
+
         // Count all option pairs on each line
         List<Wget2Parser.ChunkContext> chunkList = ctx.chunk();
         for (int i = 0; i < chunkList.size(); i++) {
