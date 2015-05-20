@@ -51,12 +51,13 @@ class UrtextVisitor(object):
 
     def visit_repeat(self, node):
         # As far as I can tell, repeat only ever has exactly 1 child
+        reps = node.repetitions
         if isinstance(node.children[0], InNode):
             in_node = node.children[0]
             chars = get_valid_characters(in_node)
-            return self.word_builder.build_word(chars, messy=self.messy_words)
+            return self.word_builder.build_word(chars, messy=self.messy_words, length=reps)
         else:
-            return self.visit(node.children[0]) * node.repetitions
+            return ''.join([self.visit(node.children[0]) for _ in range(reps)])
  
     def visit_branch(self, node):
         return self.visit(node.children[node.choice])
@@ -76,7 +77,7 @@ class WordBuilder(object):
     
     def build_word(self, chars, length=None, messy=True):
         if length:
-            return ''.join(random.choice(chars))
+            return ''.join([random.choice(chars) for _ in range(length)])
         else:
             word = self._get_dict_term(chars)
             if messy:

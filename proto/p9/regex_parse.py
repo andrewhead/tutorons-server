@@ -35,7 +35,7 @@ class LineType(Enum):
 
 class Node(object):
 
-    def __init__(self, text):
+    def __init__(self, text=''):
         self.children = []
         self.text = text
 
@@ -104,10 +104,11 @@ class GroupNode(Node):
 
 class RepeatNode(Node):
 
-    def __init__(self, min_repeat, *args, **kwargs):
+    def __init__(self, ranged, min_repeat, repetitions=None, *args, **kwargs):
         super(RepeatNode, self).__init__(*args, **kwargs)
         self.min_repeat = min_repeat
-        self.repetitions = 1
+        self.ranged = ranged
+        self.repetitions = repetitions
 
 
 def capture_stdout(func):
@@ -132,9 +133,16 @@ def _count_indents(line):
     return len(re.findall("^\s*", line)[0]) / 2
 
 
-parse_repeat = lambda line: int(re.match('^max_repeat (\d+)', line).group(1))
+''' Methods for parsing lines into node data. '''
 parse_literal = lambda line: int(re.match('^literal (\d+)', line).group(1))
 parse_category = lambda line: re.match('^category category_(\w+)', line).group(1)
+
+def parse_repeat(line):
+    bounds = [int(_) for _ in re.match('^max_repeat (\d+) (\d+)', line).groups()]
+    ranged = not (bounds[0] == bounds[1])
+    min_repeats = bounds[0]
+    repetitions = None if ranged else bounds[0]
+    return (ranged, min_repeats, repetitions)
 
 def parse_range(line):
     match = re.match('^range \((\d+), (\d+)\)', line)
@@ -151,7 +159,8 @@ def getnode(line):
     elif line_type == LineType.IN:
         node = InNode(line)
     elif line_type == LineType.REPEAT:
-        node = RepeatNode(parse_repeat(line.strip()), line)
+        ranged, minr, reps = parse_repeat(line.strip())
+        node = RepeatNode(ranged, minr, reps, line)
     elif line_type == LineType.BRANCH:
         node = ChoiceNode(line)
     elif line_type == LineType.OR:

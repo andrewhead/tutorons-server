@@ -45,6 +45,12 @@ class ParseRegexTest(unittest.TestCase):
         self.assertEqual(type(child), RepeatNode)
         self.assertEqual(child.min_repeat, 0)
 
+    def test_repeat_count(self):
+        root = parse_regex('a{3}')
+        child = self._get_first_child(root)
+        self.assertEqual(type(child), RepeatNode)
+        self.assertEqual(child.repetitions, 3)
+
     def test_branch_node(self):
         ''' This one is tricky -- we have to get all 'or's on the same level '''
         root = parse_regex('abra|kadabra')

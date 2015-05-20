@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import unittest
 import logging
+import re
 
 from regex_examples import WordBuilder
 
