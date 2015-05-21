@@ -33,7 +33,8 @@ public class CssExplainer extends CssBaseListener {
                 "p.introduction::text",
                 "div#videobox h3",
                 ".watch-view-count",
-                ".form_box input:checked"
+                ".form_box input:checked",
+                "input:focus",
             };
         }
 
