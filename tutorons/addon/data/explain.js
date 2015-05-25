@@ -1,4 +1,87 @@
-/*jshint strict:false, browser:true */
+/*jslint browser:true */
+/*global $: false, self: false */
+
+/**
+ * Remove non-alphanumeric characters at the fringes of strings.
+ */
+function stripEdgeSymbols(string) {
+    var left = string.length - 1;
+    var right = 0;
+    var alphanumeric = /[a-z0-9]/i;
+    var i;
+    for (i = 0; i < string.length; i++) {
+        if (string.charAt(i).match(alphanumeric) !== null) {
+            left = i;
+            break;
+        }
+    }
+    for (i = string.length - 1; i >=0; i--) {
+        if (string.charAt(i).match(alphanumeric) !== null) {
+            right = i;
+            break;
+        }
+    }
+    if (right >= left) {
+        return string.substring(left, right + 1);
+    }
+    return "";
+}
+
+function clearSelection() {
+    if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+    }
+    else if (document.selection) {
+        document.selection.empty();
+    }
+}
+
+/*
+ * Compute the edit distance between two strings
+ * Copyright (c) 2011 Andrei Mackenzie
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+var levenshtein = function(a, b){
+
+    if (a.length === 0) {
+        return b.length; 
+    }
+    if (b.length === 0) {
+        return a.length; 
+    }
+   
+    var matrix = [];
+   
+    // increment along the first column of each row
+    var i;
+    for (i = 0; i <= b.length; i++){
+        matrix[i] = [i];
+    }
+   
+    // increment each column in the first row
+    var j;
+    for (j = 0; j <= a.length; j++){
+        matrix[0][j] = j;
+    }
+   
+    // Fill in the rest of the matrix
+    for (i = 1; i <= b.length; i++){
+        for (j = 1; j <= a.length; j++){
+            if (b.charAt(i-1) === a.charAt(j-1)){
+                matrix[i][j] = matrix[i-1][j-1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+                               Math.min(matrix[i][j-1] + 1, // insertion
+                               matrix[i-1][j] + 1)); // deletion
+            }
+        }
+    }
+   
+    return matrix[b.length][a.length];
+};
+
 (function bookmarklet() {
 
     var SERVER_BASE = 'http://127.0.0.1:8000/';
@@ -6,6 +89,7 @@
 
     /* Listen for activation or deactivation of plugin */
     var enabled = true;
+    var i;
     self.port.on('detach', function() {
         console.log("Detached");
         enabled = false;
@@ -18,8 +102,9 @@
             explanations[tutName] = JSON.parse(resp);
         };
     };
-    for (var i = 0; i < TUTORONS.length; i++) {
-        var tutName = TUTORONS[i];
+    var tutName;
+    for (i = 0; i < TUTORONS.length; i++) {
+        tutName = TUTORONS[i];
         explanations[tutName] = {};
         $.post(SERVER_BASE + tutName, document.body.innerHTML, saveExplanation(tutName));
     }
@@ -40,14 +125,14 @@
 
             // Find the snippet that both matches the selected text and
             // that is the shortest edit distance away from the selected text.
-            var explanation;
+            var explanation, tutKey, tut, key, editDist;
             var closestDist = Number.MAX_VALUE;
-            for (var tutKey in explanations) {
+            for (tutKey in explanations) {
                 if (explanations.hasOwnProperty(tutKey)) {
-                    var tut = explanations[tutKey];
-                    for (var key in tut) {
+                    tut = explanations[tutKey];
+                    for (key in tut) {
                         if (tut.hasOwnProperty(key)) {
-                            var editDist = levenshtein(selString, key);
+                            editDist = levenshtein(selString, key);
                             if (editDist < closestDist && key.indexOf(selString) !== -1) {
                                 closestDist = editDist;
                                 explanation = tut[key];
@@ -148,82 +233,5 @@
         }
     };
 
-    function clearSelection() {
-        if (window.getSelection) window.getSelection().removeAllRanges();
-        else if (document.selection) document.selection.empty();
-    }
-
-    /**
-     * Remove non-alphanumeric characters at the fringes of strings.
-     */
-    function stripEdgeSymbols(string) {
-        var left = string.length - 1;
-        var right = 0;
-        var alphanumeric = /[a-z0-9]/i;
-        for (var i = 0; i < string.length; i++) {
-            if (string.charAt(i).match(alphanumeric) !== null) {
-                left = i;
-                break;
-            }
-        }
-        for (var i = string.length - 1; i >=0; i--) {
-            if (string.charAt(i).match(alphanumeric) !== null) {
-                right = i;
-                break;
-            }
-        }
-        if (right >= left) {
-            return string.substring(left, right + 1);
-        } else {
-            return "";
-        }
-    }
-
-    // LEVENSHTEIN EDIT DISTANCE
-    /*
-    Copyright (c) 2011 Andrei Mackenzie
-    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    */
-    // Compute the edit distance between the two given strings
-    var levenshtein = function(a, b){
-
-        if (a.length === 0) {
-            return b.length; 
-        }
-        if (b.length === 0) {
-            return a.length; 
-        }
-       
-        var matrix = [];
-       
-        // increment along the first column of each row
-        var i;
-        for (i = 0; i <= b.length; i++){
-            matrix[i] = [i];
-        }
-       
-        // increment each column in the first row
-        var j;
-        for (j = 0; j <= a.length; j++){
-            matrix[0][j] = j;
-        }
-       
-        // Fill in the rest of the matrix
-        for (i = 1; i <= b.length; i++){
-            for (j = 1; j <= a.length; j++){
-                if (b.charAt(i-1) === a.charAt(j-1)){
-                    matrix[i][j] = matrix[i-1][j-1];
-                } else {
-                    matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
-                                   Math.min(matrix[i][j-1] + 1, // insertion
-                                   matrix[i-1][j] + 1)); // deletion
-                }
-            }
-        }
-       
-        return matrix[b.length][a.length];
-    };
 
 }());

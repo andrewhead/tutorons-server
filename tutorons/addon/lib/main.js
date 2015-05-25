@@ -1,7 +1,7 @@
 var data = require('sdk/self').data;
 var tabs = require('sdk/tabs');
 var pageMod = require('sdk/page-mod');
-var { ToggleButton } = require('sdk/ui/button/toggle');
+var ToggleButton = require('sdk/ui/button/toggle').ToggleButton;
 
 
 /* Modifier to query tutorons for all pages */
@@ -14,7 +14,7 @@ function enableTutorons(enable) {
             contentScriptFile: [
                 data.url('jquery-2.1.3.min.js'),
                 data.url('jquery-ui-1.11.4.min.js'),
-                data.url('fetch_descriptions.js')
+                data.url('explain.js')
             ],
             attachTo: ['existing', 'top'],
             onAttach: function(worker) {
@@ -24,7 +24,8 @@ function enableTutorons(enable) {
     } else {
         if (tutMod !== undefined) {
             tutMod.destroy();
-            for (var i = 0; i < workers.length; i++) {
+            var i = 0;
+            for (i = 0; i < workers.length; i++) {
                 workers[i].destroy();
             }
         }
