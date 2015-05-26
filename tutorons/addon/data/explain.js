@@ -1,5 +1,10 @@
-/*jslint browser:true */
-/*global $: false, self: false */
+/*jslint browser:true, continue:true */
+/*global $:false, self:false */
+
+var SERVER_URL = 'http://127.0.0.1:8000';
+var TUTORONS = ['wget', 'css'];
+var TOOLTIP_WIDTH = 600;
+var explanations = {};
 
 /**
  * Remove non-alphanumeric characters at the fringes of strings.
@@ -82,35 +87,174 @@ var levenshtein = function(a, b){
     return matrix[b.length][a.length];
 };
 
-(function bookmarklet() {
 
-    var SERVER_BASE = 'http://127.0.0.1:8000/';
-    var TUTORONS = ['wget', 'css'];
+function highlight(patterns) {
+  
+    var HL_CLASS = 'tutorons-highlight';
+    var origX = window.scrollX, origY = window.scrollY;
 
-    /* Listen for activation or deactivation of plugin */
-    var enabled = true;
-    var i;
-    self.port.on('detach', function() {
-        console.log("Detached");
-        enabled = false;
+    function isHighlighted(range) {
+        var ancestors = $(range.startContainer).parents();
+        var hlAncestors = ancestors.filter('.' + HL_CLASS);
+        return (hlAncestors.length > 0);
+    }
+
+    function highlightPattern(pattern) {
+
+        // Reset selection
+        var selection = window.getSelection();
+        selection.collapse(document.body, 0);
+
+        // Find everywhere where the pattern occurs in the document
+        var range, contents, span;
+        var fadeIn = function() {
+            $(this).fadeIn('slow');
+            $(this).addClass(HL_CLASS);
+            $(this).css('background-color', '#d99eff');
+        };
+        while (window.find(pattern)) {
+          
+          // Make sure this hasn't already been highlighted
+          selection = window.getSelection();
+          range = selection.getRangeAt(0);
+          if (isHighlighted(range)) {
+              continue;
+          }
+
+          // Transfer found terms into a span
+          contents = range.extractContents();
+          span = document.createElement('span');
+          span.appendChild(contents);
+          range.insertNode(span);
+          
+          // Smoothly fade in the highlighting
+          $(span).fadeOut('fast', fadeIn);
+        }
+
+        selection.collapse(document.body, 0);
+
+    }
+
+    // Sort patterns from longest to shortest
+    patterns.sort(function(a, b) { 
+      return b.length - a.length; 
     });
+    var i;
+    for (i = 0; i < patterns.length; i++) {
+      highlightPattern(patterns[i]);
+    }
 
-    /* Fetch explanations for the page */
-    var explanations = {};
+    // As the 'find' and 'select' methods may change the user's location on
+    // the page, we scroll the page back to its original location here.
+    window.scrollTo(origX, origY);
+
+}
+
+function styleTooltip(div) {
+    $(div).css({
+        width: String(TOOLTIP_WIDTH) + 'px',
+        position: 'absolute',
+        border: 'gray 2px dashed',
+        display: 'none',
+        'padding-top': '10px',
+        'background-color': 'white',
+        'padding': '20px',
+        'font-family': '"Palatino Linotype", "Book Antiqua", Palatino, serif',
+        'font-size': '14px',
+    });
+    $(div).find('p, ul, h5').css({
+        'margin-top': '0',
+        'margin-bottom': '.4em',
+        'line-height': '1.3em',
+    });
+    $(div).find('ul').css({
+        'padding-left': '20px',
+    });
+    $(div).find('h5').css({
+        'font-size': '14px',
+    });
+    $(div).find('div.example-code').css({
+        'margin-top': '10px',
+        'padding': '10px',
+        'font-size': '14px',
+        'font-weight': 'normal',
+        'background-color': '#F2EEFF',
+        'border': 'gray 1px solid',
+        'line-height': '1.3em',
+        'font-family': '"Lucida Console", Monaco, monospace',
+    });
+    $(div).find('.tutoron_selection').css({
+        'font-weight': 'bolder',
+        'color': '#3A2E62',
+    });
+    $(div).find('.wget-opt').css({
+        'font-family': '"Courier New", Courier, monospace',
+    });
+}
+
+
+function fetchExplanations() {
+
     var saveExplanation = function(tutName) {
         return function(resp) {
-            explanations[tutName] = JSON.parse(resp);
+            var tutExplanations = JSON.parse(resp);
+            highlight(Object.keys(tutExplanations));
+            explanations[tutName] = tutExplanations;
         };
     };
-    var tutName;
+    var i, tutName;
     for (i = 0; i < TUTORONS.length; i++) {
         tutName = TUTORONS[i];
         explanations[tutName] = {};
-        $.post(SERVER_BASE + tutName, document.body.innerHTML, saveExplanation(tutName));
+        $.post(
+            SERVER_URL + '/' + tutName,
+            document.body.innerHTML,
+            saveExplanation(tutName)
+        );
     }
- 
-    var tooltipShowing = false;
+    return explanations;
 
+}
+
+/* 
+ * Find the snippet that both matches the selected text and
+ * that is the shortest edit distance away from the selected text.
+ */
+function getNearestExplanation(explanations, selString) {
+
+    var explanation, tutKey, tut, key, editDist;
+    var closestDist = Number.MAX_VALUE;
+    for (tutKey in explanations) {
+        if (explanations.hasOwnProperty(tutKey)) {
+            tut = explanations[tutKey];
+            for (key in tut) {
+                if (tut.hasOwnProperty(key)) {
+                    editDist = levenshtein(selString, key);
+                    if (editDist < closestDist && key.indexOf(selString) !== -1) {
+                        closestDist = editDist;
+                        explanation = tut[key];
+                    }
+                }
+            }
+        }
+    }
+    return explanation;
+
+}
+
+(function addon() {
+
+    var tooltipShowing = false;
+    var enabled = true;
+
+    /* Listen for activation or deactivation of plugin */
+    self.port.on('detach', function() {
+        // console.log("Detached");
+        enabled = false;
+    });
+
+    var explanations = fetchExplanations();
+ 
     /* Trigger tooltip to show selection */
     document.body.onmouseup = function() {
 
@@ -123,25 +267,7 @@ var levenshtein = function(a, b){
         selString = stripEdgeSymbols(selString);
         if (selString.length > 0) {
 
-            // Find the snippet that both matches the selected text and
-            // that is the shortest edit distance away from the selected text.
-            var explanation, tutKey, tut, key, editDist;
-            var closestDist = Number.MAX_VALUE;
-            for (tutKey in explanations) {
-                if (explanations.hasOwnProperty(tutKey)) {
-                    tut = explanations[tutKey];
-                    for (key in tut) {
-                        if (tut.hasOwnProperty(key)) {
-                            editDist = levenshtein(selString, key);
-                            if (editDist < closestDist && key.indexOf(selString) !== -1) {
-                                closestDist = editDist;
-                                explanation = tut[key];
-                            }
-                        }
-                    }
-                }
-            }
-
+            var explanation = getNearestExplanation(explanations, selString);
             if (explanation === undefined) {
                 return;
             }
@@ -159,57 +285,16 @@ var levenshtein = function(a, b){
 
             // Add explanation to tooltip
             div.innerHTML = explanation;
-
-            // Style the tooltip
-            var width = 600;
-            $(div).css({
-                width: String(width) + 'px',
-                position: 'absolute',
-                border: 'gray 2px dashed',
-                display: 'none',
-                'padding-top': '10px',
-                'background-color': 'white',
-                'padding': '20px',
-                'font-family': '"Palatino Linotype", "Book Antiqua", Palatino, serif',
-                'font-size': '14px',
-            });
-            $(div).find('p, ul, h5').css({
-                'margin-top': '0',
-                'margin-bottom': '.4em',
-                'line-height': '1.3em',
-            });
-            $(div).find('ul').css({
-                'padding-left': '20px',
-            });
-            $(div).find('h5').css({
-                'font-size': '14px',
-            });
-            $(div).find('div.example-code').css({
-                'margin-top': '10px',
-                'padding': '10px',
-                'font-size': '14px',
-                'font-weight': 'normal',
-                'background-color': '#F2EEFF',
-                'border': 'gray 1px solid',
-                'line-height': '1.3em',
-                'font-family': '"Lucida Console", Monaco, monospace',
-            });
-            $(div).find('.tutoron_selection').css({
-                'font-weight': 'bolder',
-                'color': '#3A2E62',
-            });
-            $(div).find('.wget-opt').css({
-                'font-family': '"Courier New", Courier, monospace',
-            });
+            styleTooltip(div);
 
             // Center tooltip beneath text.  Doesn't work in IE9.
             var selRange = selection.getRangeAt(0);
             var selRect = selRange.getBoundingClientRect();
             var selMidX = window.pageXOffset + selRect.left + selRect.width / 2;
-            var divX = selMidX - width / 2;
+            var divX = selMidX - TOOLTIP_WIDTH / 2;
             var divY = selRect.bottom + window.pageYOffset + 10;
             divX = Math.max(window.pageXOffset, divX);
-            divX = Math.min(divX, window.pageXOffset + window.innerWidth - width);
+            divX = Math.min(divX, window.pageXOffset + window.innerWidth - TOOLTIP_WIDTH);
             $(div).css({
                 left: String(divX) + 'px',
                 top: String(divY) + 'px',
@@ -226,12 +311,11 @@ var levenshtein = function(a, b){
             };
             $(document.body).bind('mousedown', hide);
 
-            // Fade in the tooltip!
+            // Fade in the tooltip
             $(div).show('scale', {}, 200);
             tooltipShowing = true;
 
         }
     };
-
 
 }());
