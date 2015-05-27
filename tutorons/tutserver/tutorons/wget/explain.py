@@ -5,11 +5,8 @@ from __future__ import unicode_literals
 import argparse
 import subprocess
 import logging
-import jsonpickle
-import json
 import re
 import os.path
-import sys
 from django.conf import settings
 
 from parse_phrase import get_root_type, RootType
@@ -31,7 +28,7 @@ class Option(object):
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
-            and self.__dict__ == other.__dict__)
+                and self.__dict__ == other.__dict__)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -88,7 +85,7 @@ def optcombo_explain(url, options):
             # Remove all explained options from the list of options that need
             # to be explained to avoid redundant explanations.
             [optnames.pop(optnames.index(opt)) for opt in optcombo]
-        
+
     return explanations
 
 

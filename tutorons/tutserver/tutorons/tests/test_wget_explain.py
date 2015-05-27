@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from tutorons.wget.explain import build_help, explain, Option, optcombo_explain, detect
+from tutorons.wget.explain import build_help, Option, optcombo_explain, detect
 import unittest
 import logging
 
@@ -30,7 +30,8 @@ class BuildArgumentHelpTest(unittest.TestCase):
 
     def testDescribeOptionByShortname(self):
         msg = build_help(shortname="-nc")
-        self.assertEqual(msg, "skip downloads that would download to existing files (overwriting them).")
+        self.assertEqual(
+            msg, "skip downloads that would download to existing files (overwriting them).")
 
 
 class DetectWgetTest(unittest.TestCase):
@@ -50,7 +51,6 @@ class BuildCompoundHelpTest(unittest.TestCase):
         ]
         exps = optcombo_explain(url, options)
         self.assertEqual(exps, [])
-
 
     def testDescribeUserPwCombination(self):
         url = "http://google.com"
@@ -95,7 +95,8 @@ class BuildCompoundHelpTest(unittest.TestCase):
         ]
         exps = optcombo_explain(url, options)
         self.assertEqual(exps, [
-            "Recursively scrape web pages linked from http://google.com of type '*.jpg', following links 4 times."
+            "Recursively scrape web pages linked from http://google.com " +
+            "of type '*.jpg', following links 4 times."
         ])
 
 

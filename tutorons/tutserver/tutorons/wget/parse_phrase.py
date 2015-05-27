@@ -17,6 +17,7 @@ os.environ['STANFORD_PARSER'] = SP_PATH
 os.environ['STANFORD_MODELS'] = SP_PATH
 parser = stanford.StanfordParser(model_path=os.path.join(SP_PATH, 'englishPCFG.ser.gz'))
 
+
 class RootType(Enum):
     NOUN = 1
     VERB = 2
@@ -33,7 +34,8 @@ def get_tree_root_type(tree):
 
 
 def get_root_type(phrase):
-    tree = parser.raw_parse(phrase)[0]
+    trees = parser.raw_parse(phrase)
+    tree = [_ for _ in trees][0]
     return get_tree_root_type(tree)
 
 
