@@ -12,7 +12,7 @@ from enum import Enum
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 ''' Requirement: Stanford parser jars installed at this location. '''
-SP_PATH = os.path.join(os.pardir, os.pardir, 'deps', 'sp')
+SP_PATH = os.path.join(os.pardir, os.pardir, 'deps')
 os.environ['STANFORD_PARSER'] = SP_PATH
 os.environ['STANFORD_MODELS'] = SP_PATH
 parser = stanford.StanfordParser(model_path=os.path.join(SP_PATH, 'englishPCFG.ser.gz'))

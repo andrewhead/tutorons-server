@@ -1,7 +1,6 @@
 # Dependencies we don't want to track
 node_modules
-deps/sp
-deps/*.jar
+deps/
 venv
 
 # Binaries / Generate files
