@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '4mf97+r5!o5h7#e=pa_gl+4jd(p39w39=^sy2cvc)u8!5npd66'
+SECRET_KEY_FILE = "/etc/django/tutorons.key"
 
 # Application definition
 

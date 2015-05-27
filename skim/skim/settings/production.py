@@ -2,7 +2,7 @@ from defaults import *
 import os.path
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
+SECRET_KEY = open(SECRET_KEY_FILE).read()
 DEBUG = False
 TEMPLATE_DEBUG = False
 
@@ -39,6 +39,6 @@ LOGGING = {
         'gallery': {
             'handlers': ['file'],
             'level': 'DEBUG',
-         },
+        },
     }
 }
