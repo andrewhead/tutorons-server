@@ -1,7 +1,7 @@
 /*jslint browser:true, continue:true */
 /*global $:false, self:false */
 
-var SERVER_URL = 'http://127.0.0.1:8000';
+var SERVER_URL = 'http://tutorons.com';
 var TUTORONS = ['wget', 'css'];
 var TOOLTIP_WIDTH = 600;
 var explanations = {};

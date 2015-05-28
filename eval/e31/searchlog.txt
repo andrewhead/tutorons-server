@@ -250,3 +250,43 @@ javascript window.find
 javascript get current window position
 javascript set screenX
 jquery fadein
+javascript window.find
+eclipse tooltip
+eclipse tooltips html
+launchagent launchdaemon plist
+requests_cache
+flake8 vim increase character limit
+max_line_length vim flake8
+ansible variables for hosts
+pip requirements file
+nltk raw_parse
+python listiterator
+ansible if variable defined
+ansible pip
+ansible line continuation
+ansible multi-line host
+yaml line continuation
+ansible provision sequentially
+ansible multi-line host
+ansible host variables
+ansible item when
+django generate secret key
+ansible s3 multipart
+s3 ansible skip checksum
+s3cmd osx
+aws s3 upload single-part
+aws charges free tier
+ansible aws s3
+Files uploaded with multipart of s3 are not supported with checksum, unable to compute checksum.
+amazon.com s3cmd
+is s3cmd secure
+unsupported major.minor version 52.0
+intellij major minor version 52.0
+intellij build for older versions of java
+check major minor version of jar
+ubuntu gnu-ssl
+ubuntu --with-ssl=gnutls was given, but GNUTLS is not available.
+ubuntu -with-ssl=openssl was given, but SSL is not available.
+ansible command
+cat: css.c: No such file or directory
+wget source

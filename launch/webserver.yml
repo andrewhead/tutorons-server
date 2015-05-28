@@ -2,5 +2,6 @@
 - hosts: webservers
   gather_facts: false
   user: ubuntu
+  serial: 1
   roles:
   - webserver
