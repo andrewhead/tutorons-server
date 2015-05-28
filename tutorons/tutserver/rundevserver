@@ -1,7 +1,7 @@
 #! /bin/bash
 
 EXP_DIR=parsers/css/explain/out/production/css-explainer
-PY4J=$PWD/deps/py4j-0.8.2.jar
+PY4J=$PWD/../../deps/py4j-0.8.2.jar
 
 # Run Java Explanation server
 (cd $EXP_DIR && java -cp $CLASSPATH:$PY4J CssExplainerEntryPoint) &
