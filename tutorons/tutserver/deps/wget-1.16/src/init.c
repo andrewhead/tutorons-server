@@ -865,7 +865,6 @@ setoptval (const char *com, const char *val, const char *optname)
   dd_optname[1] = '-';
   strcpy (dd_optname + 2, optname);
 
-  // printf("Setting %s (%s) to %s\n", com, dd_optname, val);
   assert (val != NULL);
   if (!setval_internal (command_by_name (com), dd_optname, val))
     exit (WGET_EXIT_PARSE_ERROR);
