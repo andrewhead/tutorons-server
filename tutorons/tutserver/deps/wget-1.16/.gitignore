@@ -48,8 +48,4 @@ lib/uniwidth/.dirstamp
 lib/warn-on-use.h
 lib/wchar.h
 lib/wctype.h
-src/build_info.c
-src/css.c
-src/css_.c
-src/version.c
 tests/andrew/*.html
