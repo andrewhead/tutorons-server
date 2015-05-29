@@ -290,3 +290,19 @@ ubuntu -with-ssl=openssl was given, but SSL is not available.
 ansible command
 cat: css.c: No such file or directory
 wget source
+wget source
+anonymous clone of the git repository, update the main.c file
+django render
+django load staticfiles
+vim template django template
+w3schools font-family
+alfred tab complete
+alfredapp tab complete filter
+applescript cast to int
+vim set filetype djangohtml
+vim multiple commands one line
+syntactic
+syntactic github
+syntactic flake8 characters per line
+vim mouse click
+skip check of line flake8

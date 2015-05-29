@@ -1,10 +1,11 @@
-from defaults import *
+from defaults import *  # noqa
 
 
 SECRET_KEY = open(SECRET_KEY_FILE).read()
 DEBUG = False
 TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['.tutorons.com']
+STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'tutorons', 'static')
 
 LOGGING = {
     'version': 1,
