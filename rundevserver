@@ -3,7 +3,6 @@
 EXP_DIR=parsers/css/explain/out/production/css-explainer
 DEPS=`ls deps/*.jar | tr '\n' ':'`
 CLASSPATH=$CLASSPATH:$DEPS
-echo $CLASSPATH
 
 # Run Java Explanation server
 java -cp $CLASSPATH:$DEPS CssExplainerEntryPoint &

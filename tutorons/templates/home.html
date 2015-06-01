@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Tutorons</title>
+        <script src="http://www.tutorons.com/static/tutorons-library.js"></script>
         <link rel='stylesheet' href="{% static "tutorons/css/main.css" %}" />
     </head>
     <body>
@@ -9,9 +10,14 @@
             <h1 class='main-title'>Tutorons</h1>
             <p>
                 <i>n. pl.</i>
-                Routines that generate micro-explanations of online code.
+                <i>Routines that generate micro-explanations of online code.</i>
             </p>
+            <p>Select purple regions that appear to view code explanations.</p>
+            <pre><code>$('table tr td').css('font-size', '12px');</code></pre>
+            <pre><code>wget -A".pdf" -r -l1 -p -k http://eecs.berkeley.edu/~andrewhead</code></pre>
+            <br>
             <p><a href='https://github.com/andrewhead/Tutorons'>View source on Github</a></p>
         </div>
+        <script>tutorons.fetch(document);</script>
     </body>
 </html>

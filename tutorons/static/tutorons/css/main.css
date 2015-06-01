@@ -1,5 +1,5 @@
 .main-title {
-  font-family: "Courier New", Courier, monospace;
+  font-family: "Lucida Console", Monaco, monospace;
   font-size: 64px;
 }
 
@@ -10,5 +10,18 @@
 }
 
 p {
-  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  margin-top: .6em;
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+
+pre {
+  font-family: "Lucida Console", Monaco, monospace;
+  background-color: #D1E9E9;
+  border: 1px dashed black;
+  padding-top: .6em;
+  padding-bottom: .6em;
+  padding-left: 15px;
+  margin: 0;
+  margin-top: 10px;
+  font-size: 14px;
 }
