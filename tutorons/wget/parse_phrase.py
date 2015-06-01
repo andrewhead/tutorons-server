@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import logging
+from django.conf import settings
 import os
 import argparse
 from nltk.parse import stanford
@@ -12,10 +13,9 @@ from enum import Enum
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 ''' Requirement: Stanford parser jars installed at this location. '''
-SP_PATH = os.path.join(os.pardir, os.pardir, 'deps')
-os.environ['STANFORD_PARSER'] = SP_PATH
-os.environ['STANFORD_MODELS'] = SP_PATH
-parser = stanford.StanfordParser(model_path=os.path.join(SP_PATH, 'englishPCFG.ser.gz'))
+os.environ['STANFORD_PARSER'] = settings.DEPS_DIR
+os.environ['STANFORD_MODELS'] = settings.DEPS_DIR
+parser = stanford.StanfordParser(model_path=os.path.join(settings.DEPS_DIR, 'englishPCFG.ser.gz'))
 
 
 class RootType(Enum):
