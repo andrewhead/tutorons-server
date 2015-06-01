@@ -5,7 +5,7 @@ SECRET_KEY = open(SECRET_KEY_FILE).read()
 DEBUG = False
 TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['tutorons.com', '.tutorons.com']
-STATICFILES_DIRS += (os.path.join(os.path.abspath(os.sep), 'var', 'www', 'tutorons'))
+STATICFILES_DIRS += ((os.path.join(os.path.abspath(os.sep), 'var', 'www', 'tutorons')),)
 STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'tutorons', 'static')
 
 LOGGING = {
