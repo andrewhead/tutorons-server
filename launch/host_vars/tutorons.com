@@ -2,10 +2,11 @@ domain: tutorons.com
 localport: 8002
 appname: tutorons
 repo: https://github.com/andrewhead/Tutorons.git
-djdir: "{{ src }}/tutorons/tutserver"
+djdir: "{{ src }}"
 awsbucket: tutorons
 djkey: tutorons.key
 logfile: /var/log/tutorons.log
+staticfiles: yes
 javadeps:
 - englishPCFG.ser.gz
 - stanford-parser-3.4-javadoc.jar

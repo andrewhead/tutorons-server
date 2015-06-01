@@ -26,6 +26,9 @@
 - name: Create static files directory
   file: state=directory path={{ staticdir }} owner=ubuntu
 
+- name: Create folder for uploadable libraries and content
+  file: state=directory path=/var/www/{{ appname }} owner=ubuntu
+
 - name: Create log file
   file: state=touch path={{ logfile }} owner=ubuntu
   sudo: true
@@ -70,7 +73,8 @@
   sudo: true
 
 - name: Checkout source code
-  git: repo={{ repo }} dest={{ src }}
+  git: repo={{ repo }} dest={{ src }} force=yes
+  tags: updatecode
 
 - name: Create directory for Django secret keys
   file: state=directory path=/etc/django
@@ -89,14 +93,16 @@
   with_items:
   - syncdb
   - migrate
+  tags: updatecode
 
-- name: Sync DB with Django models
+- name: Update static files
   django_manage: >
     command=collectstatic
     app_path={{ djdir }}
     virtualenv={{ venv }}
     settings={{ djsettings }}
   when: staticfiles is defined
+  tags: updatecode
 
 - name: Transfer setup scripts
   template: src={{ item }}.j2 dest={{ scriptdir }}/{{ item }}.sh
@@ -144,14 +150,17 @@
   - present
   - stopped
   sudo: true
+  tags: updatecode
 
 - name: Cleanup after last application run
   file: dest=/tmp/{{ appname }}.pid state=absent
   sudo: true
+  tags: updatecode
 
 - name: Start application
   supervisorctl: name={{ appname }} state=started
   sudo: true
+  tags: updatecode
 
 - name: Restart nginx
   service: name=nginx state=restarted
