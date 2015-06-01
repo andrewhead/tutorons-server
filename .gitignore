@@ -1,3 +1,12 @@
-db.sqlite3
+# Dependencies
 deps/*.jar
+venv
+
+# Editing
+*.swp
+
+# Build files
+*.pyc
+*.class
 workspace.xml
+db.sqlite3
