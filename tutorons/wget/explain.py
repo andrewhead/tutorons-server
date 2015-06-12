@@ -14,7 +14,7 @@ from opthelp import OPTHELP, COMBOHELP
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
-WGET = os.path.join(settings.DEPS_DIR, "wget-1.16", "src", "wget")
+WGET = os.path.join(settings.DEPS_DIR, "wget", "src", "wget")
 WGET_PATT = r"wget(?:.exe)?"
 
 
