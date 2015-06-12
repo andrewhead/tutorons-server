@@ -15,6 +15,7 @@
   with_items: systempkgs
   sudo: true
   when: systempkgs is defined
+  tags: systempkgs
 
 - name: Create project directory
   file: state=directory path={{ projectdir }} owner=ubuntu
@@ -73,7 +74,7 @@
   sudo: true
 
 - name: Checkout source code
-  git: repo={{ repo }} dest={{ src }} force=yes
+  git: repo={{ repo }} dest={{ src }} force=yes recursive=yes
   tags: updatecode
 
 - name: Create directory for Django secret keys

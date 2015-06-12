@@ -1,16 +1,10 @@
 cd {{ djdir }}/deps/
 
-if [ ! -d wget-1.16 ]
-then 
-	wget http://ftp.gnu.org/gnu/wget/wget-1.16.tar.gz
-	tar xzvf wget-1.16.tar.gz
-	mv wget_main.c wget-1.16/src/main.c
-fi
-
-cd wget-1.16
+cd wget
 
 if [ ! -f Makefile ]
 then 
+	./bootstrap
 	./configure --with-ssl=openssl
 fi
 

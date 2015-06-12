@@ -21,9 +21,14 @@ processes:
 - css-explainer
 systempkgs:
 - default-jre
-- libssl-dev # to compile wget
-- libxml2-dev # to download PyQuery
-- libxslt-dev # to download PyQuery
+- libssl-dev  # to compile wget
+- libxml2-dev  # to download PyQuery
+- libxslt-dev  # to download PyQuery
 - autoconf
+- gettext  # wget
+- autopoint  # wget
+- flex  # wget
+- texinfo  # wget
+- pkg-config  # wget
 scripts:
 - compile-wget
