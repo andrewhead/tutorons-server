@@ -1,3 +1,3 @@
 [submodule "deps/wget"]
 	path = deps/wget
-	url = git@github.com:andrewhead/wget.git
+	url = https://github.com/andrewhead/wget.git
