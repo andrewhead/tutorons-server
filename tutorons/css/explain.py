@@ -54,7 +54,7 @@ def get_descendants(x):
 def is_selector(string):
     ''' Check to see if string represents valid HTML selector. '''
     try:
-        # cssselect doesn't like links, so we replace them. 
+        # cssselect doesn't like links, so we replace them.
         string = re.sub(r"(href.=)([^\]]*)\]", r"\1fakelink]", string)
         tree = cssselect.parse(string)
         selector_parts = get_descendants(tree)

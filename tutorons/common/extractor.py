@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import logging
+from slimit.lexer import Lexer as JsLexer
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -46,5 +47,30 @@ class LineExtractor(object):
             r = Region(node, first_char, last_char, line)
             regions.append(r)
             char_index += (len(line) + 1)  # every line has at least 1 char: the newline
+
+        return regions
+
+
+class JavascriptStringExtractor(object):
+
+    def extract(self, node):
+
+        lexer = JsLexer()
+        lexer.input(node.text)
+
+        regions = []
+        while True:
+            try:
+                tok = lexer.token()
+                if not tok:
+                    break
+                if tok.type == "STRING":
+                    start_char = tok.lexpos + 1
+                    string = tok.value[1:-1]
+                    end_char = start_char + len(string) - 1
+                    r = Region(node, start_char, end_char, string)
+                    regions.append(r)
+            except TypeError:
+                break
 
         return regions
