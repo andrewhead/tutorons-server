@@ -26,7 +26,8 @@ class TestRenderDescription(unittest.TestCase):
     def test_describe_one_command(self):
         result = self.request_short("wget http://hello.html")
         self.assertEqual(len(result.keys()), 1)
-        self.assertIn("    Here, it downloads content from http://hello.html.",
+        self.assertIn(
+            "    Here, it downloads content from http://hello.html.",
             result['wget http://hello.html'])
 
     def test_describe_multiple_commands(self):
@@ -43,9 +44,11 @@ class TestRenderDescription(unittest.TestCase):
         </html>
         """)
         self.assertEqual(len(result.keys()), 2)
-        self.assertIn("    Here, it downloads content from http://hello.html.", 
+        self.assertIn(
+            "    Here, it downloads content from http://hello.html.",
             result['wget http://hello.html'])
-        self.assertIn("    Here, it downloads content from http://goodbye.html.",
+        self.assertIn(
+            "    Here, it downloads content from http://goodbye.html.",
             result['wget http://goodbye.html'])
 
     def test_skip_lines_without_wget(self):
@@ -69,9 +72,10 @@ class TestRenderDescription(unittest.TestCase):
     def test_describe_windows_executable(self):
         result = self.request_short("wget.exe http://hello.html")
         self.assertEqual(len(result.keys()), 1)
-        self.assertIn('\n'.join([
+        self.assertIn(
+            '\n'.join([
                 "    <span class=\"word_focus\">wget</span> is a Terminal command you run to " +
-                    "download a page from the Internet.",
+                "download a page from the Internet.",
                 "    Here, it downloads content from http://hello.html.",
             ]),
             result['wget.exe http://hello.html'])
@@ -83,16 +87,20 @@ class TestRenderDescription(unittest.TestCase):
         self.assertIn("--accept", description)
         self.assertIn("-A", description)
         self.assertIn(": *.jpg is a comma-separated list of accepted extensions.", description)
-        self.assertIn("3 is a maximum recursion depth (inf or 0 for infinite)", description) 
+        self.assertIn("3 is a maximum recursion depth (inf or 0 for infinite)", description)
 
-    def testDescribeOptionCombination(self):
+    def test_describe_option_combination(self):
         result = self.request_short("wget --recursive -A *.jpg -l3 http://google.com")
         self.assertIn(
             "Recursively scrape web pages linked from http://google.com of type '*.jpg', " +
-            "following links 3 times.", 
+            "following links 3 times.",
             result.values()[0])
 
-    def testNoShowShortnameIfOptHasNoShortname(self):
+    def test_no_show_shortname_if_opt_has_no_shortname(self):
         result = self.request_short("wget --retry-connrefused")
         description = result.values()[0]
         self.assertNotIn('>-r', description)
+
+    def test_describe_code_in_pre_element(self):
+        result = self.get_resp_data("<pre>wget http://hello.html</pre>")
+        self.assertEqual(len(result.keys()), 1)

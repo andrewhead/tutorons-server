@@ -20,7 +20,7 @@ class TestRenderDescription(unittest.TestCase):
     def get_resp_texts(self, payload):
         resp = self.client.post('/css', content_type='raw', data=payload)
         respData = json.loads(resp.content)
-        texts = {k: BeautifulSoup(v).text for k,v in respData.items()}
+        texts = {k: BeautifulSoup(v).text for k, v in respData.items()}
         return texts
 
     def get_example_html(self, payload):
@@ -57,3 +57,7 @@ class TestRenderDescription(unittest.TestCase):
             "</span>",
             "&lt;/div&gt;<br>",
         ]), dom)
+
+    def test_describe_code_in_pre_element(self):
+        texts = self.get_resp_texts("<pre>$('p');</pre>")
+        self.assertEqual(len(texts.keys()), 1)

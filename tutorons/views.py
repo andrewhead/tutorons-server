@@ -30,7 +30,7 @@ def wget(request):
     soup = Soup(request.body)
     wget_template = get_template('wget.html')
 
-    for block in soup.find_all('code'):
+    for block in soup.find_all('code') + soup.find_all('pre'):
         snippet = block.text
 
         for line in snippet.split('\n'):
@@ -52,7 +52,7 @@ def css(request):
     soup = Soup(request.body)
     css_template = get_template('css.html')
 
-    for block in soup.find_all('code'):
+    for block in soup.find_all('code') + soup.find_all('pre'):
         snippet = block.text
 
         selectors = css_detect(snippet)
