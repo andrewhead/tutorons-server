@@ -11,4 +11,6 @@ nltk==3.0.2
 ply==3.6
 py4j==0.8.2.1
 pyquery==1.2.9
+python-memcached==1.54
+six==1.9.0
 slimit==0.8.1

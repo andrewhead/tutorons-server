@@ -8,7 +8,9 @@
   - python-boto
   - python-dev
   - supervisor
+  - memcached
   sudo: true
+  tags: serverpkgs
 
 - name: Install application dependencies
   apt: name={{ item }} update_cache=yes
@@ -116,6 +118,11 @@
   with_items: scripts
   when: scripts is defined
   tags: scripts
+
+- name: Make sure memcached is running
+  service: name=memcached state=started
+  sudo: true
+  tags: memcached
 
 - name: Add auxiliary processes to supervisor
   template: src={{ item }}.j2 dest=/etc/supervisor/conf.d/{{ item }}.conf

@@ -4,9 +4,19 @@ from defaults import *  # noqa
 SECRET_KEY = open(SECRET_KEY_FILE).read()
 DEBUG = False
 TEMPLATE_DEBUG = False
-ALLOWED_HOSTS = ['tutorons.com', '.tutorons.com']
+ALLOWED_HOSTS = ['.tutorons.com']
 STATICFILES_DIRS += ((os.path.join(os.path.abspath(os.sep), 'var', 'www', 'tutorons')),)
 STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'tutorons', 'static')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        # We store expensive computations that will be performed infrequently
+        # So, we'll just save the results for all computations indefinitely.
+        'TIMEOUT': None,
+    }
+}
 
 LOGGING = {
     'version': 1,
