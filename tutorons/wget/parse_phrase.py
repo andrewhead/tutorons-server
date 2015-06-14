@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import logging
 from django.conf import settings
+from django.core.cache import cache
 import os
 import argparse
 from nltk.parse import stanford
@@ -34,9 +35,19 @@ def get_tree_root_type(tree):
 
 
 def get_root_type(phrase):
-    trees = parser.raw_parse(phrase)
-    tree = [_ for _ in trees][0]
-    return get_tree_root_type(tree)
+
+    key = lambda p: 'phrase:' + p
+    root_type_value = cache.get(key(phrase))
+
+    if root_type_value is None:
+        trees = parser.raw_parse(phrase)
+        tree = [_ for _ in trees][0]
+        root_type = get_tree_root_type(tree)
+        cache.set(key(phrase), root_type.value)
+    else:
+        root_type = RootType(root_type_value)
+
+    return root_type
 
 
 if __name__ == '__main__':
