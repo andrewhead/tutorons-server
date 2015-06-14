@@ -36,7 +36,7 @@ def get_tree_root_type(tree):
 
 def get_root_type(phrase):
 
-    key = lambda p: 'phrase:' + p
+    key = lambda p: 'phrase:' + str(hash(p))  # Hash to avoid invalid key characters
     root_type_value = cache.get(key(phrase))
 
     if root_type_value is None:
