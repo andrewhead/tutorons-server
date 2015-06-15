@@ -8,6 +8,7 @@ import logging
 import re
 import os.path
 from django.conf import settings
+from tutorons.common.extractor import CommandExtractor
 
 from parse_phrase import get_root_type, RootType
 from opthelp import OPTHELP, COMBOHELP
@@ -34,19 +35,24 @@ class Option(object):
         return not self.__eq__(other)
 
 
-def detect(cmd):
-    """ Detect whether this is a valid wget command line. """
+class WgetExtractor(object):
 
-    if len(cmd) == 0 or not re.match('^(.*?\W)?' + WGET_PATT + " ", cmd):
-        return False
+    def __init__(self):
+        self.cmd_extractor = CommandExtractor(WGET_PATT)
 
-    optstring = re.sub('^.*?' + WGET_PATT, '', cmd)
-    cmd = str(WGET) + optstring
-    try:
-        subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError:
-        return False
-    return True
+    def extract(self, node):
+        regions = self.cmd_extractor.extract(node)
+        valid_regions = [r for r in regions if self._try_run(r.string)]
+        return valid_regions
+
+    def _try_run(self, wget_cmd):
+        optstring = re.sub('^.*?' + WGET_PATT, '', wget_cmd)
+        cmd = str(WGET) + optstring
+        try:
+            subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError:
+            return False
+        return True
 
 
 def explain(cmd):

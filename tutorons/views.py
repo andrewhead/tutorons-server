@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from bs4 import BeautifulSoup as Soup
 import json
 
-from tutorons.wget.explain import detect as wget_detect, explain as wget_explain
+from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import detect as css_detect, explain as css_explain
 from parsers.css.examples.examplegen import get_example as css_example
 
@@ -29,17 +29,14 @@ def wget(request):
     results = {}
     soup = Soup(request.body)
     wget_template = get_template('wget.html')
+    extractor = WgetExtractor()
 
     for block in soup.find_all('code') + soup.find_all('pre'):
-        snippet = block.text
-
-        for line in snippet.split('\n'):
-            line_clean = line.strip()
-
-            if wget_detect(line_clean):
-                exp = wget_explain(line_clean)
-                exp_html = wget_template.render(Context(exp))
-                results[line_clean] = exp_html
+        regions = extractor.extract(block)
+        for r in regions:
+            exp = wget_explain(r.string)
+            exp_html = wget_template.render(Context(exp))
+            results[r.string] = exp_html
 
     return HttpResponse(json.dumps(results, indent=2))
 
