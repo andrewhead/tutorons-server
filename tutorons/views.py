@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup as Soup
 import json
 
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
-from tutorons.css.explain import detect as css_detect, explain as css_explain
+from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
 from parsers.css.examples.examplegen import get_example as css_example
 
 
@@ -48,15 +48,14 @@ def css(request):
     ctx = {}
     soup = Soup(request.body)
     css_template = get_template('css.html')
+    extractor = CssSelectorExtractor()
 
     for block in soup.find_all('code') + soup.find_all('pre'):
-        snippet = block.text
-
-        selectors = css_detect(snippet)
-        for sel in selectors:
-            ctx['exp'] = css_explain(sel)
-            ctx['example'] = css_example(sel)
+        regions = extractor.extract(block)
+        for r in regions:
+            ctx['exp'] = css_explain(r.string)
+            ctx['example'] = css_example(r.string)
             exp_html = css_template.render(Context(ctx))
-            results[sel] = exp_html
+            results[r.string] = exp_html
 
     return HttpResponse(json.dumps(results, indent=2))

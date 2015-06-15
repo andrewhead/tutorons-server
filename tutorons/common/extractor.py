@@ -6,7 +6,7 @@ import logging
 import re
 from slimit.lexer import Lexer as JsLexer
 import bashlex
-from tutorons.css.explain import get_descendants  # TODO -- migrate this into this file
+from tutorons.common.util import get_descendants
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
