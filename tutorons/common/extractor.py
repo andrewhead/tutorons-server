@@ -110,17 +110,22 @@ class CommandExtractor(object):
             if not on_newline:
                 on_newline = (c == '\n')
 
-        tree = bashlex.parse(text)
-        nodes = get_descendants(tree)
-        commands = [n for n in nodes if n.kind == 'command']
+        try:
+            tree = bashlex.parse(text)
+            valid_script = True
+        except bashlex.errors.ParsingError:
+            valid_script = False
 
-        for c in commands:
-            if self._is_target_command(c, self.cmdname):
-                start_char = self._get_start(c, self.cmdname)
-                end_char = c.pos[1] - 1
-                string = text[start_char:end_char + 1]
-                r = Region(node, start_char, end_char, string)
-                regions.append(r)
+        if valid_script:
+            nodes = get_descendants(tree)
+            commands = [n for n in nodes if n.kind == 'command']
+            for c in commands:
+                if self._is_target_command(c, self.cmdname):
+                    start_char = self._get_start(c, self.cmdname)
+                    end_char = c.pos[1] - 1
+                    string = text[start_char:end_char + 1]
+                    r = Region(node, start_char, end_char, string)
+                    regions.append(r)
 
         return regions
 

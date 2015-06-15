@@ -76,6 +76,10 @@ class CommandExtractorTest(unittest.TestCase):
         regions = extractor.extract(node)
         self.assertEqual(len(regions), 2)
 
+    def test_handles_parsing_error(self):
+        extractor = CommandExtractor('wget')
+        extractor.extract(BeautifulSoup('<code>os.system("wget google.com")</code>'))
+
 
 if __name__ == '__main__':
     unittest.main()
