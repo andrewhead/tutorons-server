@@ -43,9 +43,11 @@
 
 - name: Transfer Python dependencies list
   copy: src={{ appname }}-reqs.txt dest={{ projectdir }}
+  tags: pythonpkgs
 
 - name: Install server Python dependencies
   pip: requirements={{ projectdir }}/{{ appname }}-reqs.txt virtualenv="{{ venv }}"
+  tags: pythonpkgs
 
 - name: Make Java project dependencies directory
   file: state=directory path={{ src }}/deps owner=ubuntu
