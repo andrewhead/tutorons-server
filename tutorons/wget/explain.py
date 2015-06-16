@@ -8,8 +8,9 @@ import logging
 import re
 import os.path
 from django.conf import settings
-from tutorons.common.extractor import CommandExtractor
 
+from tutorons.common.extractor import CommandExtractor
+from tutorons.common.util import log_region
 from parse_phrase import get_root_type, RootType
 from opthelp import OPTHELP, COMBOHELP
 
@@ -43,6 +44,7 @@ class WgetExtractor(object):
     def extract(self, node):
         regions = self.cmd_extractor.extract(node)
         valid_regions = [r for r in regions if self._try_run(r.string)]
+        [log_region(r) for r in valid_regions]
         return valid_regions
 
     def _try_run(self, wget_cmd):

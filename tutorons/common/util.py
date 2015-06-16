@@ -3,9 +3,19 @@
 
 from __future__ import unicode_literals
 import logging
+from tutorons.common.htmltools import get_css_selector
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+region_logger = logging.getLogger('region')
+
+
+def log_region(r):
+    region_logger.info(',,,'.join([
+        'Path:%s',
+        'Text:%s',
+        'Range:[%d,%d]'
+    ]), get_css_selector(r.node), r.string, r.start_offset, r.end_offset)
 
 
 def get_descendants(x):

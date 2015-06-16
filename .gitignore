@@ -3,6 +3,9 @@ deps/*.jar
 deps/*.ser.gz
 venv
 
+# Logging
+.*.log
+
 # Editing
 *.swp
 

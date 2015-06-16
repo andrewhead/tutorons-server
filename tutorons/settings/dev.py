@@ -1,4 +1,4 @@
-from defaults import *
+from defaults import *  # noqa
 
 
 SECRET_KEY = open(SECRET_KEY_FILE).read()
@@ -13,10 +13,22 @@ INSTALLED_APPS += (
 
 LOGGING = {
     'version': 1,
+    'formatters': {
+        'verbose': {
+            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt': "%d/%b/%Y %H:%M:%S",
+        },
+    },
     'handlers': {
         'console': {
             'level': 'WARNING',
             'class': 'logging.StreamHandler',
+        },
+        'regionfile': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '.regions.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -24,6 +36,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
             'level': 'WARNING',
+        },
+        'region': {
+            'handlers': ['regionfile'],
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }
