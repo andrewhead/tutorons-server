@@ -16,8 +16,8 @@ class TestRenderDescription(unittest.TestCase):
     def setUp(self):
         self.client = Client()
 
-    def get_resp_data(self, payload):
-        resp = self.client.post('/wget', content_type='raw', data=payload)
+    def get_resp_data(self, document):
+        resp = self.client.post('/wget', data={'origin': 'www.test.com', 'document': document})
         return json.loads(resp.content)
 
     def request_short(self, command):

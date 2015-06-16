@@ -17,6 +17,7 @@ from parsers.css.examples.examplegen import get_example as css_example
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+region_logger = logging.getLogger('region')
 
 
 def home(request):
@@ -26,8 +27,12 @@ def home(request):
 @csrf_exempt
 def wget(request):
 
+    document = request.POST.get('document')
+    origin = request.POST.get('origin')
+    region_logger.info("Request for page from origin: %s", origin)
+
     results = {}
-    soup = Soup(request.body)
+    soup = Soup(document)
     wget_template = get_template('wget.html')
     extractor = WgetExtractor()
 
@@ -44,9 +49,13 @@ def wget(request):
 @csrf_exempt
 def css(request):
 
+    document = request.POST.get('document')
+    origin = request.POST.get('origin')
+    region_logger.info("Request for page from origin: %s", origin)
+
     results = {}
     ctx = {}
-    soup = Soup(request.body)
+    soup = Soup(document)
     css_template = get_template('css.html')
     extractor = CssSelectorExtractor()
 

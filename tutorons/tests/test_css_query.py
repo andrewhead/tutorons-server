@@ -17,14 +17,14 @@ class TestRenderDescription(unittest.TestCase):
     def setUp(self):
         self.client = Client()
 
-    def get_resp_texts(self, payload):
-        resp = self.client.post('/css', content_type='raw', data=payload)
+    def get_resp_texts(self, document):
+        resp = self.client.post('/css', data={'origin': 'www.test.com', 'document': document})
         respData = json.loads(resp.content)
         texts = {k: BeautifulSoup(v).text for k, v in respData.items()}
         return texts
 
-    def get_example_html(self, payload):
-        resp = self.client.post('/css', content_type='raw', data=payload)
+    def get_example_html(self, document):
+        resp = self.client.post('/css', data={'origin': 'www.test.com', 'document': document})
         respData = json.loads(resp.content)
         return respData
 
