@@ -24,7 +24,7 @@ class GetPathTest(unittest.TestCase):
         soup = BeautifulSoup(dom)
         p = soup.p
         selector = get_css_selector(p)
-        self.assertEqual(selector, 'html:nth-of-type(1) > body:nth-of-type(1) > p:nth-of-type(1)')
+        self.assertEqual(selector, 'HTML > BODY:nth-of-type(1) > P:nth-of-type(1)')
 
     def test_get_path_2nd_child(self):
         dom = '\n'.join([
@@ -38,7 +38,7 @@ class GetPathTest(unittest.TestCase):
         soup = BeautifulSoup(dom)
         p = soup.find_all('p')[1]
         selector = get_css_selector(p)
-        self.assertEqual(selector, 'html:nth-of-type(1) > body:nth-of-type(1) > p:nth-of-type(2)')
+        self.assertEqual(selector, 'HTML > BODY:nth-of-type(1) > P:nth-of-type(2)')
 
     def test_do_not_count_children_of_different_type(self):
         dom = '\n'.join([
@@ -53,7 +53,7 @@ class GetPathTest(unittest.TestCase):
         soup = BeautifulSoup(dom)
         p = soup.find_all('p')[1]
         selector = get_css_selector(p)
-        self.assertEqual(selector, 'html:nth-of-type(1) > body:nth-of-type(1) > p:nth-of-type(2)')
+        self.assertEqual(selector, 'HTML > BODY:nth-of-type(1) > P:nth-of-type(2)')
 
     def test_get_path_multiple_levels_nth_child(self):
         dom = '\n'.join([
@@ -76,8 +76,8 @@ class GetPathTest(unittest.TestCase):
         selector = get_css_selector(p)
         self.assertEqual(
             selector,
-            'html:nth-of-type(1) > body:nth-of-type(1) > ' +
-            'div:nth-of-type(2) > p:nth-of-type(3)')
+            'HTML > BODY:nth-of-type(1) > ' +
+            'DIV:nth-of-type(2) > P:nth-of-type(3)')
 
 
 if __name__ == '__main__':

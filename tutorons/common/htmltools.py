@@ -27,7 +27,13 @@ def get_css_selector(tag):
         elements.insert(0, {'name': element.name, 'index': index})
         element = parent
 
-    selector = ' > '.join([
-        '%s:nth-of-type(%d)' % (el['name'], el['index'])
-        for el in elements])
-    return selector
+    element_selectors = []
+    for i, el in enumerate(elements):
+        tag_name = el['name'].upper()
+        if i == 0 and el['name'] == 'html':
+            element_selectors.append(tag_name)
+        else:
+            element_selectors.append(
+                '%s:nth-of-type(%d)' % (tag_name, el['index'])
+            )
+    return ' > '.join(element_selectors)

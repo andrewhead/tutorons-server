@@ -3,11 +3,12 @@
 EXP_DIR=parsers/css/explain/out/production/css-explainer
 DEPS=`ls deps/*.jar | tr '\n' ':'`
 CLASSPATH=$CLASSPATH:$DEPS
+PORT=${1:-8000}
 
 # Run Java Explanation server
 java -cp $CLASSPATH:$DEPS CssExplainerEntryPoint &
 
 # Start the Python server
-DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py runserver
+DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py runserver $PORT
 
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
