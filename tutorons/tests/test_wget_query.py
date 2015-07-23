@@ -97,7 +97,7 @@ class TestRenderDescription(unittest.TestCase):
             result.values()[0])
 
     def test_no_show_shortname_if_opt_has_no_shortname(self):
-        result = self.request_short("wget --retry-connrefused")
+        result = self.request_short("wget --retry-connrefused http://google.com")
         description = result.values()[0]
         self.assertNotIn('>-r', description)
 

@@ -2,21 +2,12 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from tutorons.wget.explain import build_help, Option, optcombo_explain, WgetExtractor
+from tutorons.wget.explain import build_help, Option, optcombo_explain
 import unittest
-from bs4 import BeautifulSoup
 import logging
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-
-class DetectWgetTest(unittest.TestCase):
-
-    def test_detect_wget_from_wgetrc(self):
-        extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>.wgetrc</code>'))
-        self.assertEqual(len(regions), 0)
 
 
 class BuildArgumentHelpTest(unittest.TestCase):

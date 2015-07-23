@@ -80,6 +80,22 @@ class CommandExtractorTest(unittest.TestCase):
         extractor = CommandExtractor('wget')
         extractor.extract(BeautifulSoup('<code>os.system("wget google.com")</code>'))
 
+    def test_extract_includes_redirect(self):
+        extractor = CommandExtractor('wget')
+        node = BeautifulSoup("<code>wget google.com > /dev/null 2>&1</code>")
+        regions = extractor.extract(node)
+        r = regions[0]
+        self.assertEqual(r.start_offset, 0)
+        self.assertEqual(r.end_offset, 31)
+
+    def test_extract_from_crontab(self):
+        extractor = CommandExtractor('wget')
+        node = BeautifulSoup("<code>*/5 * * * * wget mysite.com</code>")
+        regions = extractor.extract(node)
+        r = regions[0]
+        self.assertEqual(r.start_offset, 12)
+        self.assertEqual(r.end_offset, 26)
+
     def test_ignore_command_name_without_options(self):
         extractor = CommandExtractor('wget')
         node = BeautifulSoup('<code>wget</code>')

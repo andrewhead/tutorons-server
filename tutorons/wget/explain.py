@@ -43,18 +43,28 @@ class WgetExtractor(object):
 
     def extract(self, node):
         regions = self.cmd_extractor.extract(node)
-        valid_regions = [r for r in regions if self._try_run(r.string)]
+        valid_regions = [r for r in regions if self._includes_url(r.string)]
         [log_region(r) for r in valid_regions]
         return valid_regions
 
-    def _try_run(self, wget_cmd):
+    def _includes_url(self, cmd):
+        output = self._run(cmd)
+        if output is None:
+            return False
+        contains_url = (
+            re.search('^URL:', output, re.MULTILINE) and
+            not re.search('^URL: \(null\)', output, re.MULTILINE)
+        )
+        return contains_url
+
+    def _run(self, wget_cmd):
         optstring = re.sub('^.*?' + WGET_PATT, '', wget_cmd)
         cmd = str(WGET) + optstring
         try:
-            subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
+            output = subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
+            return output
         except subprocess.CalledProcessError:
-            return False
-        return True
+            return None
 
 
 def explain(cmd):
