@@ -120,7 +120,7 @@ class CommandExtractor(object):
             nodes = get_descendants(tree)
             commands = [n for n in nodes if n.kind == 'command']
             for c in commands:
-                if self._is_target_command(c, self.cmdname):
+                if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
                     start_char = self._get_start(c, self.cmdname)
                     end_char = c.pos[1] - 1
                     string = text[start_char:end_char + 1]
@@ -128,6 +128,9 @@ class CommandExtractor(object):
                     regions.append(r)
 
         return regions
+
+    def _has_arguments(self, command):
+        return len(command.parts) > 1
 
     def _is_target_command(self, command, cmdname):
         for p in command.parts:

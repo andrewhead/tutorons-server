@@ -80,6 +80,12 @@ class CommandExtractorTest(unittest.TestCase):
         extractor = CommandExtractor('wget')
         extractor.extract(BeautifulSoup('<code>os.system("wget google.com")</code>'))
 
+    def test_ignore_command_name_without_options(self):
+        extractor = CommandExtractor('wget')
+        node = BeautifulSoup('<code>wget</code>')
+        regions = extractor.extract(node)
+        self.assertEqual(len(regions), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
