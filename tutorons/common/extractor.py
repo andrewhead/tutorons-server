@@ -6,10 +6,12 @@ import logging
 import re
 from slimit.lexer import Lexer as JsLexer
 import bashlex
+import copy
 from tutorons.common.util import get_descendants
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+RARE_CHARACTER = '\u3222'  # A character we never expect to appear on an HTML page
 
 
 class Region(object):
@@ -87,45 +89,56 @@ class CommandExtractor(object):
 
     def extract(self, node):
 
+        ''' Make a copy of the node and split on <br> tags. '''
+        node_copy = copy.copy(node)
+        for br in node_copy.select('br'):
+            br.replace_with(RARE_CHARACTER)
+        node_text = node_copy.text
+        text_blocks = node_text.split(RARE_CHARACTER)
+
         regions = []
-        text = node.text
+        offset = 0
 
-        # bashlex doesn't like it if there's a newline at the start of the file or
-        # more than one \n before a command, so we replace them with innocuous spaces
-        starting_newlines = 0
-        for c in text:
-            if c == '\n':
-                starting_newlines += 1
-            else:
-                break
-        text = ' ' * starting_newlines + text[starting_newlines:]
+        for text in text_blocks:
 
-        on_newline = False
-        for i, c in enumerate(text):
-            if on_newline:
+            # bashlex doesn't like it if there's a newline at the start of the file or
+            # more than one \n before a command, so we replace them with innocuous spaces
+            starting_newlines = 0
+            for c in text:
                 if c == '\n':
-                    text = text[:i] + ' ' + text[i+1:]
-                elif not re.match('\s', c):
-                    on_newline = False
-            if not on_newline:
-                on_newline = (c == '\n')
+                    starting_newlines += 1
+                else:
+                    break
+            text = ' ' * starting_newlines + text[starting_newlines:]
 
-        try:
-            tree = bashlex.parse(text)
-            valid_script = True
-        except bashlex.errors.ParsingError:
-            valid_script = False
+            on_newline = False
+            for i, c in enumerate(text):
+                if on_newline:
+                    if c == '\n':
+                        text = text[:i] + ' ' + text[i+1:]
+                    elif not re.match('\s', c):
+                        on_newline = False
+                if not on_newline:
+                    on_newline = (c == '\n')
 
-        if valid_script:
-            nodes = get_descendants(tree)
-            commands = [n for n in nodes if n.kind == 'command']
-            for c in commands:
-                if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
-                    start_char = self._get_start(c, self.cmdname)
-                    end_char = c.pos[1] - 1
-                    string = text[start_char:end_char + 1]
-                    r = Region(node, start_char, end_char, string)
-                    regions.append(r)
+            try:
+                tree = bashlex.parse(text)
+                valid_script = True
+            except bashlex.errors.ParsingError:
+                valid_script = False
+
+            if valid_script:
+                nodes = get_descendants(tree)
+                commands = [n for n in nodes if n.kind == 'command']
+                for c in commands:
+                    if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
+                        start_char = offset + self._get_start(c, self.cmdname)
+                        end_char = offset + c.pos[1] - 1
+                        string = text[start_char:end_char + 1]
+                        r = Region(node, start_char, end_char, string)
+                        regions.append(r)
+
+            offset += len(text)
 
         return regions
 
