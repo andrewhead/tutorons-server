@@ -101,6 +101,8 @@ class CommandExtractor(object):
 
         for text in text_blocks:
 
+            orig_text = text
+            text = self._replace_carats(text)
             text = self._clean_for_bashlex(text)
 
             try:
@@ -116,7 +118,7 @@ class CommandExtractor(object):
                     if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
                         start_char = offset + self._get_start(c, self.cmdname)
                         end_char = offset + c.pos[1] - 1
-                        string = text[start_char:end_char + 1]
+                        string = orig_text[start_char:end_char + 1]
                         r = Region(node, start_char, end_char, string)
                         regions.append(r)
 
@@ -139,6 +141,15 @@ class CommandExtractor(object):
             if p.kind == 'assignment' or (p.kind and re.match(cmdname, p.word)):
                 return p.pos[0]
         return -1
+
+    def _replace_carats(self, text):
+        '''
+        Some UNIX or online documentation puts parameter names inside of carats, e.g.,
+            wget -A <ext> <URL>
+        This routine replaces these edge carats, which can be misinterpreted as redirects,
+        with underscores.
+        '''
+        return re.sub('\<(\w+)\>', r'_\1_', text)
 
     def _clean_for_bashlex(self, text):
         '''

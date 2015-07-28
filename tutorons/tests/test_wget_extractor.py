@@ -83,6 +83,14 @@ class DetectWgetSyntaxTest(unittest.TestCase):
         self.assertEqual(r.start_offset, 17)
         self.assertEqual(r.end_offset, 38)
 
+    def test_handle_args_inside_carats(self):
+        extractor = WgetExtractor()
+        regions = extractor.extract(BeautifulSoup('<code>wget -A&lt;ext&gt; &lt;URL&gt;</code>'))
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEqual(r.start_offset, 0)
+        self.assertEqual(r.end_offset, 17)
+
 
 class IgnoreNotWgetTest(unittest.TestCase):
 
