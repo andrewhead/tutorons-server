@@ -35,11 +35,11 @@ def wget(request):
     results = {}
     soup = Soup(document)
     wget_template = get_template('wget.html')
-    extractor = WgetExtractor()
 
     node_detector = CommandNodeDetector('wget')
     nodes = node_detector.detect(soup)
 
+    extractor = WgetExtractor()
     for block in nodes:
         regions = extractor.extract(block)
         for r in regions:

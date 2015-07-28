@@ -89,12 +89,16 @@ class CommandExtractor(object):
 
     def extract(self, node):
 
+        ''' Save the original command, with carated arguments escaped. '''
+        orig_text = node.text
+        orig_text_safe = self._replace_carats(orig_text)
+
         ''' Make a copy of the node and split on <br> tags. '''
         node_copy = copy.copy(node)
         for br in node_copy.select('br'):
             br.replace_with(RARE_CHARACTER)
-        node_text = node_copy.text
-        text_blocks = node_text.split(RARE_CHARACTER)
+        splittable_text = node_copy.text
+        text_blocks = splittable_text.split(RARE_CHARACTER)
 
         regions = []
         offset = 0
@@ -119,7 +123,7 @@ class CommandExtractor(object):
                         if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
                             start_char = offset + self._get_start(c, self.cmdname)
                             end_char = offset + c.pos[1] - 1
-                            string = node.text[start_char:end_char + 1]
+                            string = orig_text_safe[start_char:end_char + 1]
                             r = Region(node, start_char, end_char, string)
                             regions.append(r)
 

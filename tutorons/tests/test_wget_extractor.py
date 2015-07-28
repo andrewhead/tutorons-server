@@ -101,6 +101,20 @@ class DetectWgetSyntaxTest(unittest.TestCase):
         self.assertEqual(r.start_offset, 10)
         self.assertEqual(r.end_offset, 31)
 
+    def test_skip_if_more_than_one_url_and_no_args(self):
+        '''
+        We suspect that if there are multiple "URLs" but no args, then this command
+        is likely part of a prose sentence and not a command invokation.
+        '''
+        extractor = WgetExtractor()
+        regions = extractor.extract(BeautifulSoup('<code>wget url1 url2</code>'))
+        self.assertEqual(len(regions), 0)
+
+    def test_detect_if_more_than_one_url_and_args_present(self):
+        extractor = WgetExtractor()
+        regions = extractor.extract(BeautifulSoup('<code>wget -q url1 url2</code>'))
+        self.assertEqual(len(regions), 1)
+
 
 class IgnoreNotWgetTest(unittest.TestCase):
 

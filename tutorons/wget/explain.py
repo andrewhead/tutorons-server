@@ -8,6 +8,7 @@ import logging
 import re
 import os.path
 from django.conf import settings
+import bashlex
 
 from tutorons.common.extractor import CommandExtractor
 from tutorons.common.util import log_region
@@ -43,7 +44,10 @@ class WgetExtractor(object):
 
     def extract(self, node):
         regions = self.cmd_extractor.extract(node)
-        valid_regions = [r for r in regions if self._includes_url(r.string)]
+        valid_regions = [
+            r for r in regions if
+            self._includes_url(r.string) and self._is_not_prose(r.string)
+        ]
         [log_region(r) for r in valid_regions]
         return valid_regions
 
@@ -57,6 +61,27 @@ class WgetExtractor(object):
             re.search('^LN: input-file', output, re.MULTILINE)
         )
         return contains_url
+
+    def _is_not_prose(self, cmdtext):
+
+        url_count = 0
+        arg_count = 0
+        has_var = False
+
+        command = bashlex.parse(cmdtext)[0]
+        after_cmdname = False
+
+        for part in command.parts:
+            if after_cmdname:
+                if part.word.startswith('-'):
+                    arg_count += 1
+                else:
+                    url_count += 1
+                if part.word.startswith('$'):
+                    has_var = True
+            after_cmdname = True if re.match(WGET_PATT, part.word) else after_cmdname
+
+        return has_var or arg_count > 0 or url_count == 1
 
     def _run(self, wget_cmd):
         optstring = re.sub('^.*?' + WGET_PATT, '', wget_cmd)
