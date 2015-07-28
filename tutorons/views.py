@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from bs4 import BeautifulSoup as Soup
 import json
 
+from tutorons.common.node_detector import CommandNodeDetector
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
 from parsers.css.examples.examplegen import get_example as css_example
@@ -36,7 +37,10 @@ def wget(request):
     wget_template = get_template('wget.html')
     extractor = WgetExtractor()
 
-    for block in soup.find_all('code') + soup.find_all('pre'):
+    node_detector = CommandNodeDetector('wget')
+    nodes = node_detector.detect(soup)
+
+    for block in nodes:
         regions = extractor.extract(block)
         for r in regions:
             exp = wget_explain(r.string)

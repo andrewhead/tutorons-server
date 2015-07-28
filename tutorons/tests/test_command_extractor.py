@@ -6,6 +6,7 @@ import logging
 import unittest
 from bs4 import BeautifulSoup
 from tutorons.common.extractor import CommandExtractor
+from tutorons.common.node_detector import CommandNodeDetector
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -123,6 +124,63 @@ class CommandExtractorTest(unittest.TestCase):
         node = BeautifulSoup('<code>wget</code>')
         regions = extractor.extract(node)
         self.assertEqual(len(regions), 0)
+
+
+class CommandElementDetectionTest(unittest.TestCase):
+
+    def test_identify_paragraph_with_one_line_command(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<p>wget http://google.com</p>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 1)
+
+    def test_identify_div_with_wget(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<div>wget http://google.com</div>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 1)
+
+    def test_identify_paragraph_with_PS1_header(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<p>$ wget http://google.com</p>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 1)
+
+    def test_identify_paragraph_with_command_after_break(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<p>Some descriptive text<br/>$ wget http://google.com</p>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 1)
+
+    def test_miss_wget_in_unsupported_element_type(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<i>wget http://google.com</i>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 0)
+
+    def test_miss_paragraph_without_command(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<p>This line does not have a command on it.</p>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 0)
+
+    def test_miss_paragraph_with_text_preceding_command(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<p>Just run wget http://google.com</p>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 0)
+
+    def test_detect_any_code_block(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<code></code>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 1)
+
+    def test_detect_any_pre_block(self):
+        det = CommandNodeDetector('wget')
+        document = BeautifulSoup('<pre></pre>')
+        nodes = det.detect(document)
+        self.assertEqual(len(nodes), 1)
 
 
 if __name__ == '__main__':
