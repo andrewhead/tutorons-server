@@ -101,26 +101,27 @@ class CommandExtractor(object):
 
         for text in text_blocks:
 
-            orig_text = text
             text = self._replace_carats(text)
             text = self._clean_for_bashlex(text)
 
-            try:
-                tree = bashlex.parse(text)
-                valid_script = True
-            except bashlex.errors.ParsingError:
-                valid_script = False
+            if not text.isspace():
 
-            if valid_script:
-                nodes = get_descendants(tree)
-                commands = [n for n in nodes if n.kind == 'command']
-                for c in commands:
-                    if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
-                        start_char = offset + self._get_start(c, self.cmdname)
-                        end_char = offset + c.pos[1] - 1
-                        string = orig_text[start_char:end_char + 1]
-                        r = Region(node, start_char, end_char, string)
-                        regions.append(r)
+                try:
+                    tree = bashlex.parse(text)
+                    valid_script = True
+                except bashlex.errors.ParsingError:
+                    valid_script = False
+
+                if valid_script:
+                    nodes = get_descendants(tree)
+                    commands = [n for n in nodes if n.kind == 'command']
+                    for c in commands:
+                        if self._is_target_command(c, self.cmdname) and self._has_arguments(c):
+                            start_char = offset + self._get_start(c, self.cmdname)
+                            end_char = offset + c.pos[1] - 1
+                            string = node.text[start_char:end_char + 1]
+                            r = Region(node, start_char, end_char, string)
+                            regions.append(r)
 
             offset += len(text)
 
@@ -168,7 +169,7 @@ class CommandExtractor(object):
         text = re.sub(" *$", replace_space, text, flags=re.MULTILINE)
 
         replace_comment = lambda m: '\n' * len(m.group())
-        text = re.sub("# .*$", replace_comment, text, flags=re.MULTILINE)
+        text = re.sub("#.*$", replace_comment, text, flags=re.MULTILINE)
 
         starting_newlines = 0
         for c in text:

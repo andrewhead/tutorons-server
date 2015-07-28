@@ -91,6 +91,16 @@ class DetectWgetSyntaxTest(unittest.TestCase):
         self.assertEqual(r.start_offset, 0)
         self.assertEqual(r.end_offset, 17)
 
+    def test_skip_blank_regions_but_keep_offset(self):
+        extractor = WgetExtractor()
+        regions = extractor.extract(BeautifulSoup('\n'.join([
+            '<code>#!/bin/sh<br>',
+            'wget http://google.com',
+        ])))
+        r = regions[0]
+        self.assertEqual(r.start_offset, 10)
+        self.assertEqual(r.end_offset, 31)
+
 
 class IgnoreNotWgetTest(unittest.TestCase):
 
