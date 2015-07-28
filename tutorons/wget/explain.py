@@ -17,7 +17,7 @@ from opthelp import OPTHELP, COMBOHELP
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 WGET = os.path.join(settings.DEPS_DIR, "wget", "src", "wget")
-WGET_PATT = r"wget(?:.exe)?"
+WGET_PATT = r"(/usr/bin/)?(wget|WGET)(?:.exe)?"
 
 
 class Option(object):
@@ -52,8 +52,9 @@ class WgetExtractor(object):
         if output is None:
             return False
         contains_url = (
-            re.search('^URL:', output, re.MULTILINE) and
-            not re.search('^URL: \(null\)', output, re.MULTILINE)
+            (re.search('^URL:', output, re.MULTILINE) and
+                not re.search('^URL: \(null\)', output, re.MULTILINE)) or
+            re.search('^LN: input-file', output, re.MULTILINE)
         )
         return contains_url
 

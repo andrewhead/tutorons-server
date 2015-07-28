@@ -101,25 +101,7 @@ class CommandExtractor(object):
 
         for text in text_blocks:
 
-            # bashlex doesn't like it if there's a newline at the start of the file or
-            # more than one \n before a command, so we replace them with innocuous spaces
-            starting_newlines = 0
-            for c in text:
-                if c == '\n':
-                    starting_newlines += 1
-                else:
-                    break
-            text = ' ' * starting_newlines + text[starting_newlines:]
-
-            on_newline = False
-            for i, c in enumerate(text):
-                if on_newline:
-                    if c == '\n':
-                        text = text[:i] + ' ' + text[i+1:]
-                    elif not re.match('\s', c):
-                        on_newline = False
-                if not on_newline:
-                    on_newline = (c == '\n')
+            text = self._clean_for_bashlex(text)
 
             try:
                 tree = bashlex.parse(text)
@@ -157,3 +139,42 @@ class CommandExtractor(object):
             if p.kind == 'assignment' or (p.kind and re.match(cmdname, p.word)):
                 return p.pos[0]
         return -1
+
+    def _clean_for_bashlex(self, text):
+        '''
+        This method cleans bash script text to address 3 limitations of the bashlex library.
+        1. bashlex doesn't like it if there's a newline at the start of the file or
+        more than one \n before a command, so we replace them with innocuous spaces.
+        2. bashlex doesn't respond well when there's comments or trailing whitespace at
+        the end of a line.  So, we replace comments with a bunch of newlines, and then
+        resolve the newlines with the innocuous spaces (at the starts of lines)
+        3. bashlex can't parse when a line follows another line that has trailing spaces.
+        So, we replace these spaces with newlines before running our newline-expansion
+        procedure, which will push spaces *after* the first newline.
+        '''
+
+        replace_space = lambda m: '\n' * len(m.group())
+        text = re.sub(" *$", replace_space, text, flags=re.MULTILINE)
+
+        replace_comment = lambda m: '\n' * len(m.group())
+        text = re.sub("# .*$", replace_comment, text, flags=re.MULTILINE)
+
+        starting_newlines = 0
+        for c in text:
+            if c == '\n':
+                starting_newlines += 1
+            else:
+                break
+        text = ' ' * starting_newlines + text[starting_newlines:]
+
+        on_newline = False
+        for i, c in enumerate(text):
+            if on_newline:
+                if c == '\n':
+                    text = text[:i] + ' ' + text[i+1:]
+                elif not re.match('\s', c):
+                    on_newline = False
+            if not on_newline:
+                on_newline = (c == '\n')
+
+        return text
