@@ -115,6 +115,9 @@ class CommandExtractor(object):
                     valid_script = True
                 except bashlex.errors.ParsingError:
                     valid_script = False
+                except Exception as e:
+                    valid_script = False
+                    logging.error("Bash parsing error: %s, for script %s", str(e), text)
 
                 if valid_script:
                     nodes = get_descendants(tree)

@@ -9,7 +9,7 @@ import cssselect
 import re
 
 from tutorons.common.extractor import JavascriptStringExtractor
-from tutorons.common.util import get_descendants, log_region
+from tutorons.common.util import get_descendants
 from tutorons.css.tags import HTML_TAGS
 
 
@@ -28,7 +28,6 @@ class CssSelectorExtractor(object):
     def extract(self, node):
         regions = self.js_string_extractor.extract(node)
         valid_regions = [r for r in regions if self._is_selector(r.string)]
-        [log_region(r) for r in valid_regions]
         return valid_regions
 
     def _is_selector(self, string):

@@ -10,12 +10,13 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
 
 
-def log_region(r):
+def log_region(r, url):
     region_logger.info(',,,'.join([
+        'Origin:%s',
         'Path:%s',
         'Text:%s',
         'Range:[%d,%d]'
-    ]), get_css_selector(r.node), r.string, r.start_offset, r.end_offset)
+    ]), url, get_css_selector(r.node), r.string, r.start_offset, r.end_offset)
 
 
 def get_descendants(x):

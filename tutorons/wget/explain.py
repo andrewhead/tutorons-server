@@ -11,7 +11,6 @@ from django.conf import settings
 import bashlex
 
 from tutorons.common.extractor import CommandExtractor
-from tutorons.common.util import log_region
 from parse_phrase import get_root_type, RootType
 from opthelp import OPTHELP, COMBOHELP
 
@@ -48,7 +47,6 @@ class WgetExtractor(object):
             r for r in regions if
             self._includes_url(r.string) and self._is_not_prose(r.string)
         ]
-        [log_region(r) for r in valid_regions]
         return valid_regions
 
     def _includes_url(self, cmd):
@@ -73,13 +71,16 @@ class WgetExtractor(object):
 
         for part in command.parts:
             if after_cmdname:
-                if part.word.startswith('-'):
-                    arg_count += 1
-                else:
-                    url_count += 1
-                if part.word.startswith('$'):
-                    has_var = True
-            after_cmdname = True if re.match(WGET_PATT, part.word) else after_cmdname
+                if hasattr(part, 'word'):
+                    if part.word.startswith('-'):
+                        arg_count += 1
+                    else:
+                        url_count += 1
+                    if part.word.startswith('$'):
+                        has_var = True
+
+            if hasattr(part, 'word') and re.match(WGET_PATT, part.word):
+                after_cmdname = True
 
         return has_var or arg_count > 0 or url_count == 1
 
@@ -91,6 +92,8 @@ class WgetExtractor(object):
             return output
         except subprocess.CalledProcessError:
             return None
+        except OSError as e:
+            logging.error("OSError: %s, for command %s", str(e), cmd)
 
 
 def explain(cmd):

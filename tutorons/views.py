@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup as Soup
 import json
 
 from tutorons.common.node_detector import CommandNodeDetector
+from tutorons.common.util import log_region
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
 from parsers.css.examples.examplegen import get_example as css_example
@@ -43,6 +44,7 @@ def wget(request):
     for block in nodes:
         regions = extractor.extract(block)
         for r in regions:
+            log_region(r, origin)
             exp = wget_explain(r.string)
             exp_html = wget_template.render(Context(exp))
             results[r.string] = exp_html
@@ -66,6 +68,7 @@ def css(request):
     for block in soup.find_all('code') + soup.find_all('pre'):
         regions = extractor.extract(block)
         for r in regions:
+            log_region(r, origin)
             ctx['exp'] = css_explain(r.string)
             ctx['example'] = css_example(r.string)
             exp_html = css_template.render(Context(ctx))
