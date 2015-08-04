@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import logging
 import unittest
-from bs4 import BeautifulSoup
+from tutorons.common.htmltools import HtmlDocument
 from tutorons.css.explain import CssSelectorExtractor, explain
 
 
@@ -17,7 +17,7 @@ class SelectorExtractionTest(unittest.TestCase):
         self.extractor = CssSelectorExtractor()
 
     def test_extract_selector(self):
-        node = BeautifulSoup("<code>$('p').text('hello');</code>")
+        node = HtmlDocument("<code>$('p').text('hello');</code>")
         regions = self.extractor.extract(node)
         self.assertEqual(len(regions), 1)
         r = regions[0]
@@ -27,7 +27,7 @@ class SelectorExtractionTest(unittest.TestCase):
         self.assertEqual(r.string, 'p')
 
     def test_extract_multiple(self):
-        regions = self.extractor.extract(BeautifulSoup("\n".join([
+        regions = self.extractor.extract(HtmlDocument("\n".join([
             "<code>",
             "    $('p').text('hello');",
             "    var input = $('input.klazz');",
@@ -36,11 +36,11 @@ class SelectorExtractionTest(unittest.TestCase):
         self.assertEqual(len(regions), 2)
 
     def test_skip_non_html_element(self):
-        regions = self.extractor.extract(BeautifulSoup("<code>$('nothtml');</code>"))
+        regions = self.extractor.extract(HtmlDocument("<code>$('nothtml');</code>"))
         self.assertEqual(len(regions), 0)
 
     def test_skip_regular_expression(self):
-        regions = self.extractor.extract(BeautifulSoup("<code>var b = '^ab*';</code>"))
+        regions = self.extractor.extract(HtmlDocument("<code>var b = '^ab*';</code>"))
         self.assertEqual(len(regions), 0)
 
 

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import logging
 import unittest
-from bs4 import BeautifulSoup
+from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.extractor import CommandExtractor
 from tutorons.common.node_detector import CommandNodeDetector
 
@@ -16,7 +16,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_extract_command(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup('<code>wget http://google.com</code>')
+        node = HtmlDocument('<code>wget http://google.com</code>')
         regions = extractor.extract(node)
         self.assertEqual(len(regions), 1)
         r = regions[0]
@@ -27,7 +27,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_extract_command_with_variables(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup('<code>VAR=val wget http://google.com</code>')
+        node = HtmlDocument('<code>VAR=val wget http://google.com</code>')
         regions = extractor.extract(node)
         r = regions[0]
         self.assertEqual(r.start_offset, 0)
@@ -35,7 +35,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_line_breaks(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup(''.join([
+        node = HtmlDocument(''.join([
             '<code>$  wget http://google.com<br> ',
             '$  wget http://gaggle.com</code>'
         ]))
@@ -49,7 +49,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_extract_command_ignore_PS1_line(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>',
             'my-shell$ wget http://google.com',
             'my-shell$ wget http://gaggle.com',
@@ -65,7 +65,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_extract_command_by_regex(self):
         extractor = CommandExtractor('wget(\.exe)?')
-        node = BeautifulSoup('<code>my-shell$ wget.exe http://google.com</code>')
+        node = HtmlDocument('<code>my-shell$ wget.exe http://google.com</code>')
         regions = extractor.extract(node)
         r = regions[0]
         self.assertEqual(r.start_offset, 10)
@@ -73,7 +73,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_extract_multiple_commands(self):
         extractor = CommandExtractor('wget(\.exe)?')
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>',
             '    wget http://google.com',
             '    wget http://gaggle.com',
@@ -88,7 +88,7 @@ class CommandExtractorTest(unittest.TestCase):
         charater between mulitple lines of a script.
         '''
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>',
             '    wget http://google.com',
             '                          ',
@@ -101,11 +101,11 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_handles_parsing_error(self):
         extractor = CommandExtractor('wget')
-        extractor.extract(BeautifulSoup('<code>os.system("wget google.com")</code>'))
+        extractor.extract(HtmlDocument('<code>os.system("wget google.com")</code>'))
 
     def test_extract_includes_redirect(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup("<code>wget google.com > /dev/null 2>&1</code>")
+        node = HtmlDocument("<code>wget google.com > /dev/null 2>&1</code>")
         regions = extractor.extract(node)
         r = regions[0]
         self.assertEqual(r.start_offset, 0)
@@ -113,7 +113,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_extract_from_crontab(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup("<code>*/5 * * * * wget mysite.com</code>")
+        node = HtmlDocument("<code>*/5 * * * * wget mysite.com</code>")
         regions = extractor.extract(node)
         r = regions[0]
         self.assertEqual(r.start_offset, 12)
@@ -121,7 +121,7 @@ class CommandExtractorTest(unittest.TestCase):
 
     def test_ignore_command_name_without_options(self):
         extractor = CommandExtractor('wget')
-        node = BeautifulSoup('<code>wget</code>')
+        node = HtmlDocument('<code>wget</code>')
         regions = extractor.extract(node)
         self.assertEqual(len(regions), 0)
 
@@ -130,55 +130,55 @@ class CommandElementDetectionTest(unittest.TestCase):
 
     def test_identify_paragraph_with_one_line_command(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<p>wget http://google.com</p>')
+        document = HtmlDocument('<p>wget http://google.com</p>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 1)
 
     def test_identify_div_with_wget(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<div>wget http://google.com</div>')
+        document = HtmlDocument('<div>wget http://google.com</div>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 1)
 
     def test_identify_paragraph_with_PS1_header(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<p>$ wget http://google.com</p>')
+        document = HtmlDocument('<p>$ wget http://google.com</p>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 1)
 
     def test_identify_paragraph_with_command_after_break(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<p>Some descriptive text<br/>$ wget http://google.com</p>')
+        document = HtmlDocument('<p>Some descriptive text<br/>$ wget http://google.com</p>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 1)
 
     def test_miss_wget_in_unsupported_element_type(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<i>wget http://google.com</i>')
+        document = HtmlDocument('<i>wget http://google.com</i>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 0)
 
     def test_miss_paragraph_without_command(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<p>This line does not have a command on it.</p>')
+        document = HtmlDocument('<p>This line does not have a command on it.</p>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 0)
 
     def test_miss_paragraph_with_text_preceding_command(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<p>Just run wget http://google.com</p>')
+        document = HtmlDocument('<p>Just run wget http://google.com</p>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 0)
 
     def test_detect_any_code_block(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<code></code>')
+        document = HtmlDocument('<code></code>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 1)
 
     def test_detect_any_pre_block(self):
         det = CommandNodeDetector('wget')
-        document = BeautifulSoup('<pre></pre>')
+        document = HtmlDocument('<pre></pre>')
         nodes = det.detect(document)
         self.assertEqual(len(nodes), 1)
 

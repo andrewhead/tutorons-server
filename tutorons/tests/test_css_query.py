@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import unittest
 import json
-from bs4 import BeautifulSoup
+from tutorons.common.htmltools import HtmlDocument
 from django.test import Client
 
 
@@ -20,7 +20,7 @@ class TestRenderDescription(unittest.TestCase):
     def get_resp_texts(self, document):
         resp = self.client.post('/css', data={'origin': 'www.test.com', 'document': document})
         respData = json.loads(resp.content)
-        texts = {k: BeautifulSoup(v).text for k, v in respData.items()}
+        texts = {k: HtmlDocument(v).text for k, v in respData.items()}
         return texts
 
     def get_example_html(self, document):

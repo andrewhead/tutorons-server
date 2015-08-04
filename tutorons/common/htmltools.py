@@ -3,9 +3,25 @@
 
 from __future__ import unicode_literals
 import logging
+from bs4 import BeautifulSoup
+import re
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+class HtmlDocument(BeautifulSoup):
+    ''' Subclass of BeautifulSoup that cleans HTML documents for our processing purposes. '''
+
+    def __init__(self, text, *args, **kwargs):
+        filled = fill_empty_lines(text)
+        super(self.__class__, self).__init__(filled, *args, **kwargs)
+
+
+def fill_empty_lines(text, tag='p'):
+    ''' Add empty element to empty lines of an HTML document. '''
+    filled = re.sub('^$', '<{tag}></{tag}>'.format(tag=tag), text, flags=re.MULTILINE)
+    return filled
 
 
 def get_css_selector(tag):

@@ -18,7 +18,7 @@ class Region(object):
     '''
     Region of text that might be explainable.
     Properties:
-    * node: a BeautifulSoup HTML node
+    * node: an HTML node (BeautifulSoup subclass)
     * start_offset: character index where the region begins
     * end_offset: character index where the region ends
     * string: text of the region
@@ -40,7 +40,7 @@ class Region(object):
 class LineExtractor(object):
 
     def extract(self, node):
-        ''' Given BeautifulSoup node of HTML, extract all line Regions. '''
+        ''' Given HTML node, extract all line Regions. '''
 
         text = node.text
 

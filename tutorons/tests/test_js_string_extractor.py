@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import logging
 import unittest
-from bs4 import BeautifulSoup
+from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.extractor import JavascriptStringExtractor
 
 
@@ -17,7 +17,7 @@ class JavascriptStringExtractText(unittest.TestCase):
         self.extractor = JavascriptStringExtractor()
 
     def test_get_string_from_first_line(self):
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>    $("string");</code>',
         ])).code
         regions = self.extractor.extract(node)
@@ -28,7 +28,7 @@ class JavascriptStringExtractText(unittest.TestCase):
         self.assertEqual(r.string, "string")
 
     def test_get_string_from_second_line(self):
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>var i;',
             'i = \'string\'</code>',
         ])).code
@@ -40,14 +40,14 @@ class JavascriptStringExtractText(unittest.TestCase):
         self.assertEqual(r.string, "string")
 
     def test_get_multiple_strings(self):
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>var newStr = "string1" + "string2";</code>',
         ])).code
         regions = self.extractor.extract(node)
         self.assertEqual(len(regions), 2)
 
     def test_count_newlines_as_characters(self):
-        node = BeautifulSoup('\n'.join([
+        node = HtmlDocument('\n'.join([
             '<code>',
             '    $("string");',
             '</code>',

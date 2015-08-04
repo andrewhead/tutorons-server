@@ -2,10 +2,11 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from tutorons.wget.explain import WgetExtractor
 import unittest
-from bs4 import BeautifulSoup
 import logging
+
+from tutorons.common.htmltools import HtmlDocument
+from tutorons.wget.explain import WgetExtractor
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -15,39 +16,39 @@ class DetectWgetSyntaxTest(unittest.TestCase):
 
     def test_detect_if_args_in_variable(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget $WGETPARAMS "${SITE}user"</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget $WGETPARAMS "${SITE}user"</code>'))
         self.assertEqual(len(regions), 1)
 
     def test_detect_if_input_file_but_no_url(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget -i input_file.txt</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget -i input_file.txt</code>'))
         self.assertEqual(len(regions), 1)
 
     def test_detect_if_wget_command_in_all_caps(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>WGET http://google.com</code>'))
+        regions = extractor.extract(HtmlDocument('<code>WGET http://google.com</code>'))
         self.assertEqual(len(regions), 1)
 
     def test_detect_if_wget_in_usr_bin_directory(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>/usr/bin/wget http://google.com</code>'))
+        regions = extractor.extract(HtmlDocument('<code>/usr/bin/wget http://google.com</code>'))
         self.assertEqual(len(regions), 1)
 
     def test_detect_if_url_is_in_parameter(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget $url</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget $url</code>'))
         self.assertEqual(len(regions), 1)
 
     def test_detect_in_crontab_entry(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>*/5 * * * * wget google.com</code>'))
+        regions = extractor.extract(HtmlDocument('<code>*/5 * * * * wget google.com</code>'))
         r = regions[0]
         self.assertEqual(r.start_offset, 12)
         self.assertEqual(r.end_offset, 26)
 
     def test_detect_in_bash_script_with_leading_comments(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('\n'.join([
+        regions = extractor.extract(HtmlDocument('\n'.join([
             "# comment",
             "wget http://gaggle.com</code>",
         ])))
@@ -58,7 +59,7 @@ class DetectWgetSyntaxTest(unittest.TestCase):
 
     def test_detect_in_bash_script_with_comments_in_middle(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('\n'.join([
+        regions = extractor.extract(HtmlDocument('\n'.join([
             "<code>wget http://google.com",
             "# comment",
             "wget http://gaggle.com</code>",
@@ -75,7 +76,7 @@ class DetectWgetSyntaxTest(unittest.TestCase):
         sure that detection works despite this behavior.
         '''
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('\n'.join([
+        regions = extractor.extract(HtmlDocument('\n'.join([
             "<code>cat file.txt    ",
             "<code>wget http://gaggle.com",
         ])))
@@ -85,7 +86,7 @@ class DetectWgetSyntaxTest(unittest.TestCase):
 
     def test_handle_args_inside_carats(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget -A&lt;ext&gt; &lt;URL&gt;</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget -A&lt;ext&gt; &lt;URL&gt;</code>'))
         self.assertEqual(len(regions), 1)
         r = regions[0]
         self.assertEqual(r.start_offset, 0)
@@ -93,7 +94,7 @@ class DetectWgetSyntaxTest(unittest.TestCase):
 
     def test_skip_blank_regions_but_keep_offset(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('\n'.join([
+        regions = extractor.extract(HtmlDocument('\n'.join([
             '<code>#!/bin/sh<br>',
             'wget http://google.com',
         ])))
@@ -107,25 +108,36 @@ class DetectWgetSyntaxTest(unittest.TestCase):
         is likely part of a prose sentence and not a command invokation.
         '''
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget url1 url2</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget url1 url2</code>'))
         self.assertEqual(len(regions), 0)
 
     def test_detect_if_more_than_one_url_and_args_present(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget -q url1 url2</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget -q url1 url2</code>'))
         self.assertEqual(len(regions), 1)
+
+    def test_count_empty_line(self):
+        extractor = WgetExtractor()
+        regions = extractor.extract(HtmlDocument('\n'.join([
+            '<span>text</span>',
+            '',
+            '<h1>wget url</h1>',
+        ])))
+        r = regions[0]
+        self.assertEqual(r.start_offset, 6)
+        self.assertEqual(r.end_offset, 13)
 
 
 class IgnoreNotWgetTest(unittest.TestCase):
 
     def test_ignore_wgetrc(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>.wgetrc</code>'))
+        regions = extractor.extract(HtmlDocument('<code>.wgetrc</code>'))
         self.assertEqual(len(regions), 0)
 
     def test_ignore_if_all_words_are_arguments(self):
         extractor = WgetExtractor()
-        regions = extractor.extract(BeautifulSoup('<code>wget --mirror</code>'))
+        regions = extractor.extract(HtmlDocument('<code>wget --mirror</code>'))
         self.assertEqual(len(regions), 0)
 
 

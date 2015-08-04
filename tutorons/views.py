@@ -8,11 +8,11 @@ from django.shortcuts import render
 from django.template.loader import get_template
 from django.template import Context
 from django.views.decorators.csrf import csrf_exempt
-from bs4 import BeautifulSoup as Soup
 import json
 
 from tutorons.common.node_detector import CommandNodeDetector
 from tutorons.common.util import log_region
+from tutorons.common.htmltools import HtmlDocument
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
 from parsers.css.examples.examplegen import get_example as css_example
@@ -34,7 +34,7 @@ def wget(request):
     region_logger.info("Request for page from origin: %s", origin)
 
     results = {}
-    soup = Soup(document)
+    soup = HtmlDocument(document)
     wget_template = get_template('wget.html')
 
     node_detector = CommandNodeDetector('wget')
@@ -61,7 +61,7 @@ def css(request):
 
     results = {}
     ctx = {}
-    soup = Soup(document)
+    soup = HtmlDocument(document)
     css_template = get_template('css.html')
     extractor = CssSelectorExtractor()
 
