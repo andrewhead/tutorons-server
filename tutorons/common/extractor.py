@@ -75,7 +75,8 @@ class JavascriptStringExtractor(object):
                     end_char = start_char + len(string) - 1
                     r = Region(node, start_char, end_char, string)
                     regions.append(r)
-            except TypeError:
+            except (TypeError, AttributeError):
+                logging.warn("Failed to parse text: %s...", node.text[:100])
                 break
 
         return regions
