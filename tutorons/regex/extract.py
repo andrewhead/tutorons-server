@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import logging
 import re
+from slimit.lexer import Lexer as JsLexer
 
 from tutorons.common.extractor import Region, LineExtractor
 
@@ -11,7 +12,35 @@ from tutorons.common.extractor import Region, LineExtractor
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
+class JavascriptRegexExtractor(object):
+    ''' Extracts regular expressions from Javascript. '''
+
+    def extract(self, node):
+
+        lexer = JsLexer()
+        lexer.input(node.text)
+        regions = []
+
+        while True:
+            try:
+                tok = lexer.token()
+                if not tok:
+                    break
+                if tok.type == "REGEX":
+                    start_char = tok.lexpos + 1
+                    string = tok.value.split('/')[1]
+                    end_char = start_char + len(string) - 1
+                    r = Region(node, start_char, end_char, string)
+                    regions.append(r)
+            except (TypeError, AttributeError):
+                logging.warn("Failed to parse text: %s...", node.text[:100])
+                break
+
+        return regions
+
+
 class ModRewriteRegexExtractor(LineExtractor):
+    ''' Extracts regular expressions from mod_rewrite rules. '''
 
     def extract(self, node):
         '''
@@ -41,9 +70,9 @@ class ModRewriteRegexExtractor(LineExtractor):
         for r in line_regions:
 
             pattern = None
-            if re.match('^\s*RewriteRule\s', r.string):
+            if re.match('^\s*RewriteRule\s', r.string, re.IGNORECASE):
                 pattern, offset_in_line = self._get_token(r.string, 1)
-            elif re.match('^\s*RewriteCond\s', r.string):
+            elif re.match('^\s*RewriteCond\s', r.string, re.IGNORECASE):
                 pattern, offset_in_line = self._get_token(r.string, 2)
 
             if pattern is not None:
@@ -59,10 +88,10 @@ class ModRewriteRegexExtractor(LineExtractor):
         Get token of a specified index from a line of text.
         Return token and index of where it starts in the string
         '''
-        tokens = [_ for _ in re.finditer(r'(^|\s*)([^\s]*)(\s*|$)', string)]
+        tokens = [_ for _ in re.finditer(r'(^)?(\s*)([^\s]*)(\s*|$)', string)]
         token_offset = 0
         for i, tok_match in enumerate(tokens):
-            space_before, token, space_after = tok_match.groups()
+            start_line, space_before, token, space_after = tok_match.groups()
             if i == 0:
                 token_offset += len(space_before)
             if i == index:
