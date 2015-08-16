@@ -1,3 +1,6 @@
 [submodule "deps/wget"]
 	path = deps/wget
 	url = https://github.com/andrewhead/wget.git
+[submodule "deps/grep"]
+	path = deps/grep
+	url = git@github.com:andrewhead/grep.git
