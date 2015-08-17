@@ -5,11 +5,73 @@ from __future__ import unicode_literals
 import logging
 import re
 from slimit.lexer import Lexer as JsLexer
+import os.path
+import subprocess
+import bashlex
 
-from tutorons.common.extractor import Region, LineExtractor
+from tutorons.common.extractor import Region, LineExtractor, CommandExtractor
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+GREP_COMMAND_PATTERN = 'grep'
+GREP = os.path.join('deps', 'grep', 'src', 'grep')
+
+
+class GrepRegexExtractor(object):
+    ''' Extracts regular expressions from grep command lines. '''
+
+    def __init__(self, *args, **kwargs):
+        self.command_extractor = CommandExtractor(GREP_COMMAND_PATTERN)
+
+    def extract(self, node):
+        '''
+        Regex pattern locations are NOT always exact.
+        Because no positioning is returned by grep's parser, which we reuse here,
+        all we can get are the patterns that will be used by grep, and then match
+        these up to the first position the pattern appears in in the input command.
+        '''
+
+        GREP_REGEX_PATTERN = '(?<=Tutorons string: ).*(?=$)'
+        regions = []
+
+        command_regions = self.command_extractor.extract(node)
+
+        for cr in command_regions:
+
+            command = cr.string
+            args = [GREP] + self._get_arguments(command)
+            try:
+                output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as cpe:
+                output = cpe.output
+
+            regexes = re.findall(GREP_REGEX_PATTERN, output, flags=re.MULTILINE)
+            for r in regexes:
+                match = re.search(r, command)
+                start_offset = cr.start_offset + match.start()
+                end_offset = cr.start_offset + match.end() - 1
+                region = Region(node, start_offset, end_offset, r)
+                regions.append(region)
+
+        return regions
+
+    def _get_arguments(self, command):
+        ''' Given a single grep command, return a list of its arguments. '''
+        parse_tree = bashlex.parse(command)
+        cmd_node = parse_tree[0]
+        args = []
+        after_command = False
+
+        for p in cmd_node.parts:
+            if after_command and p.kind == 'word':
+                args.append(p.word)
+            elif not after_command:
+                after_command = (
+                    p.kind == 'word' and
+                    bool(re.match(GREP_COMMAND_PATTERN, p.word))
+                )
+
+        return args
 
 
 class JavascriptRegexExtractor(object):
