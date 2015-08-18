@@ -4,3 +4,6 @@
 [submodule "deps/grep"]
 	path = deps/grep
 	url = git@github.com:andrewhead/grep.git
+[submodule "deps/sed"]
+	path = deps/sed
+	url = git@github.com:andrewhead/sed.git

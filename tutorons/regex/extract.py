@@ -15,12 +15,34 @@ from tutorons.common.extractor import Region, LineExtractor, CommandExtractor
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 GREP_COMMAND_PATTERN = 'grep'
 GREP = os.path.join('deps', 'grep', 'src', 'grep')
+SED_COMMAND_PATTERN = 'sed'
+SED = os.path.join('deps', 'sed', 'sed', 'sed')
+
+
+def get_arguments(command, cmd_pattern):
+    ''' Given a single command, return a list of its arguments. '''
+
+    parse_tree = bashlex.parse(command)
+    cmd_node = parse_tree[0]
+    args = []
+    after_command = False
+
+    for p in cmd_node.parts:
+        if after_command and p.kind == 'word':
+            args.append(p.word)
+        elif not after_command:
+            after_command = (
+                p.kind == 'word' and
+                bool(re.match(cmd_pattern, p.word))
+            )
+
+    return args
 
 
 class GrepRegexExtractor(object):
     ''' Extracts regular expressions from grep command lines. '''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.command_extractor = CommandExtractor(GREP_COMMAND_PATTERN)
 
     def extract(self, node):
@@ -39,7 +61,7 @@ class GrepRegexExtractor(object):
         for cr in command_regions:
 
             command = cr.string
-            args = [GREP] + self._get_arguments(command)
+            args = [GREP] + get_arguments(command, GREP_COMMAND_PATTERN)
             try:
                 output = subprocess.check_output(args, stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError as cpe:
@@ -54,24 +76,6 @@ class GrepRegexExtractor(object):
                 regions.append(region)
 
         return regions
-
-    def _get_arguments(self, command):
-        ''' Given a single grep command, return a list of its arguments. '''
-        parse_tree = bashlex.parse(command)
-        cmd_node = parse_tree[0]
-        args = []
-        after_command = False
-
-        for p in cmd_node.parts:
-            if after_command and p.kind == 'word':
-                args.append(p.word)
-            elif not after_command:
-                after_command = (
-                    p.kind == 'word' and
-                    bool(re.match(GREP_COMMAND_PATTERN, p.word))
-                )
-
-        return args
 
 
 class JavascriptRegexExtractor(object):
@@ -160,3 +164,45 @@ class ModRewriteRegexExtractor(LineExtractor):
                 return (token, token_offset)
             token_offset += (len(token) + len(space_after))
         return None
+
+
+class SedRegexExtractor(object):
+
+    def __init__(self):
+        self.sed_extractor = CommandExtractor(SED_COMMAND_PATTERN)
+
+    def extract(self, node):
+
+        SED_ADDR_PATTERN = '(?<=Tutorons address: ).*(?=$)'
+        SED_SUB_PATTERN = '^Tutorons substitution.*$'
+        regions = []
+
+        def _region_from_substring(string, substring):
+            match = re.search(substring, string)
+            start_offset = cr.start_offset + match.start()
+            end_offset = cr.start_offset + match.end() - 1
+            region = Region(node, start_offset, end_offset, substring)
+            return region
+
+        command_regions = self.sed_extractor.extract(node)
+        for cr in command_regions:
+
+            command = cr.string
+            args = [SED] + get_arguments(command, SED_COMMAND_PATTERN)
+            try:
+                output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as cpe:
+                output = cpe.output
+
+            addrs = re.findall(SED_ADDR_PATTERN, output, flags=re.MULTILINE)
+            for addr in addrs:
+                regions.append(_region_from_substring(command, addr))
+
+            subst_lines = re.findall(SED_SUB_PATTERN, output, flags=re.MULTILINE)
+            for line in subst_lines:
+                m = re.match('^Tutorons substitution \(slash: (.)\): (.*)$', line)
+                slash_char, patt = m.groups()
+                patt_escaped = patt.replace(slash_char, '\\' + slash_char)
+                regions.append(_region_from_substring(command, patt_escaped))
+
+        return regions

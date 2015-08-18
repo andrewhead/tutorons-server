@@ -6,7 +6,7 @@ import logging
 import unittest
 
 from tutorons.regex.extract import ModRewriteRegexExtractor, JavascriptRegexExtractor,\
-    GrepRegexExtractor
+    GrepRegexExtractor, SedRegexExtractor
 from tutorons.common.htmltools import HtmlDocument
 
 
@@ -19,7 +19,6 @@ TODO consider implementing regular expression checking for these languages:
 2. Python regular expression methods
 3. Java methods
 4. sed
-5. grep
 '''
 
 
@@ -161,6 +160,73 @@ class ExtractRegexFromGrepTest(unittest.TestCase):
         self.assertEqual(len(regions), 2)
         self.assertTrue(any([r.start_offset == 9 and r.end_offset == 16 for r in regions]))
         self.assertTrue(any([r.start_offset == 21 and r.end_offset == 28 for r in regions]))
+
+
+class ExtractRegexFromSedTest(unittest.TestCase):
+
+    def setUp(self):
+        self.extractor = SedRegexExtractor()
+
+    def test_extract_regexes_from_address_range(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            'sed "/addr1/,/addr2/p" file',
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 2)
+        r1 = regions[0]
+        self.assertEqual(r1.node, node)
+        self.assertEqual(r1.start_offset, 7)
+        self.assertEqual(r1.end_offset, 11)
+        r2 = regions[1]
+        self.assertEqual(r2.start_offset, 15)
+        self.assertEqual(r2.end_offset, 19)
+
+    def test_ignore_addresses_that_arent_regex(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            'sed "0,1p" file',
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 0)
+
+    def test_extract_regex_from_substitute_pattern(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            'sed "s/patt/replace/" file',
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEqual(r.start_offset, 8)
+        self.assertEqual(r.end_offset, 11)
+
+    def test_extract_regex_from_multiple_substitute_patterns(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            'sed -e "s/patt1/replace/" -e "s/patt2/replace/" file',
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 2)
+        self.assertTrue(any([r.start_offset == 11 and r.end_offset == 15 for r in regions]))
+        self.assertTrue(any([r.start_offset == 33 and r.end_offset == 37 for r in regions]))
+
+    def test_handle_escaped_characters(self):
+        return
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            'sed "s/pa\\\\/tt/replace/" file',
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEqual(r.start_offset, 8)
+        self.assertEqual(r.end_offset, 13)
 
 
 if __name__ == '__main__':
