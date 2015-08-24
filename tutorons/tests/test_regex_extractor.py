@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import unittest
 
-from tutorons.regex.extract import ModRewriteRegexExtractor, JavascriptRegexExtractor,\
+from tutorons.regex.extract import ApacheConfigRegexExtractor, JavascriptRegexExtractor,\
     GrepRegexExtractor, SedRegexExtractor
 from tutorons.common.htmltools import HtmlDocument
 
@@ -25,7 +25,7 @@ TODO consider implementing regular expression checking for these languages:
 class ExtractRegexFromModRewriteTest(unittest.TestCase):
 
     def setUp(self):
-        self.extractor = ModRewriteRegexExtractor()
+        self.extractor = ApacheConfigRegexExtractor()
 
     def test_extract_regex_for_rewrite_rule(self):
         node = HtmlDocument('\n'.join([

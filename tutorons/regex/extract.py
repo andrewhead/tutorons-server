@@ -105,7 +105,7 @@ class JavascriptRegexExtractor(object):
         return regions
 
 
-class ModRewriteRegexExtractor(LineExtractor):
+class ApacheConfigRegexExtractor(LineExtractor):
     ''' Extracts regular expressions from mod_rewrite rules. '''
 
     def extract(self, node):
@@ -130,7 +130,7 @@ class ModRewriteRegexExtractor(LineExtractor):
         there is a backslash before a single space.
         '''
 
-        line_regions = super(ModRewriteRegexExtractor, self).extract(node)
+        line_regions = super(self.__class__, self).extract(node)
 
         regions = []
         for r in line_regions:

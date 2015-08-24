@@ -16,6 +16,8 @@ from tutorons.common.htmltools import HtmlDocument
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
 from parsers.css.examples.examplegen import get_example as css_example
+from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
+    ApacheConfigRegexExtractor
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -24,6 +26,35 @@ region_logger = logging.getLogger('region')
 
 def home(request):
     return render(request, 'home.html', {})
+
+
+@csrf_exempt
+def regex(request):
+
+    document = request.POST.get('document')
+    origin = request.POST.get('origin')
+    region_logger.info("Request for page from origin: %s", origin)
+
+    results = {}
+    soup = HtmlDocument(document)
+    css_template = get_template('regex.html')
+    extractors = [
+        GrepRegexExtractor(),
+        SedRegexExtractor(),
+        JavascriptRegexExtractor(),
+        ApacheConfigRegexExtractor(),
+    ]
+
+    for block in soup.find_all('code') + soup.find_all('pre'):
+        for extractor in extractors:
+            regions = extractor.extract(block)
+            for r in regions:
+                log_region(r, origin)
+                ctx = {'pattern': r.string}
+                exp_html = css_template.render(Context(ctx))
+                results[r.string] = exp_html
+
+    return HttpResponse(json.dumps(results, indent=2))
 
 
 @csrf_exempt
