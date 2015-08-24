@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import logging
 from bs4 import BeautifulSoup
-import re
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -14,14 +13,11 @@ class HtmlDocument(BeautifulSoup):
     ''' Subclass of BeautifulSoup that cleans HTML documents for our processing purposes. '''
 
     def __init__(self, text, *args, **kwargs):
-        filled = fill_empty_lines(text)
-        super(self.__class__, self).__init__(filled, *args, **kwargs)
-
-
-def fill_empty_lines(text, tag='p'):
-    ''' Add empty element to empty lines of an HTML document. '''
-    filled = re.sub('^$', '<{tag}></{tag}>'.format(tag=tag), text, flags=re.MULTILINE)
-    return filled
+        # Parse with html5lib to "parse the page the same way a web browser does".
+        # Source: http://www.crummy.com/software/BeautifulSoup/bs4/doc/
+        # Lxml parser takes liberties in removing newlines, which makes it hard to get
+        # absolute character positions of explainable regions in the original doc
+        super(self.__class__, self).__init__(text, 'html5lib', *args, **kwargs)
 
 
 def get_css_selector(tag):

@@ -5,32 +5,10 @@ from __future__ import unicode_literals
 import logging
 import unittest
 from tutorons.common.htmltools import HtmlDocument
-from tutorons.common.htmltools import fill_empty_lines, get_css_selector
+from tutorons.common.htmltools import get_css_selector
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-
-class FillEmptyHtmlTest(unittest.TestCase):
-
-    def test_fill_empty_lines(self):
-        text = '\n'.join([
-            '<html>',
-            '  <body>',
-            '    <span>text</span>',
-            '',
-            '  </body>',
-            '</html>',
-        ])
-        filled = fill_empty_lines(text, 'p')
-        self.assertEqual(filled, '\n'.join([
-            '<html>',
-            '  <body>',
-            '    <span>text</span>',
-            '<p></p>',
-            '  </body>',
-            '</html>',
-        ]))
 
 
 class GetPathTest(unittest.TestCase):
