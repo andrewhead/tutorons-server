@@ -10,7 +10,7 @@ from django.template import Context
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-from tutorons.common.node_detector import CommandNodeDetector
+from tutorons.common.scanner import NodeScanner, CommandScanner
 from tutorons.common.util import log_region
 from tutorons.common.htmltools import HtmlDocument
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
@@ -31,12 +31,12 @@ def home(request):
 @csrf_exempt
 def regex(request):
 
-    document = request.POST.get('document')
+    doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
 
     results = {}
-    soup = HtmlDocument(document)
+    document = HtmlDocument(doc_body)
     css_template = get_template('regex.html')
     extractors = [
         GrepRegexExtractor(),
@@ -45,14 +45,14 @@ def regex(request):
         ApacheConfigRegexExtractor(),
     ]
 
-    for block in soup.find_all('code') + soup.find_all('pre'):
-        for extractor in extractors:
-            regions = extractor.extract(block)
-            for r in regions:
-                log_region(r, origin)
-                ctx = {'pattern': r.string}
-                exp_html = css_template.render(Context(ctx))
-                results[r.string] = exp_html
+    for extractor in extractors:
+        scanner = NodeScanner(extractor, ['code', 'pre'])
+        regions = scanner.scan(document)
+        for r in regions:
+            log_region(r, origin)
+            ctx = {'pattern': r.string}
+            exp_html = css_template.render(Context(ctx))
+            results[r.string] = exp_html
 
     return HttpResponse(json.dumps(results, indent=2))
 
@@ -60,25 +60,21 @@ def regex(request):
 @csrf_exempt
 def wget(request):
 
-    document = request.POST.get('document')
+    doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
 
     results = {}
-    soup = HtmlDocument(document)
+    document = HtmlDocument(doc_body)
     wget_template = get_template('wget.html')
 
-    node_detector = CommandNodeDetector('wget')
-    nodes = node_detector.detect(soup)
-
-    extractor = WgetExtractor()
-    for block in nodes:
-        regions = extractor.extract(block)
-        for r in regions:
-            log_region(r, origin)
-            exp = wget_explain(r.string)
-            exp_html = wget_template.render(Context(exp))
-            results[r.string] = exp_html
+    scanner = CommandScanner('wget', WgetExtractor())
+    regions = scanner.scan(document)
+    for r in regions:
+        log_region(r, origin)
+        exp = wget_explain(r.string)
+        exp_html = wget_template.render(Context(exp))
+        results[r.string] = exp_html
 
     return HttpResponse(json.dumps(results, indent=2))
 
@@ -86,23 +82,23 @@ def wget(request):
 @csrf_exempt
 def css(request):
 
-    document = request.POST.get('document')
+    doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
 
     results = {}
     ctx = {}
-    soup = HtmlDocument(document)
+    document = HtmlDocument(doc_body)
     css_template = get_template('css.html')
     extractor = CssSelectorExtractor()
 
-    for block in soup.find_all('code') + soup.find_all('pre'):
-        regions = extractor.extract(block)
-        for r in regions:
-            log_region(r, origin)
-            ctx['exp'] = css_explain(r.string)
-            ctx['example'] = css_example(r.string)
-            exp_html = css_template.render(Context(ctx))
-            results[r.string] = exp_html
+    scanner = NodeScanner(extractor, ['code', 'pre'])
+    regions = scanner.scan(document)
+    for r in regions:
+        log_region(r, origin)
+        ctx['exp'] = css_explain(r.string)
+        ctx['example'] = css_example(r.string)
+        exp_html = css_template.render(Context(ctx))
+        results[r.string] = exp_html
 
     return HttpResponse(json.dumps(results, indent=2))

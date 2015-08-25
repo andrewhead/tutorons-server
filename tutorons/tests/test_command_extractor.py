@@ -6,7 +6,7 @@ import logging
 import unittest
 from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.extractor import CommandExtractor
-from tutorons.common.node_detector import CommandNodeDetector
+from tutorons.common.scanner import CommandScanner
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -126,61 +126,55 @@ class CommandExtractorTest(unittest.TestCase):
         self.assertEqual(len(regions), 0)
 
 
-class CommandElementDetectionTest(unittest.TestCase):
+class CommandScannerTest(unittest.TestCase):
+
+    def setUp(self):
+        self.scanner = CommandScanner('wget', CommandExtractor('wget'))
 
     def test_identify_paragraph_with_one_line_command(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<p>wget http://google.com</p>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 1)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 1)
 
     def test_identify_div_with_wget(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<div>wget http://google.com</div>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 1)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 1)
 
     def test_identify_paragraph_with_PS1_header(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<p>$ wget http://google.com</p>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 1)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 1)
 
     def test_identify_paragraph_with_command_after_break(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<p>Some descriptive text<br/>$ wget http://google.com</p>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 1)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 1)
 
     def test_miss_wget_in_unsupported_element_type(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<i>wget http://google.com</i>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 0)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 0)
 
     def test_miss_paragraph_without_command(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<p>This line does not have a command on it.</p>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 0)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 0)
 
     def test_miss_paragraph_with_text_preceding_command(self):
-        det = CommandNodeDetector('wget')
         document = HtmlDocument('<p>Just run wget http://google.com</p>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 0)
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 0)
 
-    def test_detect_any_code_block(self):
-        det = CommandNodeDetector('wget')
-        document = HtmlDocument('<code></code>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 1)
+    def test_detect_wget_in_code_block(self):
+        document = HtmlDocument('<code>wget http://google.com</code>')
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 1)
 
-    def test_detect_any_pre_block(self):
-        det = CommandNodeDetector('wget')
-        document = HtmlDocument('<pre></pre>')
-        nodes = det.detect(document)
-        self.assertEqual(len(nodes), 1)
+    def test_detect_wget_in_pre_block(self):
+        document = HtmlDocument('<pre>wget http://google.com</pre>')
+        regions = self.scanner.scan(document)
+        self.assertEqual(len(regions), 1)
 
 
 if __name__ == '__main__':
