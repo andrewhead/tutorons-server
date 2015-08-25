@@ -93,6 +93,33 @@ class ExtractRegexFromJavascriptTest(unittest.TestCase):
         self.assertEqual(r.start_offset, 16)
         self.assertEqual(r.end_offset, 33)
 
+    def test_skip_code_that_doesnt_pass_javascript_parser(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            "<>/regex/;",
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 0)
+
+    def test_skip_regex_with_repeated_flags(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            "var pattern = /regular-expression/gg;",
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 0)
+
+    def test_skip_regex_with_invalid_flags(self):
+        node = HtmlDocument('\n'.join([
+            '<code>',
+            "var pattern = /regular-expression/x;",
+            '</code>',
+        ]))
+        regions = self.extractor.extract(node)
+        self.assertEqual(len(regions), 0)
+
 
 class ExtractRegexFromGrepTest(unittest.TestCase):
 

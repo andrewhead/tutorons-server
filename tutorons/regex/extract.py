@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import logging
 import re
 from slimit.lexer import Lexer as JsLexer
+from slimit.parser import Parser as JsParser
 import os.path
 import subprocess
 import bashlex
@@ -87,6 +88,9 @@ class JavascriptRegexExtractor(object):
         lexer.input(node.text)
         regions = []
 
+        if not self._parse_succeeds(node.text):
+            return regions
+
         while True:
             try:
                 tok = lexer.token()
@@ -94,7 +98,11 @@ class JavascriptRegexExtractor(object):
                     break
                 if tok.type == "REGEX":
                     start_char = tok.lexpos + 1
-                    string = tok.value.split('/')[1]
+                    regex_parts = tok.value.split('/')
+                    string = regex_parts[1]
+                    flags = regex_parts[2]
+                    if not self._are_flags_valid(flags):
+                        continue
                     end_char = start_char + len(string) - 1
                     r = Region(node, start_char, end_char, string)
                     regions.append(r)
@@ -103,6 +111,28 @@ class JavascriptRegexExtractor(object):
                 break
 
         return regions
+
+    def _are_flags_valid(self, flags):
+
+        VALID_FLAGS = ['m', 'g', 'i', 'y']
+        seen_flags = []
+
+        # If any flags are repeated, then this was likely not written as a
+        # Javascript regular expression.
+        for f in flags:
+            if f in seen_flags or f not in VALID_FLAGS:
+                return False
+            seen_flags.append(f)
+        return True
+
+    def _parse_succeeds(self, text):
+        try:
+            parser = JsParser()
+            parser.parse(text)
+        except SyntaxError:
+            return False
+        else:
+            return True
 
 
 class ApacheConfigRegexExtractor(LineExtractor):
