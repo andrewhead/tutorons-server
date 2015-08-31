@@ -53,7 +53,8 @@ def regex(request):
         regions = scanner.scan(document)
         for r in regions:
             log_region(r, origin)
-            res = requests.get(settings.REGEX_SVG_ENDPOINT, params={'pattern': r.string})
+            pattern = r.pattern.replace('/', r'\/')  # Regexper requires forward-slashes are escaped
+            res = requests.get(settings.REGEX_SVG_ENDPOINT, params={'pattern': pattern})
             soup = BeautifulSoup(res.content)
             svg = str(soup.svg)
             ctx = {'svg': svg}

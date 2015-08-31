@@ -244,7 +244,7 @@ class ExtractRegexFromSedTest(unittest.TestCase):
     def test_handle_escaped_characters(self):
         node = HtmlDocument('\n'.join([
             '<code>',
-            'sed "s/pa\\/tt/replace/" file',
+            'sed \'s/pa\/tt/replace/\' file',
             '</code>',
         ]))
         regions = self.extractor.extract(node)
@@ -252,6 +252,7 @@ class ExtractRegexFromSedTest(unittest.TestCase):
         r = regions[0]
         self.assertEqual(r.start_offset, 8)
         self.assertEqual(r.end_offset, 13)
+        self.assertEqual(r.pattern, r'pa/tt')
 
     def test_handle_find_pattern_with_character_class(self):
         '''

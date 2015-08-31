@@ -20,6 +20,18 @@ SED_COMMAND_PATTERN = 'sed'
 SED = os.path.join('deps', 'sed', 'sed', 'sed')
 
 
+class RegexRegion(Region):
+
+    def __init__(self, pattern, *args, **kwargs):
+        '''
+        In addition to the typical region parameters, regular expressions also have a
+        'pattern' parameter, which should be the representation of the pattern in PCRE
+        form for generating explanations later.
+        '''
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.pattern = pattern
+
+
 def get_arguments(command, cmd_pattern):
     ''' Given a single command, return a list of its arguments. '''
 
@@ -72,7 +84,7 @@ class GrepRegexExtractor(object):
             for r in regexes:
                 start_offset = cr.start_offset + command.find(r)
                 end_offset = start_offset + len(r) - 1
-                region = Region(node, start_offset, end_offset, r)
+                region = RegexRegion(r, node, start_offset, end_offset, r)
                 regions.append(region)
 
         return regions
@@ -103,7 +115,7 @@ class JavascriptRegexExtractor(object):
                     if not self._are_flags_valid(flags):
                         continue
                     end_char = start_char + len(string) - 1
-                    r = Region(node, start_char, end_char, string)
+                    r = RegexRegion(string, node, start_char, end_char, string)
                     regions.append(r)
             except (TypeError, AttributeError):
                 logging.warn("Failed to parse text: %s...", node.text[:100])
@@ -173,7 +185,7 @@ class ApacheConfigRegexExtractor(LineExtractor):
             if pattern is not None:
                 start_offset = r.start_offset + offset_in_line
                 end_offset = start_offset + len(pattern) - 1
-                region = Region(node, start_offset, end_offset, pattern)
+                region = RegexRegion(pattern, node, start_offset, end_offset, pattern)
                 regions.append(region)
 
         return regions
@@ -206,18 +218,18 @@ class SedRegexExtractor(object):
         SED_SUB_PATTERN = '^Tutorons substitution.*$'
         regions = []
 
-        def _region_from_substring(cr, substring):
+        def _region_from_substring(cr, substring, slash):
             start_offset = cr.start_offset + cr.string.find(substring)
             end_offset = start_offset + len(substring) - 1
-            region = Region(node, start_offset, end_offset, substring)
+            pattern = substring.replace('\\' + slash, slash)
+            region = RegexRegion(pattern, node, start_offset, end_offset, substring)
             return region
 
         command_regions = self.sed_extractor.extract(node)
         for cr in command_regions:
 
             command = cr.string
-            command_escaped = command.replace('\\', '\\\\')
-            args = [SED] + get_arguments(command_escaped, SED_COMMAND_PATTERN)
+            args = [SED] + get_arguments(command, SED_COMMAND_PATTERN)
             try:
                 output = subprocess.check_output(args, stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError as cpe:
@@ -225,13 +237,13 @@ class SedRegexExtractor(object):
 
             addrs = re.findall(SED_ADDR_PATTERN, output, flags=re.MULTILINE)
             for addr in addrs:
-                regions.append(_region_from_substring(cr, addr))
+                regions.append(_region_from_substring(cr, addr, '\\'))
 
             subst_lines = re.findall(SED_SUB_PATTERN, output, flags=re.MULTILINE)
             for line in subst_lines:
                 m = re.match('^Tutorons substitution \(slash: (.)\): (.*)$', line)
                 slash_char, patt = m.groups()
                 patt_escaped = patt.replace(slash_char, '\\' + slash_char)
-                regions.append(_region_from_substring(cr, patt_escaped))
+                regions.append(_region_from_substring(cr, patt_escaped, slash_char))
 
         return regions
