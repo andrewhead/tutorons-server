@@ -102,14 +102,26 @@ def explain(cmd):
     explanation = {}
 
     optstring = re.sub('^.*?' + WGET_PATT, '', cmd)
-    url, opts = parse_options(optstring)
-    explanation['url'] = url
+    urls, opts = parse_options(optstring)
+
+    input_opts = filter(lambda o: o.short_name == '-i', opts)
+    for opt in input_opts:
+        urls.append("URLs from file '" + opt.value + "'")
+
+    if len(urls) == 1:
+        url_msg = urls[0]
+    else:
+        url_msg = ', '.join(urls[:-1])
+        if len(urls) > 2:
+            url_msg += ','
+        url_msg = url_msg + ' and ' + urls[-1]
+    explanation['url'] = url_msg
 
     for opt in opts:
         opt.help = build_help(opt.long_name, opt.value)
     explanation['opts'] = opts
 
-    combo_exps = optcombo_explain(url, opts)
+    combo_exps = optcombo_explain(urls[0], opts)
     explanation['combo_exps'] = combo_exps
 
     return explanation
@@ -142,7 +154,7 @@ def parse_options(optstring):
     stdout = subprocess.check_output(cmd.split(' '))
     lines = stdout.split("\n")
     opts = []
-    url = None
+    urls = []
 
     for l in lines:
         if l.startswith("LN"):
@@ -157,9 +169,10 @@ def parse_options(optstring):
             opts.append(Option(sname, lname, value))
         elif l.startswith("URL"):
             urlstr = re.sub('^URL: ', '', l)
-            url = urlstr if urlstr != '(null)' else None
+            if urlstr != '(null)':
+                urls.append(urlstr)
 
-    return url, opts
+    return urls, opts
 
 
 ''' Subroutines for parsing options. '''

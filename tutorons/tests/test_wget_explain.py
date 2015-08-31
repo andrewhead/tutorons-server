@@ -2,12 +2,36 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from tutorons.wget.explain import build_help, Option, optcombo_explain
+from tutorons.wget.explain import build_help, Option, optcombo_explain, explain
 import unittest
 import logging
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+class DefaultHelpMessageTest(unittest.TestCase):
+
+    def test_describe_fetch_two_urls(self):
+        command = 'wget http://google.com http://gaggle.com'
+        msg = explain(command)['url']
+        self.assertEqual(msg, "http://google.com and http://gaggle.com")
+
+    def test_describe_fetch_three_urls(self):
+        command = 'wget http://google.com http://gaggle.com http://giggle.com'
+        msg = explain(command)['url']
+        self.assertEqual(msg, "http://google.com, http://gaggle.com, and http://giggle.com")
+
+    def test_describe_input_file_if_i_option_given(self):
+        command = 'wget -i input.txt'
+        msg = explain(command)['url']
+        self.assertEqual(msg, "URLs from file 'input.txt'")
+
+    def test_describe_both_input_file_and_urls(self):
+        command = 'wget -i input.txt http://google.com http://gaggle.com'
+        msg = explain(command)['url']
+        self.assertEqual(msg, "http://google.com, http://gaggle.com, and " +
+                              "URLs from file 'input.txt'")
 
 
 class BuildArgumentHelpTest(unittest.TestCase):
