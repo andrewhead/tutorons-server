@@ -3,21 +3,24 @@
 
 from __future__ import unicode_literals
 import logging
+import json
+import requests
+from bs4 import BeautifulSoup
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import get_template
 from django.template import Context
 from django.views.decorators.csrf import csrf_exempt
-import json
+from django.conf import settings
 
-from tutorons.common.scanner import NodeScanner, CommandScanner
-from tutorons.common.util import log_region
 from tutorons.common.htmltools import HtmlDocument
+from tutorons.common.util import log_region
+from tutorons.common.scanner import NodeScanner, CommandScanner
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
-from parsers.css.examples.examplegen import get_example as css_example
 from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
     ApacheConfigRegexExtractor
+from parsers.css.examples.examplegen import get_example as css_example
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -50,7 +53,10 @@ def regex(request):
         regions = scanner.scan(document)
         for r in regions:
             log_region(r, origin)
-            ctx = {'pattern': r.string}
+            res = requests.get(settings.REGEX_SVG_ENDPOINT, params={'pattern': r.string})
+            soup = BeautifulSoup(res.content)
+            svg = str(soup.svg)
+            ctx = {'svg': svg}
             exp_html = css_template.render(Context(ctx))
             results[r.string] = exp_html
 

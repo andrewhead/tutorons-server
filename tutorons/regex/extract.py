@@ -70,9 +70,8 @@ class GrepRegexExtractor(object):
 
             regexes = re.findall(GREP_REGEX_PATTERN, output, flags=re.MULTILINE)
             for r in regexes:
-                match = re.search(r, command)
-                start_offset = cr.start_offset + match.start()
-                end_offset = cr.start_offset + match.end() - 1
+                start_offset = cr.start_offset + command.find(r)
+                end_offset = start_offset + len(r) - 1
                 region = Region(node, start_offset, end_offset, r)
                 regions.append(region)
 
@@ -207,10 +206,9 @@ class SedRegexExtractor(object):
         SED_SUB_PATTERN = '^Tutorons substitution.*$'
         regions = []
 
-        def _region_from_substring(string, substring):
-            match = re.search(substring, string)
-            start_offset = cr.start_offset + match.start()
-            end_offset = cr.start_offset + match.end() - 1
+        def _region_from_substring(cr, substring):
+            start_offset = cr.start_offset + cr.string.find(substring)
+            end_offset = start_offset + len(substring) - 1
             region = Region(node, start_offset, end_offset, substring)
             return region
 
@@ -218,7 +216,8 @@ class SedRegexExtractor(object):
         for cr in command_regions:
 
             command = cr.string
-            args = [SED] + get_arguments(command, SED_COMMAND_PATTERN)
+            command_escaped = command.replace('\\', '\\\\')
+            args = [SED] + get_arguments(command_escaped, SED_COMMAND_PATTERN)
             try:
                 output = subprocess.check_output(args, stderr=subprocess.STDOUT)
             except subprocess.CalledProcessError as cpe:
@@ -226,13 +225,13 @@ class SedRegexExtractor(object):
 
             addrs = re.findall(SED_ADDR_PATTERN, output, flags=re.MULTILINE)
             for addr in addrs:
-                regions.append(_region_from_substring(command, addr))
+                regions.append(_region_from_substring(cr, addr))
 
             subst_lines = re.findall(SED_SUB_PATTERN, output, flags=re.MULTILINE)
             for line in subst_lines:
                 m = re.match('^Tutorons substitution \(slash: (.)\): (.*)$', line)
                 slash_char, patt = m.groups()
                 patt_escaped = patt.replace(slash_char, '\\' + slash_char)
-                regions.append(_region_from_substring(command, patt_escaped))
+                regions.append(_region_from_substring(cr, patt_escaped))
 
         return regions

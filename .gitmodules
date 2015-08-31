@@ -7,3 +7,6 @@
 [submodule "deps/sed"]
 	path = deps/sed
 	url = git@github.com:andrewhead/sed.git
+[submodule "deps/regexper-static"]
+	path = deps/regexper-static
+	url = git@github.com:andrewhead/regexper-static.git

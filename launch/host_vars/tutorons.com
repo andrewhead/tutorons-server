@@ -30,5 +30,7 @@ systempkgs:
 - flex  # wget
 - texinfo  # wget
 - pkg-config  # wget
+- xvfb  # for using headless Firefox for scrapes
+- firefox  # for using headless Firefox for scrapes
 scripts:
 - compile-wget
