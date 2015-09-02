@@ -125,6 +125,14 @@ class CommandExtractorTest(unittest.TestCase):
         regions = extractor.extract(node)
         self.assertEqual(len(regions), 0)
 
+    def test_single_redirect_at_start_of_line_is_ignored(self):
+        extractor = CommandExtractor('sed')
+        node = HtmlDocument("<code>>sed 's/patt/repl/' file.txt</code>")
+        regions = extractor.extract(node)
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEqual(r.start_offset, 1)
+
 
 class CommandScannerTest(unittest.TestCase):
 

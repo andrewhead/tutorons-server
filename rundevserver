@@ -2,7 +2,6 @@
 
 DEPS=`ls deps/*.jar | tr '\n' ':'`
 CLASSPATH=$CLASSPATH:$DEPS
-REGEX_PORT=${2:-8000}
 REGEX_DIR=deps/regexper-static
 DJANGO_PORT=${1:-8002}
 

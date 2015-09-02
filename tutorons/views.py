@@ -145,7 +145,11 @@ def regex(request):
         regions = scanner.scan(document)
         for r in regions:
             log_region(r, origin)
-            svg = regex_viz(r.pattern)
+            try:
+                svg = regex_viz(r.pattern)
+            except InvalidRegexException as e:
+                logging.error("Error processing regex %s: %s", e.pattern, e.msg)
+                continue
             ctx = {'svg': svg}
             exp_html = regex_template.render(Context(ctx))
             results[r.string] = exp_html

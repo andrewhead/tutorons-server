@@ -108,6 +108,7 @@ class CommandExtractor(object):
         for text in text_blocks:
 
             text = self._replace_carats(text)
+            text = self._replace_leading_redirects(text)
             text = self._clean_for_bashlex(text)
 
             if not text.isspace():
@@ -148,9 +149,17 @@ class CommandExtractor(object):
     def _get_start(self, command, cmdname):
         # Search for the first variable assignment or the command invocation
         for p in command.parts:
-            if p.kind == 'assignment' or (p.kind and re.match(cmdname, p.word)):
+            if p.kind == 'assignment' or (hasattr(p, 'word') and re.match(cmdname, p.word)):
                 return p.pos[0]
         return -1
+
+    def _replace_leading_redirects(self, text):
+        '''
+        Sometimes, writers of docs put right-carats (redirects) at the start of
+        the command line to denote a PS1 header.  This confuses bashlex into thinking
+        they're redirects, so we replace these leading carats with spaces.
+        '''
+        return re.sub('^(\s*\>+)', lambda m: ' ' * len(m.group(0)), text, re.MULTILINE)
 
     def _replace_carats(self, text):
         '''

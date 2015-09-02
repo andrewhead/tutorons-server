@@ -140,7 +140,7 @@ class JavascriptRegexExtractor(object):
         try:
             parser = JsParser()
             parser.parse(text)
-        except SyntaxError:
+        except (SyntaxError, TypeError):
             return False
         else:
             return True
