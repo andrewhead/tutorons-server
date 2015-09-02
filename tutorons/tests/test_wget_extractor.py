@@ -8,6 +8,7 @@ import logging
 from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.scanner import InvalidCommandException
 from tutorons.wget.explain import WgetExtractor
+import tutorons.wget.explain as wget_explain_module
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -141,13 +142,15 @@ class DetectWgetSyntaxTest(unittest.TestCase):
             else:
                 return "URL: http://url.com"
 
-        extractor._run = _mock_run
+        orig_run_wget = wget_explain_module.run_wget
+        wget_explain_module.run_wget = _mock_run
         regions = extractor.extract(HtmlDocument('\n'.join([
             '<code>',
             '  wget http://first.com',  # this m-dash should cause an exception
             '  wget http://second.com',
             '</code>',
         ])))
+        wget_explain_module.run_wget = orig_run_wget
         self.assertEqual(len(regions), 0)
 
 

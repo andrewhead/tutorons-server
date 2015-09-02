@@ -104,3 +104,21 @@ class TestRenderDescription(unittest.TestCase):
     def test_describe_code_in_pre_element(self):
         result = self.get_resp_data("<pre>wget http://hello.html</pre>")
         self.assertEqual(len(result.keys()), 1)
+
+
+class TestFetchExplanationForPlaintext(unittest.TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+    def get_explanation(self, text):
+        resp = self.client.post('/explain/wget', data={'origin': 'www.test.com', 'text': text})
+        return resp.content
+
+    def test_explain_wget_command(self):
+        resp = self.get_explanation('wget http://google.com')
+        self.assertIn("is a Terminal command you run to download", resp)
+
+    def test_fail_to_explain_not_wget(self):
+        resp = self.get_explanation('invalid command')
+        self.assertIn("'invalid command' could not be explained as a wget command", resp)

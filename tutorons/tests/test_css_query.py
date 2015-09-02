@@ -61,3 +61,21 @@ class TestRenderDescription(unittest.TestCase):
     def test_describe_code_in_pre_element(self):
         texts = self.get_resp_texts("<pre>$('p');</pre>")
         self.assertEqual(len(texts.keys()), 1)
+
+
+class TestFetchExplanationForPlaintext(unittest.TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+    def get_explanation(self, text):
+        resp = self.client.post('/explain/css', data={'origin': 'www.test.com', 'text': text})
+        return resp.content
+
+    def test_explain_css_selector_from_plaintext(self):
+        resp = self.get_explanation('div.klazz')
+        self.assertIn("chooses containers of class", resp)
+
+    def test_fail_to_explain_invalid_selector_from_plaintext(self):
+        resp = self.get_explanation('invalid....selector')
+        self.assertIn("'invalid....selector' could not be explained as a CSS selector", resp)

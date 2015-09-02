@@ -20,6 +20,10 @@ gateway = JavaGateway()
 explainer = gateway.entry_point.getExplainer()
 
 
+def explain(selector):
+    return explainer.explain(selector)
+
+
 class CssSelectorExtractor(object):
 
     def __init__(self):
@@ -27,24 +31,21 @@ class CssSelectorExtractor(object):
 
     def extract(self, node):
         regions = self.js_string_extractor.extract(node)
-        valid_regions = [r for r in regions if self._is_selector(r.string)]
+        valid_regions = [r for r in regions if is_selector(r.string)]
         return valid_regions
 
-    def _is_selector(self, string):
-        ''' Check to see if string represents valid HTML selector. '''
-        try:
-            # cssselect doesn't like links, so we replace them.
-            string = re.sub(r"(href.=)([^\]]*)\]", r"\1fakelink]", string)
-            tree = cssselect.parse(string)
-            selector_parts = get_descendants(tree)
-            for part in selector_parts:
-                if isinstance(part, Element):
-                    if part.element not in HTML_TAGS:
-                        return False
-            return True
-        except SelectorSyntaxError:
-            return False
 
-
-def explain(selector):
-    return explainer.explain(selector)
+def is_selector(string):
+    ''' Check to see if string represents valid HTML selector. '''
+    try:
+        # cssselect doesn't like links, so we replace them.
+        string = re.sub(r"(href.=)([^\]]*)\]", r"\1fakelink]", string)
+        tree = cssselect.parse(string)
+        selector_parts = get_descendants(tree)
+        for part in selector_parts:
+            if isinstance(part, Element):
+                if part.element not in HTML_TAGS:
+                    return False
+        return True
+    except SelectorSyntaxError:
+        return False

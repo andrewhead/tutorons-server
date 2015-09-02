@@ -37,6 +37,16 @@ class Option(object):
         return not self.__eq__(other)
 
 
+def run_wget(wget_cmd):
+    optstring = re.sub('^.*?' + WGET_PATT, '', wget_cmd)
+    cmd = str(WGET) + optstring
+    try:
+        output = subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
+        return output
+    except (subprocess.CalledProcessError, OSError) as e:
+        raise InvalidCommandException(wget_cmd, e)
+
+
 class WgetExtractor(object):
 
     def __init__(self):
@@ -55,7 +65,7 @@ class WgetExtractor(object):
         return valid_regions
 
     def _includes_url(self, cmd):
-        output = self._run(cmd)
+        output = run_wget(cmd)
         if output is None:
             return False
         contains_url = (
@@ -89,26 +99,14 @@ class WgetExtractor(object):
 
         return has_var or arg_count > 0 or url_count == 1
 
-    def _run(self, wget_cmd):
-        optstring = re.sub('^.*?' + WGET_PATT, '', wget_cmd)
-        cmd = str(WGET) + optstring
-        try:
-            output = subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
-            return output
-        except subprocess.CalledProcessError as e:
-            raise InvalidCommandException(wget_cmd, e)
-        except OSError as e:
-            raise InvalidCommandException(wget_cmd, e)
-
 
 def explain(cmd):
     """ Convert command line into objects that can be explained. """
 
     explanation = {}
 
-    optstring = re.sub('^.*?' + WGET_PATT, '', cmd)
     try:
-        urls, opts = parse_options(optstring)
+        urls, opts = parse_options(cmd)
     except UnicodeDecodeError as e:
         raise InvalidCommandException(cmd, e)
 
@@ -158,10 +156,9 @@ def optcombo_explain(url, options):
     return explanations
 
 
-def parse_options(optstring):
+def parse_options(command):
 
-    cmd = str(WGET) + optstring
-    stdout = subprocess.check_output(cmd.split(' '))
+    stdout = run_wget(command)
     lines = stdout.split("\n")
     opts = []
     urls = []
