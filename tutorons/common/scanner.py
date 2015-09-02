@@ -12,6 +12,14 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 RARE_CHARACTER = '\u3222'  # A character we never expect to appear on an HTML page
 
 
+class InvalidCommandException(Exception):
+    ''' Exception when an invalid command cannot be read or processed. '''
+
+    def __init__(self, cmd, exception):
+        self.cmd = cmd
+        self.exception = exception
+
+
 class NodeScanner(object):
     ''' Scans document for explainable regions inside node types.'''
 

@@ -6,6 +6,7 @@ import unittest
 import logging
 
 from tutorons.common.htmltools import HtmlDocument
+from tutorons.common.scanner import InvalidCommandException
 from tutorons.wget.explain import WgetExtractor
 
 
@@ -126,6 +127,28 @@ class DetectWgetSyntaxTest(unittest.TestCase):
         r = regions[0]
         self.assertEqual(r.start_offset, 6)
         self.assertEqual(r.end_offset, 13)
+
+    def test_skip_all_in_bad_node(self):
+        '''
+        If we find a bad node (e.g., one with Unicode), we skip the full node, as
+        in my experience this causes offset errors in the other regions.
+        '''
+        extractor = WgetExtractor()
+
+        def _mock_run(command):
+            if 'second' in command:
+                raise InvalidCommandException(command, Exception)
+            else:
+                return "URL: http://url.com"
+
+        extractor._run = _mock_run
+        regions = extractor.extract(HtmlDocument('\n'.join([
+            '<code>',
+            '  wget http://first.com',  # this m-dash should cause an exception
+            '  wget http://second.com',
+            '</code>',
+        ])))
+        self.assertEqual(len(regions), 0)
 
 
 class IgnoreNotWgetTest(unittest.TestCase):

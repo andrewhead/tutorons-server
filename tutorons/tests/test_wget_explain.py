@@ -2,9 +2,10 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from tutorons.wget.explain import build_help, Option, optcombo_explain, explain
 import unittest
 import logging
+from tutorons.wget.explain import build_help, Option, optcombo_explain, explain
+from tutorons.common.scanner import InvalidCommandException
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -25,13 +26,20 @@ class DefaultHelpMessageTest(unittest.TestCase):
     def test_describe_input_file_if_i_option_given(self):
         command = 'wget -i input.txt'
         msg = explain(command)['url']
-        self.assertEqual(msg, "URLs from file 'input.txt'")
+        self.assertEqual(msg, "URLs from the file 'input.txt'")
 
     def test_describe_both_input_file_and_urls(self):
         command = 'wget -i input.txt http://google.com http://gaggle.com'
         msg = explain(command)['url']
         self.assertEqual(msg, "http://google.com, http://gaggle.com, and " +
-                              "URLs from file 'input.txt'")
+                              "URLs from the file 'input.txt'")
+
+    def test_throw_exception_on_non_ascii_wget_command(self):
+        # The first dash below is an m-dash, not an n-dash.  This causes string
+        # processing errors, which should be caught.
+        with self.assertRaises(InvalidCommandException):
+            command = 'wget —passive-ftp http://google.com'
+            explain(command)
 
 
 class BuildArgumentHelpTest(unittest.TestCase):

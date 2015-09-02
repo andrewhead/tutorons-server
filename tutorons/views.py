@@ -15,7 +15,7 @@ from django.conf import settings
 
 from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.util import log_region
-from tutorons.common.scanner import NodeScanner, CommandScanner
+from tutorons.common.scanner import NodeScanner, CommandScanner, InvalidCommandException
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain
 from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
@@ -79,7 +79,11 @@ def wget(request):
     regions = scanner.scan(document)
     for r in regions:
         log_region(r, origin)
-        exp = wget_explain(r.string)
+        try:
+            exp = wget_explain(r.string)
+        except InvalidCommandException as e:
+            logging.error("Error processing wget command %s: %s", e.cmd, e.exception)
+            continue
         exp_html = wget_template.render(Context(exp))
         results[r.string] = exp_html
 

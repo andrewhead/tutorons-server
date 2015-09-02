@@ -11,6 +11,7 @@ from django.conf import settings
 import bashlex
 
 from tutorons.common.extractor import CommandExtractor
+from tutorons.common.scanner import InvalidCommandException
 from parse_phrase import get_root_type, RootType
 from opthelp import OPTHELP, COMBOHELP
 
@@ -43,10 +44,14 @@ class WgetExtractor(object):
 
     def extract(self, node):
         regions = self.cmd_extractor.extract(node)
-        valid_regions = [
-            r for r in regions if
-            self._includes_url(r.string) and self._is_not_prose(r.string)
-        ]
+        valid_regions = []
+        for r in regions:
+            try:
+                if self._includes_url(r.string) and self._is_not_prose(r.string):
+                    valid_regions.append(r)
+            except InvalidCommandException as e:
+                logging.error("Invalid command found: %s: %s", e.cmd, e.exception)
+                return []
         return valid_regions
 
     def _includes_url(self, cmd):
@@ -90,10 +95,10 @@ class WgetExtractor(object):
         try:
             output = subprocess.check_output(cmd.split(' '), stderr=subprocess.STDOUT)
             return output
-        except subprocess.CalledProcessError:
-            return None
+        except subprocess.CalledProcessError as e:
+            raise InvalidCommandException(wget_cmd, e)
         except OSError as e:
-            logging.error("OSError: %s, for command %s", str(e), cmd)
+            raise InvalidCommandException(wget_cmd, e)
 
 
 def explain(cmd):
@@ -102,19 +107,24 @@ def explain(cmd):
     explanation = {}
 
     optstring = re.sub('^.*?' + WGET_PATT, '', cmd)
-    urls, opts = parse_options(optstring)
+    try:
+        urls, opts = parse_options(optstring)
+    except UnicodeDecodeError as e:
+        raise InvalidCommandException(cmd, e)
 
     input_opts = filter(lambda o: o.short_name == '-i', opts)
     for opt in input_opts:
-        urls.append("URLs from file '" + opt.value + "'")
+        urls.append("URLs from the file '" + opt.value + "'")
 
     if len(urls) == 1:
         url_msg = urls[0]
-    else:
+    elif len(urls) > 1:
         url_msg = ', '.join(urls[:-1])
         if len(urls) > 2:
             url_msg += ','
         url_msg = url_msg + ' and ' + urls[-1]
+    else:
+        url_msg = ''
     explanation['url'] = url_msg
 
     for opt in opts:
