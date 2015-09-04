@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 import logging
 import unittest
 import json
-from tutorons.common.htmltools import HtmlDocument
+from bs4 import BeautifulSoup
 from django.test import Client
+from tutorons.common.htmltools import HtmlDocument
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -79,3 +80,22 @@ class TestFetchExplanationForPlaintext(unittest.TestCase):
     def test_fail_to_explain_invalid_selector_from_plaintext(self):
         resp = self.get_explanation('invalid....selector')
         self.assertIn("'invalid....selector' could not be explained as a CSS selector", resp)
+
+
+class TestMatchFuzzyExplanation(unittest.TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+    def get_explanation_text(self, text, edge_size):
+        resp = self.client.post('/explain/css', data={
+            'origin': 'www.test.com',
+            'text': text,
+            'edge_size': edge_size
+        })
+        soup = BeautifulSoup(resp.content)
+        return soup.text
+
+    def test_explain_css_selector_from_plaintext(self):
+        resp = self.get_explanation_text('"div.klazz"', edge_size=1)
+        self.assertIn("The selector 'div.klazz' chooses", resp)

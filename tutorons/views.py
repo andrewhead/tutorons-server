@@ -14,6 +14,7 @@ from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.util import log_region
 from tutorons.common.scanner import NodeScanner, CommandScanner, InvalidCommandException
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
+from tutorons.css.detect import find_jquery_selector
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain, is_selector
 from parsers.css.examples.examplegen import get_example as css_example
 from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
@@ -105,11 +106,15 @@ def css(request):
 def explain_css(request):
 
     text = request.POST.get('text')
+    edge_size = int(request.POST.get('edge_size', 0))
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
 
     css_template = get_template('css.html')
     error_template = get_template('error.html')
+
+    if edge_size > 0:
+        text = find_jquery_selector(text, edge_size)
 
     if is_selector(text):
         ctx = {}
