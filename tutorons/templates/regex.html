@@ -1,7 +1,14 @@
 <h4>You found a regular expression.</h4>
+{%if svg %}
 These are the rules it uses to match:
-<div style='width:100%; text-align: center;'>
+<div class='diagram' style='width:100%; text-align: center;'>
     <div style='display: inline-block;'>
         {{ svg|safe }}
     </div>
 </div>
+{% endif %}
+{%if example %}
+<div class='example'>
+    <p>This pattern can match a string like: {{ example|safe }}</p>
+</div>
+{% endif %}

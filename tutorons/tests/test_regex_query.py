@@ -8,6 +8,7 @@ import json
 from django.test import Client
 import httpretty
 from bs4 import BeautifulSoup
+import re
 from django.conf import settings
 
 
@@ -39,6 +40,11 @@ class TestRenderRegexDescription(unittest.TestCase):
         result = self.request_short('sed "s/patt/repl/" file')
         soup = BeautifulSoup(result['patt'])
         self.assertEqual(len(soup.select('svg')), 1)
+
+    def test_description_include_example(self):
+        result = self.request_short('var patt = /[A-Z]{4,6}/;')
+        text = BeautifulSoup(result['[A-Z]{4,6}']).text
+        self.assertTrue(bool(re.search('This pattern can match a string like: [A-Z]{4,6}', text)))
 
 
 class TestFetchExplanationForPlaintext(unittest.TestCase):

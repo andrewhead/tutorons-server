@@ -20,6 +20,7 @@ from parsers.css.examples.examplegen import get_example as css_example
 from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
     ApacheConfigRegexExtractor
 from tutorons.regex.explain import InvalidRegexException, visualize as regex_viz
+from tutorons.regex.examples import urtext
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -148,14 +149,24 @@ def regex(request):
     for extractor in extractors:
         scanner = NodeScanner(extractor, ['code', 'pre'])
         regions = scanner.scan(document)
+
         for r in regions:
+            ctx = {}
             log_region(r, origin)
+
             try:
-                svg = regex_viz(r.pattern)
+                ctx['svg'] = regex_viz(r.pattern)
             except InvalidRegexException as e:
-                logging.error("Error processing regex %s: %s", e.pattern, e.msg)
+                logging.error("Error processing regex %s: %s", r.pattern, e)
+
+            try:
+                ctx['example'] = urtext(r.pattern)
+            except Exception as e:
+                logging.error("Error processing regex %s: %s", r.pattern, e)
+
+            if len(ctx) == 0:
                 continue
-            ctx = {'svg': svg}
+
             exp_html = regex_template.render(Context(ctx))
             results[r.string] = exp_html
 
