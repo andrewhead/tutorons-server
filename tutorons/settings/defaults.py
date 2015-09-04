@@ -12,6 +12,7 @@ DEPS_DIR = os.path.join(BASE_DIR, 'deps')
 
 SECRET_KEY_FILE = "/etc/django/tutorons.key"
 CORS_ORIGIN_ALLOW_ALL = True  # We're okay accepting connections from anywhere
+DEFAULT_DICTIONARY = os.path.join('tutorons', 'regex', 'google-10000-english-usa.txt')
 
 # Application definition
 
