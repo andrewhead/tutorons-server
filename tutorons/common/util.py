@@ -10,6 +10,15 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
 
 
+def package_region(region, document):
+    return {
+        'node': get_css_selector(region.node),
+        'start_index': region.start_offset,
+        'end_index': region.end_offset,
+        'document': document,
+    }
+
+
 def log_region(r, url):
     region_logger.info(',,,'.join([
         'Origin:%s',

@@ -18,7 +18,7 @@ class FetchAllExplanationsTest(unittest.TestCase):
         self.client = Client()
 
     def get_regions(self, document):
-        resp = self.client.post('/css', data={'origin': 'www.test.com', 'document': document})
+        resp = self.client.post('/css/scan', data={'origin': 'www.test.com', 'document': document})
         regions = json.loads(resp.content)
         return regions
 
@@ -53,7 +53,7 @@ class FetchExplanationForPlaintextTest(unittest.TestCase):
         self.client = Client()
 
     def get_explanation(self, text):
-        resp = self.client.post('/explain/css', data={'origin': 'www.test.com', 'text': text})
+        resp = self.client.post('/css/explain', data={'origin': 'www.test.com', 'text': text})
         return resp.content
 
     def test_explain_css_selector_from_plaintext(self):
@@ -71,7 +71,7 @@ class FetchExplanationForFuzzyMatchTestMatch(unittest.TestCase):
         self.client = Client()
 
     def get_explanation_text(self, text, edge_size):
-        resp = self.client.post('/explain/css', data={
+        resp = self.client.post('/css/explain', data={
             'origin': 'www.test.com',
             'text': text,
             'edge_size': edge_size
