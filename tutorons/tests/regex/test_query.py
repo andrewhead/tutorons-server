@@ -8,7 +8,6 @@ import json
 from django.test import Client
 import httpretty
 from bs4 import BeautifulSoup
-import re
 from django.conf import settings
 
 
@@ -16,38 +15,47 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 logging.disable(logging.CRITICAL)
 
 
-class TestRenderRegexDescription(unittest.TestCase):
+class FetchAllExplanationsTest(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
 
     @httpretty.activate
-    def get_resp_data(self, document):
+    def get_regions(self, document):
         httpretty.register_uri(
             httpretty.GET, settings.REGEX_SVG_ENDPOINT,
             body="<div><div><svg><g class='root'></g></svg></div></div>")
         resp = self.client.post('/regex', data={'origin': 'www.test.com', 'document': document})
         return json.loads(resp.content)
 
-    def request_short(self, command):
-        return self.get_resp_data("\n".join(["<code>", command, "</code>"]))
+    def get_regions_for_line(self, command):
+        return self.get_regions("<code>" + command + "</code>")
 
-    def test_introduction_appears(self):
-        result = self.request_short('sed "s/patt/repl/" file')
-        self.assertIn("You found a regular expression", result['patt'])
+    def test_get_region(self):
+        regions = self.get_regions_for_line('sed "s/patt/repl/" file')
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEquals(r['node'], 'HTML > BODY:nth-of-type(1) > CODE:nth-of-type(1)')
+        self.assertEquals(r['start_index'], 7)
+        self.assertEquals(r['end_index'], 10)
+        self.assertIn("You found a regular expression", r['document'])
 
-    def test_svg_included_in_description(self):
-        result = self.request_short('sed "s/patt/repl/" file')
-        soup = BeautifulSoup(result['patt'])
+    def test_get_mutliple_regions(self):
+        regions = self.get_regions_for_line('\n'.join([
+            'sed "s/patt/repl/" file',
+            'sed "s/patt2/repl/" file'
+        ]))
+        self.assertEqual(len(regions), 2)
+
+    def test_description_includes_svg_and_example(self):
+        regions = self.get_regions_for_line('sed "s/patt/repl/" file')
+        r = regions[0]
+        soup = BeautifulSoup(r['document'])
         self.assertEqual(len(soup.select('svg')), 1)
-
-    def test_description_include_example(self):
-        result = self.request_short('var patt = /[A-Z]{4,6}/;')
-        text = BeautifulSoup(result['[A-Z]{4,6}']).text
-        self.assertTrue(bool(re.search('This pattern can match a string like: [A-Z]{4,6}', text)))
+        self.assertIn("This pattern can match a string like", soup.text)
 
 
-class TestFetchExplanationForPlaintext(unittest.TestCase):
+class FetchExplanationForPlaintextText(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
@@ -71,7 +79,3 @@ class TestFetchExplanationForPlaintext(unittest.TestCase):
             body="<div><div><svg></svg></div></div>")
         resp = self.get_explanation('[A-')
         self.assertIn("'[A-' could not be explained as a regular expression", resp)
-
-
-if __name__ == '__main__':
-    unittest.main()

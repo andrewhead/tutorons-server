@@ -10,17 +10,20 @@ from django.template.loader import get_template
 from django.template import Context
 from django.views.decorators.csrf import csrf_exempt
 
-from tutorons.common.htmltools import HtmlDocument
+from tutorons.common.htmltools import HtmlDocument, get_css_selector
 from tutorons.common.util import log_region
 from tutorons.common.scanner import NodeScanner, CommandScanner, InvalidCommandException
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
+from tutorons.wget.render import render as wget_render
 from tutorons.css.detect import find_jquery_selector
 from tutorons.css.explain import CssSelectorExtractor, explain as css_explain, is_selector
+from tutorons.css.render import render as css_render
 from parsers.css.examples.examplegen import get_example as css_example
 from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
     ApacheConfigRegexExtractor
 from tutorons.regex.explain import InvalidRegexException, visualize as regex_viz
 from tutorons.regex.examples import urtext
+from tutorons.regex.render import render as regex_render
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -31,6 +34,15 @@ def home(request):
     return render(request, 'home.html', {})
 
 
+def package_region(region, document):
+    return {
+        'node': get_css_selector(region.node),
+        'start_index': region.start_offset,
+        'end_index': region.end_offset,
+        'document': document,
+    }
+
+
 @csrf_exempt
 def wget(request):
 
@@ -38,9 +50,8 @@ def wget(request):
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
 
-    results = {}
+    explained_regions = []
     document = HtmlDocument(doc_body)
-    wget_template = get_template('wget.html')
 
     scanner = CommandScanner('wget', WgetExtractor())
     regions = scanner.scan(document)
@@ -51,10 +62,10 @@ def wget(request):
         except InvalidCommandException as e:
             logging.error("Error processing wget command %s: %s", e.cmd, e.exception)
             continue
-        exp_html = wget_template.render(Context(exp))
-        results[r.string] = exp_html
+        document = wget_render(exp['url'], exp['opts'], exp['combo_exps'])
+        explained_regions.append(package_region(r, document))
 
-    return HttpResponse(json.dumps(results, indent=2))
+    return HttpResponse(json.dumps(explained_regions, indent=2))
 
 
 @csrf_exempt
@@ -64,7 +75,6 @@ def explain_wget(request):
     origin = request.POST.get('origin')
     region_logger.info("Request for explanation for text from origin: %s", origin)
 
-    wget_template = get_template('wget.html')
     error_template = get_template('error.html')
 
     try:
@@ -74,7 +84,7 @@ def explain_wget(request):
         error_html = error_template.render(Context({'text': text, 'type': 'wget command'}))
         return HttpResponse(error_html)
     else:
-        exp_html = wget_template.render(Context(exp))
+        exp_html = wget_render(exp['url'], exp['opts'], exp['combo_exps'])
         return HttpResponse(exp_html)
 
 
@@ -85,22 +95,20 @@ def css(request):
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
 
-    results = {}
-    ctx = {}
+    explained_regions = []
     document = HtmlDocument(doc_body)
-    css_template = get_template('css.html')
     extractor = CssSelectorExtractor()
 
     scanner = NodeScanner(extractor, ['code', 'pre'])
     regions = scanner.scan(document)
     for r in regions:
         log_region(r, origin)
-        ctx['exp'] = css_explain(r.string)
-        ctx['example'] = css_example(r.string)
-        exp_html = css_template.render(Context(ctx))
-        results[r.string] = exp_html
+        exp = css_explain(r.string)
+        example = css_example(r.string)
+        document = css_render(exp, example)
+        explained_regions.append(package_region(r, document))
 
-    return HttpResponse(json.dumps(results, indent=2))
+    return HttpResponse(json.dumps(explained_regions, indent=2))
 
 
 @csrf_exempt
@@ -111,17 +119,15 @@ def explain_css(request):
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
 
-    css_template = get_template('css.html')
     error_template = get_template('error.html')
 
     if edge_size > 0:
         text = find_jquery_selector(text, edge_size)
 
     if is_selector(text):
-        ctx = {}
-        ctx['exp'] = css_explain(text)
-        ctx['example'] = css_example(text)
-        exp_html = css_template.render(Context(ctx))
+        exp = css_explain(text)
+        example = css_example(text)
+        exp_html = css_render(exp, example)
         return HttpResponse(exp_html)
     else:
         logging.error("Error processing CSS selector %s", text)
@@ -136,9 +142,8 @@ def regex(request):
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
 
-    results = {}
+    explained_regions = []
     document = HtmlDocument(doc_body)
-    regex_template = get_template('regex.html')
     extractors = [
         GrepRegexExtractor(),
         SedRegexExtractor(),
@@ -151,26 +156,26 @@ def regex(request):
         regions = scanner.scan(document)
 
         for r in regions:
-            ctx = {}
+
             log_region(r, origin)
 
             try:
-                ctx['svg'] = regex_viz(r.pattern)
+                svg = regex_viz(r.pattern)
             except InvalidRegexException as e:
                 logging.error("Error processing regex %s: %s", r.pattern, e)
+                svg = None
 
             try:
-                ctx['example'] = urtext(r.pattern)
+                example = urtext(r.pattern)
             except Exception as e:
                 logging.error("Error processing regex %s: %s", r.pattern, e)
+                example = None
 
-            if len(ctx) == 0:
-                continue
+            if example is not None or svg is not None:
+                document = regex_render(svg, example)
+                explained_regions.append(package_region(r, document))
 
-            exp_html = regex_template.render(Context(ctx))
-            results[r.string] = exp_html
-
-    return HttpResponse(json.dumps(results, indent=2))
+    return HttpResponse(json.dumps(explained_regions, indent=2))
 
 
 @csrf_exempt
@@ -180,16 +185,12 @@ def explain_regex(request):
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
 
-    regex_template = get_template('regex.html')
-    error_template = get_template('error.html')
-
     try:
         svg = regex_viz(text)
+        html = regex_render(svg)
     except InvalidRegexException as e:
         logging.error("Error processing regular expression %s: %s", e.pattern, e.msg)
-        error_html = error_template.render(Context({'text': text, 'type': 'regular expression'}))
-        return HttpResponse(error_html)
-    else:
-        ctx = {'svg': svg}
-        exp_html = regex_template.render(Context(ctx))
-        return HttpResponse(exp_html)
+        error_template = get_template('error.html')
+        html = error_template.render(Context({'text': text, 'type': 'regular expression'}))
+
+    return HttpResponse(html)

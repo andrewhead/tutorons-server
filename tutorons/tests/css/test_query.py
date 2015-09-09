@@ -7,64 +7,47 @@ import unittest
 import json
 from bs4 import BeautifulSoup
 from django.test import Client
-from tutorons.common.htmltools import HtmlDocument
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-class TestRenderDescription(unittest.TestCase):
+class FetchAllExplanationsTest(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
 
-    def get_resp_texts(self, document):
+    def get_regions(self, document):
         resp = self.client.post('/css', data={'origin': 'www.test.com', 'document': document})
-        respData = json.loads(resp.content)
-        texts = {k: HtmlDocument(v).text for k, v in respData.items()}
-        return texts
+        regions = json.loads(resp.content)
+        return regions
 
-    def get_example_html(self, document):
-        resp = self.client.post('/css', data={'origin': 'www.test.com', 'document': document})
-        respData = json.loads(resp.content)
-        return respData
+    def _make_code_block(self, text):
+        return "<code>" + text + "</code>"
 
-    def get_text_short(self, selector):
-        return self.get_resp_texts('\n'.join(["<code>", selector, "</code>"]))
+    def test_get_region(self):
+        doc = self._make_code_block('var elem = $(".klazz");')
+        regions = self.get_regions(doc)
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEqual(r['node'], 'HTML > BODY:nth-of-type(1) > CODE:nth-of-type(1)')
+        self.assertEqual(r['start_index'], 14)
+        self.assertEqual(r['end_index'], 19)
+        self.assertIn(
+            "chooses elements of class 'klazz'",
+            BeautifulSoup(r['document']).text
+        )
 
-    def get_example_short(self, selector):
-        return self.get_example_html('\n'.join(["<code>", selector, "</code>"]))
-
-    def test_describe_preamble(self):
-        texts = self.get_text_short('$(".klazz")')
-        text = texts['.klazz']
-        self.assertIn("You found a CSS selector", text)
-        self.assertIn("selectors pick sections of HTML pages", text)
-
-    def test_describe_single_class(self):
-        texts = self.get_text_short('$(".watch-view-count")')
-        self.assertEqual(len(texts.keys()), 1)
-        text = texts['.watch-view-count']
-        self.assertIn("chooses elements of class 'watch-view-count'", text)
-
-    def test_render_example_html(self):
-        doms = self.get_example_html('<code>$("div p");</code>')
-        dom = doms['div p']
-        self.assertIn("\n".join([
-            "&lt;div&gt;<br>",
-            "<span class='tutoron_selection'>",
-            "&nbsp;&nbsp;&nbsp;&nbsp;&lt;p&gt;<br>",
-            "&nbsp;&nbsp;&nbsp;&nbsp;&lt;/p&gt;<br>",
-            "</span>",
-            "&lt;/div&gt;<br>",
-        ]), dom)
-
-    def test_describe_code_in_pre_element(self):
-        texts = self.get_resp_texts("<pre>$('p');</pre>")
-        self.assertEqual(len(texts.keys()), 1)
+    def test_get_multiple_regions(self):
+        doc = self._make_code_block('\n'.join([
+            'var elem1 = $(".klazz");',
+            'var elem2 = $(".klazz");',
+        ]))
+        regions = self.get_regions(doc)
+        self.assertEqual(len(regions), 2)
 
 
-class TestFetchExplanationForPlaintext(unittest.TestCase):
+class FetchExplanationForPlaintextTest(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
@@ -82,7 +65,7 @@ class TestFetchExplanationForPlaintext(unittest.TestCase):
         self.assertIn("'invalid....selector' could not be explained as a CSS selector", resp)
 
 
-class TestMatchFuzzyExplanation(unittest.TestCase):
+class FetchExplanationForFuzzyMatchTestMatch(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()

@@ -23,11 +23,11 @@ WGET_PATT = r"(/usr/bin/)?(wget|WGET)(?:.exe)?"
 
 class Option(object):
 
-    def __init__(self, short_name, long_name, value):
+    def __init__(self, short_name, long_name, value, help=None):
         self.short_name = short_name
         self.long_name = long_name
         self.value = value
-        self.help = ""
+        self.help = "" if help is None else help
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__)

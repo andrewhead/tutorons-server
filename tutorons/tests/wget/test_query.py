@@ -5,13 +5,14 @@ from __future__ import unicode_literals
 import unittest
 import logging
 import json
+from bs4 import BeautifulSoup
 from django.test import Client
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-class TestRenderDescription(unittest.TestCase):
+class FetchAllExplanationsTest(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
@@ -20,18 +21,21 @@ class TestRenderDescription(unittest.TestCase):
         resp = self.client.post('/wget', data={'origin': 'www.test.com', 'document': document})
         return json.loads(resp.content)
 
-    def request_short(self, command):
-        return self.get_resp_data("\n".join(["<code>", command, "</code>"]))
+    def get_regions_from_code(self, code):
+        return self.get_resp_data("<code>" + code + "</code>")
 
     def test_describe_one_command(self):
-        result = self.request_short("wget http://hello.html")
-        self.assertEqual(len(result.keys()), 1)
-        self.assertIn(
-            "    Here, it downloads content from http://hello.html.",
-            result['wget http://hello.html'])
+        regions = self.get_regions_from_code("wget http://hello.html")
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        doc = BeautifulSoup(r['document'])
+        self.assertEquals(r['node'], 'HTML > BODY:nth-of-type(1) > CODE:nth-of-type(1)')
+        self.assertEquals(r['start_index'], 0)
+        self.assertEquals(r['end_index'], 21)
+        self.assertIn("downloads content from http://hello.html.", doc.text)
 
     def test_describe_multiple_commands(self):
-        result = self.get_resp_data("""
+        regions = self.get_resp_data("""
         <html>
             <body>
                 <code>
@@ -43,70 +47,18 @@ class TestRenderDescription(unittest.TestCase):
             </body>
         </html>
         """)
-        self.assertEqual(len(result.keys()), 2)
-        self.assertIn(
-            "    Here, it downloads content from http://hello.html.",
-            result['wget http://hello.html'])
-        self.assertIn(
-            "    Here, it downloads content from http://goodbye.html.",
-            result['wget http://goodbye.html'])
-
-    def test_skip_lines_without_wget(self):
-        result = self.get_resp_data("""
-        <code>
-            wget http://hello.html
-            notwget http:/hello.html
-
-        </code>
-        """)
-        self.assertEqual(len(result.keys()), 1)
+        self.assertEqual(len(regions), 2)
 
     def test_skip_invalid_wget(self):
-        result = self.request_short("wget --buzzer fakearg")
-        self.assertEqual(len(result.keys()), 0)
-
-    def test_describe_negative_flag(self):
-        result = self.request_short("wget -nc http://hello.html")
-        self.assertIn("skip downloads that would download to", result['wget -nc http://hello.html'])
+        regions = self.get_regions_from_code("wget --buzzer fakearg")
+        self.assertEqual(len(regions), 0)
 
     def test_describe_windows_executable(self):
-        result = self.request_short("wget.exe http://hello.html")
-        self.assertEqual(len(result.keys()), 1)
-        self.assertIn(
-            '\n'.join([
-                "    <span class=\"word_focus\">wget</span> is a Terminal command you run to " +
-                "download a page from the Internet.",
-                "    Here, it downloads content from http://hello.html.",
-            ]),
-            result['wget.exe http://hello.html'])
-
-    def test_describe_options(self):
-        result = self.request_short("wget -A *.jpg -l3 http://google.com")
-        description = result.values()[0]
-        self.assertIn("<p>It uses these options:</p>", description)
-        self.assertIn("--accept", description)
-        self.assertIn("-A", description)
-        self.assertIn(": *.jpg is a comma-separated list of accepted extensions.", description)
-        self.assertIn("3 is a maximum recursion depth (inf or 0 for infinite)", description)
-
-    def test_describe_option_combination(self):
-        result = self.request_short("wget --recursive -A *.jpg -l3 http://google.com")
-        self.assertIn(
-            "Recursively scrape web pages linked from http://google.com of type '*.jpg', " +
-            "following links 3 times.",
-            result.values()[0])
-
-    def test_no_show_shortname_if_opt_has_no_shortname(self):
-        result = self.request_short("wget --retry-connrefused http://google.com")
-        description = result.values()[0]
-        self.assertNotIn('>-r', description)
-
-    def test_describe_code_in_pre_element(self):
-        result = self.get_resp_data("<pre>wget http://hello.html</pre>")
-        self.assertEqual(len(result.keys()), 1)
+        regions = self.get_regions_from_code("wget.exe http://hello.html")
+        self.assertEqual(len(regions), 1)
 
 
-class TestFetchExplanationForPlaintext(unittest.TestCase):
+class FetchExplanationForPlaintextTest(unittest.TestCase):
 
     def setUp(self):
         self.client = Client()
