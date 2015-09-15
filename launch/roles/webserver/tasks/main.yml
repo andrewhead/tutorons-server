@@ -49,6 +49,10 @@
   pip: requirements={{ projectdir }}/{{ appname }}-reqs.txt virtualenv="{{ venv }}"
   tags: pythonpkgs
 
+- name: Checkout source code
+  git: repo={{ repo }} dest={{ src }} force=yes recursive=yes
+  tags: updatecode
+
 - name: Make Java project dependencies directory
   file: state=directory path={{ src }}/deps owner=ubuntu
 
@@ -76,10 +80,6 @@
 - name: Add nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user ubuntu ubuntu;"
   sudo: true
-
-- name: Checkout source code
-  git: repo={{ repo }} dest={{ src }} force=yes recursive=yes
-  tags: updatecode
 
 - name: Create directory for Django secret keys
   file: state=directory path=/etc/django
