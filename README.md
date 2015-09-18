@@ -29,9 +29,13 @@ It is recommended that you install these into a virtualenv:
 
 Remember that if you use a virtual environment, you will have to run `source venv/bin/activate` every time that you want to run the server.
 
-## Java dependencies
+## Additional precompiled dependencies
 
-Fetch all `.jar` files listed in the `external_deps` variable in `launch/host_vars/tutorons.com`.  The latest version of these dependencies used on the Tutorons server can be found in the S3 `tutorons` bucket.  Download each of these files into the `deps` folder.
+All of the precompiled dependencies are in a public S3 bucket.  To install them, navigate to the `deps` directory, download the AWS command line utility, and run the `fetch_deps.sh` script:
+
+    cd deps/
+    pip install awscli
+    ./fetch_deps.sh
 
 ## Compile source code for command line utilities
 
