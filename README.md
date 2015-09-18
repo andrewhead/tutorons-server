@@ -1,37 +1,74 @@
-This is the repository for research and development on Tutorons.
-Tutorons are routines that generate context-relevant micro-explanations
+The Tutorons server listens for HTML webpages, scans them for explainable code, and generates rich HTML-formatted explanations of the code that can be viewed in the browser.
+The server can be extended to detect and explain code of many languages.
+The current server detects and explains code from three languages that often appear embedded in tutorial pages: `wget` command lines, CSS selectors, and regular expressions.
 
-# Dependencies
+# Installing Project Dependencies
 
-## System dependencies
+Tutorons is a unique project in that it leverages parsers from many languages to produce different parse structures that will be automatically explained.  Therefore, the Python code has to interface with both C code and Java.  This means you'll have to go further than `pip` installation to get set up, if you want to work with the full suite of example Tutorons (for wget, CSS selectors, and regular expressions).
 
-To develop on OSX:
+## OSX-specific instructions
 
-0. brew install gettext
+Download dependencies via HomeBrew
 
-Then set your system path (for example, in ~/.bash\_profile)
+    brew install gettext
 
-	export PATH=$PATH:/usr/local/opt/gettext/bin
+Then update your system path (for example, in `~/.bash\_profile`)
 
-## Python dependencies
+    export PATH=$PATH:/usr/local/opt/gettext/bin
 
-To fetch the Python dependencies for this project, pip install using the
-requirements file in the 'files' directory for the
-Ansible 'webserver' role in the launch/ directory.
+## Installing Python dependencies
+
+    pip install -r launch/roles/webserver/files/tutorons-reqs.txt
+
+It is recommended that you install these into a virtualenv:
+
+    pip install virtualenv
+    virtualenv venv
+    source venv/bin/activate
+    pip install -r launch/roles/webserver/files/tutorons-reqs.txt
+
+Remember that if you use a virtual environment, you will have to run `source venv/bin/activate` every time that you want to run the server.
 
 ## Java dependencies
 
-Look at the javadeps variable in launch/host\_vars/tutorons.com.
-You should download all of these files from the S3 tutorons bucket into
-the deps/ folder.
+Fetch all `.jar` files listed in the `external_deps` variable in `launch/host_vars/tutorons.com`.  The latest version of these dependencies used on the Tutorons server can be found in the S3 `tutorons` bucket.  Download each of these files into the `deps` folder.
 
-## Compiling source dependencies
+## Compile source code for command line utilities
 
-This project includes some source code from other open source projects that needs
-to be compiled before running the server:
+Before the next steps, run `git submodule init && git submodule update` from the main project directory.
+The following compilation steps work for OSX.
+For Ubuntu-specific compilation rules, see the `launch/roles/webserver/templats/compile-*.j2` files.
 
-0. cd deps/wget
-0. git submodule init && git submodule update
-0. ./bootstrap
-0. ./configure --with-ssl=openssl
-0. make
+### wget
+
+    cd deps/wget
+    ./bootstrap
+    ./configure --with-ssl=openssl
+    make
+
+### sed
+
+    cd deps/sed
+    ./bootstrap
+    ./configure
+    make
+
+### grep
+
+    ACLOCAL_path=/usr/local/share/aclocal/:$ACLOCAL_PATH cd deps/sed
+    ./bootstrap
+    ./configure
+    WERROR_CFLAGS= make -e
+
+# Contributing
+
+## How to contribute new code
+
+1. Create a new branch for doing your work: `git checkout -b <branchname>`
+2. Do your local work (including unit tests) and commit
+3. Run the test suite to make sure everything still passes
+4. Push your branch
+4. Submit a pull request to merge into master ([see here](https://help.github.com/articles/using-pull-requests/)).  Assign the pull request to someone else on the team who should verify the style and design choices of your code.
+6. Respond to any comments you get from reviewers
+7. Once your pull request is accepted, merge your pull request into master
+8. Check out the master branch and verify that all tests still pass
