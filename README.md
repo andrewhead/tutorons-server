@@ -60,15 +60,32 @@ For Ubuntu-specific compilation rules, see the `launch/roles/webserver/templats/
     ./configure
     WERROR_CFLAGS= make -e
 
+# Running the Tutorons Server
+
+While you're developing, you can use the following convenience script to launch the Django server:
+
+    ./rundevserver
+
+This script does, among other things:
+* Appends all Java dependencies to the Java CLASSPATH variable
+* Launches internal and third-party servers for computing explanations
+* Kicks off the Django server with a typical `python manage.py runserver` command
+
 # Contributing
 
 ## How to contribute new code
 
 1. Create a new branch for doing your work: `git checkout -b <branchname>`
-2. Do your local work (including unit tests) and commit
+2. Do your local work and commit.  All new features or bug fixes should be accompanied by tests.
 3. Run the test suite to make sure everything still passes
 4. Push your branch
 4. Submit a pull request to merge into master ([see here](https://help.github.com/articles/using-pull-requests/)).  Assign the pull request to someone else on the team who should verify the style and design choices of your code.
 6. Respond to any comments you get from reviewers
 7. Once your pull request is accepted, merge your pull request into master
 8. Check out the master branch and verify that all tests still pass
+
+## Running the unit tests
+
+From the main directory of this project, run:
+
+    DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py test --failfast
