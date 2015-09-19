@@ -7,7 +7,6 @@ TEMPLATE_DEBUG = False
 ALLOWED_HOSTS = ['.tutorons.com']
 STATICFILES_DIRS += ((os.path.join(os.path.abspath(os.sep), 'var', 'www', 'tutorons')),)
 STATIC_ROOT = os.path.join(os.path.abspath(os.sep), 'usr', 'local', 'tutorons', 'static')
-REGEX_SVG_ENDPOINT = "http://127.0.0.1:8001/"
 
 CACHES = {
     'default': {

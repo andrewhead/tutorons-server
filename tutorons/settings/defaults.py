@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 DEPS_DIR = os.path.join(BASE_DIR, 'deps')
+REGEX_SVG_ENDPOINT = "http://regexsvg.tutorons.com/"
 
 
 # Security

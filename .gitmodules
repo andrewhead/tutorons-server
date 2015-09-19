@@ -10,3 +10,6 @@
 [submodule "deps/regexper-static"]
 	path = deps/regexper-static
 	url = https://github.com/andrewhead/regexper-static.git
+[submodule "deps/svg-server"]
+	path = deps/svg-server
+	url = https://github.com/andrewhead/regex-svg-server.git

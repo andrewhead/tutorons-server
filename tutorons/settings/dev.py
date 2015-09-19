@@ -5,7 +5,6 @@ SECRET_KEY = open(SECRET_KEY_FILE).read()
 DEBUG = True
 TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
-REGEX_SVG_ENDPOINT = "http://127.0.0.1:8001/"
 
 # Emulate an SSL server on localhost
 INSTALLED_APPS += (

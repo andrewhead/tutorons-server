@@ -2,14 +2,11 @@
 
 DEPS=`ls deps/*.jar | tr '\n' ':'`
 CLASSPATH=$CLASSPATH:$DEPS
-REGEX_DIR=deps/regexper-static
 DJANGO_PORT=${1:-8002}
 
 # Start the servers
 ## Run Java Explanation server
 java -cp $CLASSPATH:$DEPS CssExplainerEntryPoint &
-## Run Regex visualizations server
-(cd $REGEX_DIR && gulp svg-server &)
 ## Start the Python server
 DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py runserver $DJANGO_PORT
 
