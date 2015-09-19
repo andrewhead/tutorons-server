@@ -46,6 +46,15 @@ class FetchAllExplanationsTest(unittest.TestCase):
         regions = self.get_regions(doc)
         self.assertEqual(len(regions), 2)
 
+    def test_no_detect_file_extensions(self):
+        doc = self._make_code_block('\n'.join([
+            'var elem = $(".pdf");',
+            'var elem = $(".PDF");',
+            'var elem = $("*.pdf");'
+        ]))
+        regions = self.get_regions(doc)
+        self.assertEqual(len(regions), 0)
+
 
 class FetchExplanationForPlaintextTest(unittest.TestCase):
 

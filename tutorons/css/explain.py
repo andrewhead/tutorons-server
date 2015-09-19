@@ -11,6 +11,7 @@ import re
 from tutorons.common.extractor import JavascriptStringExtractor
 from tutorons.common.util import get_descendants
 from tutorons.css.tags import HTML_TAGS
+from tutorons.css.fileext import EXTENSIONS
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -41,11 +42,31 @@ def is_selector(string):
         # cssselect doesn't like links, so we replace them.
         string = re.sub(r"(href.=)([^\]]*)\]", r"\1fakelink]", string)
         tree = cssselect.parse(string)
-        selector_parts = get_descendants(tree)
-        for part in selector_parts:
-            if isinstance(part, Element):
-                if part.element not in HTML_TAGS:
-                    return False
-        return True
     except SelectorSyntaxError:
         return False
+    return _do_elements_have_standard_tags(tree) and not _is_file_extension(tree)
+
+
+def _is_file_extension(selector_tree):
+    '''
+    Check to see if string is a file extension.
+    We do this by seeing if the tree consists of a single class with the name
+    of a file extension without a named element.
+    '''
+    if len(selector_tree) > 0 and hasattr(selector_tree[0], 'parsed_tree'):
+        pt = selector_tree[0].parsed_tree
+        if hasattr(pt, 'class_name'):
+            cn = pt.class_name
+            if ((cn.upper() in EXTENSIONS or cn.lower() in EXTENSIONS) and
+                    pt.selector.element is None):
+                return True
+    return False
+
+
+def _do_elements_have_standard_tags(selector_tree):
+    selector_parts = get_descendants(selector_tree)
+    for part in selector_parts:
+        if isinstance(part, Element):
+            if part.element not in HTML_TAGS:
+                return False
+    return True
