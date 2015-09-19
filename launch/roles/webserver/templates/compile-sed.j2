@@ -1,0 +1,12 @@
+cd {{ djdir }}/deps/
+
+cd sed
+
+if [ ! -f Makefile ]
+then 
+  ./bootstrap
+  sed 's/AM_GNU_GETTEXT_VERSION(0.17)/AM_GNU_GETTEXT_VERSION(0.18)/' -i configure.ac
+  ./configure
+fi
+
+make

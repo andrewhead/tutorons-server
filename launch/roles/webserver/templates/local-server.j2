@@ -1,0 +1,19 @@
+upstream {{ item.subdomain }}_server {
+    server localhost:{{ item.port }} fail_timeout=0;
+}
+ 
+server {
+    listen 80;
+    server_name {{ item.subdomain }}.{{ domain }} www.{{ item.subdomain }}.{{ domain }};
+
+    keepalive_timeout 5;
+ 
+    # Redirect to local server
+    location / {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_pass http://{{ item.subdomain }}_server;
+        break;
+    }
+}

@@ -3,15 +3,15 @@ localport: 8002
 appname: tutorons
 repo: https://github.com/andrewhead/Tutorons.git
 djdir: "{{ src }}"
-awsbucket: tutorons
+publicbucket: tutorons-public
+publicdir: tutorons-server-deps
+privatebucket: tutorons
 djkey: tutorons.key
 logfile: /var/log/tutorons.log
 staticfiles: yes
-javadeps:
+external_deps:
 - englishPCFG.ser.gz
-- stanford-parser-3.4-javadoc.jar
 - stanford-parser-3.4-models.jar
-- stanford-parser-3.4-sources.jar
 - stanford-parser.jar
 - py4j-0.8.2.jar
 - simplenlg-v4.4.2.jar
@@ -25,12 +25,20 @@ systempkgs:
 - libxml2-dev  # to download PyQuery
 - libxslt-dev  # to download PyQuery
 - autoconf
+- unzip
 - gettext  # wget
 - autopoint  # wget
 - flex  # wget
 - texinfo  # wget
 - pkg-config  # wget
-- xvfb  # for using headless Firefox for scrapes
-- firefox  # for using headless Firefox for scrapes
+- gperf  # to compile grep
 scripts:
+- compile-grep
+- compile-sed
 - compile-wget
+containers:
+- {"image": "andrewhead/regexper-server", "host_port": 8005, "exposed_port": 8080}
+- {"image": "andrewhead/regex-svg-server", "host_port": 8006, "exposed_port": 8080}
+subdomains:
+- {"subdomain": "regexper", "port": 8005}
+- {"subdomain": "regexsvg", "port": 8006}

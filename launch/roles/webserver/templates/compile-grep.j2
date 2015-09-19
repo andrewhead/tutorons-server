@@ -1,11 +1,11 @@
 cd {{ djdir }}/deps/
 
-cd wget
+cd grep
 
 if [ ! -f Makefile ]
 then 
   ./bootstrap
-  ./configure --with-ssl=openssl
+  ./configure
 fi
 
 make

@@ -19,6 +19,16 @@
   when: systempkgs is defined
   tags: systempkgs
 
+- name: Install Docker
+  shell: curl -sSL https://get.docker.com/ | sh
+  sudo: true
+  tags: dockerinstall
+
+- name: Install Docker Python library
+  pip: name=docker-py version=1.1.0
+  sudo: true
+  tags: dockerinstall
+
 - name: Create project directory
   file: state=directory path={{ projectdir }} owner=ubuntu
   sudo: true
@@ -58,20 +68,29 @@
 
 - name: Remove previous versions of project dependencies
   file: state=absent path={{ src }}/deps/{{ item }}
-  with_items: javadeps
-  when: javadeps is defined
+  with_items: external_deps
+  when: external_deps is defined
+  tags: dependencies
 
-- name: Install Java dependencies for project
-  s3: bucket={{ awsbucket }} object={{ item }} dest={{ src }}/deps/{{ item }} mode=get overwrite=false
-  with_items: javadeps
-  when: javadeps is defined
+- name: Install dependencies for project
+  s3: bucket={{ publicbucket }} object={{ publicdir }}/{{ item }} dest={{ src }}/deps/{{ item }} mode=get overwrite=false
+  with_items: external_deps
+  when: external_deps is defined
+  tags: dependencies
 
 - name: Install gunicorn
   pip: name=gunicorn virtualenv="{{ venv }}"
 
-- name: Configure nginx sites
+- name: Configure nginx main site
   template: src=nginx-site.j2 dest=/etc/nginx/sites-enabled/{{ appname }}
   sudo: true
+
+- name: Add subdomains for localsites
+  template: src=local-server.j2 dest=/etc/nginx/sites-enabled/{{ item.subdomain }}
+  with_items: subdomains
+  when: subdomains is defined
+  sudo: true
+  tags: subdomains
 
 - name: Remove default nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user www-data;" state=absent
@@ -86,7 +105,7 @@
   sudo: true
 
 - name: Fetch Django app secret key
-  s3: bucket={{ awsbucket }} object={{ djkey }} dest=/etc/django/{{ djkey }} mode=get
+  s3: bucket={{ privatebucket }} object={{ djkey }} dest=/etc/django/{{ djkey }} mode=get
   sudo: true
 
 - name: Sync DB with Django models
@@ -126,29 +145,47 @@
   sudo: true
   tags: memcached
 
+- name: Create Docker group
+  group: name=docker state=present
+  tags: containers
+
+- name: Fetch and start Docker containers
+  docker:
+    image: "{{ item.image }}"
+    state: running
+    ports: "{{ item.host_port }}:{{ item.exposed_port }}"
+  with_items: containers
+  when: containers is defined
+  sudo: true
+  tags: containers
+
 - name: Add auxiliary processes to supervisor
   template: src={{ item }}.j2 dest=/etc/supervisor/conf.d/{{ item }}.conf
   with_items: processes
   when: processes is defined
   sudo: true
+  tags: processes
 
 - name: Load auxiliary processes
   supervisorctl: name={{ item }} state=present
   with_items: processes
   when: processes is defined
   sudo: true
+  tags: processes
 
 - name: Restart auxiliary processes (stop)
   supervisorctl: name={{ item }} state=stopped
   with_items: processes
   when: processes is defined
   sudo: true
+  tags: processes
 
 - name: Restart auxiliary processes (start)
   supervisorctl: name={{ item }} state=started
   with_items: processes
   when: processes is defined
   sudo: true
+  tags: processes
 
 - name: Copy app to supervisor
   template: src=supervisor.j2 dest=/etc/supervisor/conf.d/{{ appname }}.conf
@@ -174,3 +211,4 @@
 
 - name: Restart nginx
   service: name=nginx state=restarted
+  tags: subdomains
