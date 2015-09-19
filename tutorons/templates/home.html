@@ -3,6 +3,12 @@
     <head>
         <title>Tutorons</title>
         <script src="http://www.tutorons.com/static/tutorons-library.js"></script>
+        <script>
+          document.addEventListener("DOMContentLoaded", function (event) {
+            var tutoronsConnection = new tutorons.TutoronsConnection(window);
+            tutoronsConnection.scanDom();
+          });
+        </script>
         <link rel='stylesheet' href="{% static "tutorons/css/main.css" %}" />
     </head>
     <body>
@@ -18,6 +24,5 @@
             <br>
             <p><a href='https://github.com/andrewhead/Tutorons'>View source on Github</a></p>
         </div>
-        <script>tutorons.fetch(document);</script>
     </body>
 </html>
