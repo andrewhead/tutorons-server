@@ -40,8 +40,14 @@ All of the precompiled dependencies are in a public S3 bucket.  To install them,
 ## Compile source code for command line utilities
 
 Before the next steps, run `git submodule init && git submodule update` from the main project directory.
-The following compilation steps work for OSX.
+The following compilation steps have been verified to work for OSX.
 For Ubuntu-specific compilation rules, see the `launch/roles/webserver/templats/compile-*.j2` files.
+
+### First steps
+
+If you have installed `automake` using Homebrew, you may need to point the build scripts to your aclocal scripts.  To do this, run:
+
+    AC_LOCAL_PATH=$AC_LOCAL_PATH:/usr/local/share/aclocal/
 
 ### wget
 
@@ -59,7 +65,7 @@ For Ubuntu-specific compilation rules, see the `launch/roles/webserver/templats/
 
 ### grep
 
-    ACLOCAL_path=/usr/local/share/aclocal/:$ACLOCAL_PATH cd deps/sed
+    cd deps/sed
     ./bootstrap
     ./configure
     WERROR_CFLAGS= make -e
