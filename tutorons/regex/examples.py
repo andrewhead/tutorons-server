@@ -55,14 +55,16 @@ class UrtextVisitor(object):
 
     def visit_repeat(self, node):
         # As far as I can tell, repeat only ever has exactly 1 child
-        if isinstance(node.children[0], InNode):
-            in_node = node.children[0]
-            chars = get_valid_characters(in_node)
+        first_child = node.children[0]
+        if (isinstance(first_child, InNode) or
+                isinstance(first_child, AnyNode) or
+                isinstance(first_child, CategoryNode) and first_child.classname == 'word'):
+            chars = get_valid_characters(first_child)
             return self.word_builder.build_word(
                 chars, messy=self.messy_words, length=node.repetitions)
         else:
             node.repetitions = 1 if node.repetitions is None else node.repetitions
-            return ''.join([self.visit(node.children[0]) for _ in range(node.repetitions)])
+            return ''.join([self.visit(first_child) for _ in range(node.repetitions)])
 
     def visit_branch(self, node):
         return self.visit(random.choice(node.children))
@@ -75,17 +77,7 @@ class UrtextVisitor(object):
         return unichr(node.value)
 
     def visit_any(self, node):
-        # According to Python documentation:
-        # '.', in the default mode, matches any character except a newline.
-        # - (https://docs.python.org/2/library/re.html)
-        # We approximate this by replace a 'dot' with a character from the 'printable'
-        #  attribute of the 'string' module, ignoring characters that will insert
-        #  new lines to make sure that examples can be read on one line.
-        NEWLINE_CHARS = ['\n', '\r', '\x0b', '\x0c']
-        printable_chars = string.printable
-        for char in NEWLINE_CHARS:
-            printable_chars.replace(char, '')
-        return random.choice(printable_chars)
+        return random.choice(get_valid_characters(node))
 
 
 class WordBuilder(object):
@@ -147,27 +139,53 @@ class WordBuilder(object):
             return ''.join([random.choice(choices) for _ in range(RANDOM_WORD_LEN)])
 
 
-def get_valid_characters(in_node):
-    if in_node.negated:
-        op = lambda clist, c: clist.remove(c)
-        chars = list(string.printable)
-    else:
-        op = lambda clist, c: clist.append(c)
-        chars = []
+def get_valid_characters(node):
+    """ Get the list of characters that can be used to match a character node. """
 
-    for child in in_node.children:
-        if isinstance(child, LiteralNode):
-            op(chars, unichr(child.value))
-        elif isinstance(child, RangeNode):
-            for val in range(child.lo, child.hi+1):
-                op(chars, unichr(val))
-        elif isinstance(child, CategoryNode):
-            if child.classname == 'word':
-                [op(chars, l) for l in string.ascii_letters]
-            elif child.classname == 'space':
-                [op(chars, s) for s in string.whitespace]
-            elif child.classname == 'digit':
-                [op(chars, s) for s in string.digits]
+    if isinstance(node, InNode):
+        if node.negated:
+            op = lambda clist, c: clist.remove(c)
+            chars = list(string.printable)
+        else:
+            op = lambda clist, c: clist.append(c)
+            chars = []
+        for child in node.children:
+            child_chars = get_valid_characters(child)
+            for cc in child_chars:
+                op(chars, cc)
+
+    elif isinstance(node, LiteralNode):
+        return [unichr(node.value)]
+
+    elif isinstance(node, RangeNode):
+        return [unichr(val) for val in range(node.lo, node.hi+1)]
+
+    elif isinstance(node, CategoryNode):
+        if node.classname == 'word':
+            return string.ascii_letters
+        elif node.classname == 'space':
+            return string.whitespace
+        elif node.classname == 'digit':
+            return string.digits
+        else:
+            return []
+
+    elif isinstance(node, AnyNode):
+        # According to Python documentation:
+        # '.', in the default mode, matches any character except a newline.
+        # - (https://docs.python.org/2/library/re.html)
+        # We approximate this by replace a 'dot' with a character from the 'printable'
+        #  attribute of the 'string' module, ignoring characters that will insert
+        #  new lines to make sure that examples can be read on one line.
+        NEWLINE_CHARS = ['\n', '\r', '\x0b', '\x0c']
+        printable_chars = string.printable
+        for char in NEWLINE_CHARS:
+            printable_chars.replace(char, '')
+        return printable_chars
+
+    else:
+        return []
+
     return chars
 
 

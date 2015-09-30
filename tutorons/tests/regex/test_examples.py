@@ -92,8 +92,8 @@ class UrtestVisitorTest(unittest.TestCase):
 class UrtextRepeatsText(unittest.TestCase):
 
     def setUp(self):
-        dictionary = ["aaaa", "bbbb", "gfed", "yxxy"]
-        self.visitor = UrtextVisitor(dictionary, messy_words=False)
+        self.dictionary = ["aaaa", "bbbb", "gfed", "yxxy"]
+        self.visitor = UrtextVisitor(self.dictionary, messy_words=False)
 
     def test_visit_repeat_once_if_child_not_in_and_repetitions_not_specified(self):
         rpt_node = RepeatNode(False, 0)
@@ -145,6 +145,22 @@ class UrtextRepeatsText(unittest.TestCase):
         rpt_node.children.append(in_node)
         msg = self.visitor.visit(rpt_node)
         self.assertEqual(msg, 'c' * regex_examples.RANDOM_WORD_LEN)
+
+    def test_visit_repeated_any_get_dictionary_word(self):
+        rpt_node = RepeatNode(True, 1)
+        rpt_node.children.extend([
+            AnyNode(),
+        ])
+        msg = self.visitor.visit(rpt_node)
+        self.assertIn(msg.lower(), self.dictionary)
+
+    def test_visit_repeated_word_category_get_dictionary_word(self):
+        rpt_node = RepeatNode(True, 1)
+        rpt_node.children.extend([
+            CategoryNode("word", ""),
+        ])
+        msg = self.visitor.visit(rpt_node)
+        self.assertIn(msg.lower(), self.dictionary)
 
     def test_visit_repeat_get_dict_word_case_changed(self):
         rpt_node = RepeatNode(True, 1)
