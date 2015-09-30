@@ -10,6 +10,11 @@ from cStringIO import StringIO
 from enum import Enum
 
 
+from tutorons.regex.tree import PatternTree
+from tutorons.regex.nodes import Node, LiteralNode, RangeNode, InNode, RepeatNode, ChoiceNode,\
+    GroupNode, NegateNode, CategoryNode, AnyNode, BranchNode
+
+
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
@@ -32,88 +37,6 @@ class LineType(Enum):
             if re.match(lt.value, string):
                 return lt
         return None
-
-
-class Node(object):
-
-    def __init__(self, text=''):
-        self.children = []
-        self.text = text
-
-    def __str__(self):
-        string = ""
-        string += "(" + str(self.__class__) + ": " + self.text
-        if len(self.children) > 0:
-            string += "\n"
-        for c in self.children:
-            cstring = re.sub('^(?=[^$])', '  ', str(c), flags=re.MULTILINE)
-            string += cstring
-        string += ')\n'
-        return string
-
-
-class LiteralNode(Node):
-
-    def __init__(self, value, *args, **kwargs):
-        super(LiteralNode, self).__init__(*args, **kwargs)
-        self.value = value
-
-
-class CategoryNode(Node):
-
-    def __init__(self, classname, *args, **kwargs):
-        super(CategoryNode, self).__init__(*args, **kwargs)
-        self.classname = classname
-
-
-class AnyNode(Node):
-    pass
-
-
-class RangeNode(Node):
-
-    def __init__(self, lo, hi, *args, **kwargs):
-        super(RangeNode, self).__init__(*args, **kwargs)
-        self.lo = lo
-        self.hi = hi
-
-
-class NegateNode(Node):
-    pass
-
-
-class InNode(Node):
-
-    @property
-    def negated(self):
-        for ch in self.children:
-            if isinstance(ch, NegateNode):
-                return True
-        return False
-
-
-class BranchNode(Node):
-
-    def __init__(self, *args, **kwargs):
-        super(BranchNode, self).__init__(*args, **kwargs)
-        self.choice = 0
-
-
-class ChoiceNode(Node):
-    pass
-
-
-class GroupNode(Node):
-    pass
-
-
-class RepeatNode(Node):
-
-    def __init__(self, ranged, min_repeat, repetitions=None, *args, **kwargs):
-        super(RepeatNode, self).__init__(*args, **kwargs)
-        self.min_repeat = min_repeat
-        self.ranged = ranged
-        self.repetitions = repetitions
 
 
 def capture_stdout(func):
@@ -147,8 +70,8 @@ def parse_repeat(line):
     bounds = [int(_) for _ in re.match('^max_repeat (\d+) (\d+)', line).groups()]
     ranged = not (bounds[0] == bounds[1])
     min_repeats = bounds[0]
-    repetitions = None if ranged else bounds[0]
-    return (ranged, min_repeats, repetitions)
+    max_repeats = bounds[1]
+    return (ranged, min_repeats, max_repeats)
 
 
 def parse_range(line):
@@ -166,8 +89,8 @@ def getnode(line):
     elif line_type == LineType.IN:
         node = InNode(line)
     elif line_type == LineType.REPEAT:
-        ranged, minr, reps = parse_repeat(line.strip())
-        node = RepeatNode(ranged, minr, reps, line)
+        ranged, minr, maxr = parse_repeat(line.strip())
+        node = RepeatNode(ranged, minr, maxr, line)
     elif line_type == LineType.BRANCH:
         node = ChoiceNode(line)
     elif line_type == LineType.OR:
@@ -237,7 +160,7 @@ def parse_regex(regex):
     first_children = parse_text(description)
     root = Node("ROOT")
     root.children = first_children
-    return root
+    return PatternTree(root)
 
 
 if __name__ == '__main__':

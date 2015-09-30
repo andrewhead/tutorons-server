@@ -15,7 +15,7 @@ from tutorons.common.util import log_region, package_region
 from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, JavascriptRegexExtractor,\
     ApacheConfigRegexExtractor
 from tutorons.regex.explain import InvalidRegexException, visualize as regex_viz
-from tutorons.regex.examples import urtext
+from tutorons.regex.examples import get_examples
 from tutorons.regex.render import render as regex_render
 
 
@@ -54,13 +54,13 @@ def scan(request):
                 svg = None
 
             try:
-                example = urtext(r.pattern)
+                examples = get_examples(r.pattern, count=4)
             except Exception as e:
                 logging.error("Error processing regex %s: %s", r.pattern, e)
-                example = None
+                examples = None
 
-            if example is not None or svg is not None:
-                document = regex_render(svg, example)
+            if examples is not None or svg is not None:
+                document = regex_render(r.pattern, svg, examples)
                 explained_regions.append(package_region(r, document))
 
     return HttpResponse(json.dumps(explained_regions, indent=2))

@@ -1,14 +1,20 @@
-<h4>You found a regular expression.</h4>
+<h5>You found a regular expression.</h5>
+<p>Regular expressions are patterns written to match classes of strings.  By altering the pattern, you can match different types of strings, like URLs or e-mail addresses.</p>
 {%if svg %}
-These are the rules it uses to match:
+You can get a feeling for what this expression matches by reading the diagram from left to right:
 <div class='diagram' style='width:100%; text-align: center;'>
     <div style='display: inline-block;'>
         {{ svg|safe }}
     </div>
 </div>
 {% endif %}
-{%if example %}
+{%if examples %}
 <div class='example'>
-    <p>This pattern can match a string like: {{ example|safe }}</p>
+    <p>The pattern {{ patt }} matches strings including:</p>
+    <ul>
+        {% for e in examples %}
+        <li style="text-align: center; display: block; width: 50%; float: left;">{{ e|safe }}</li>
+        {% endfor %}
+    </ul>
 </div>
 {% endif %}

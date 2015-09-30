@@ -7,9 +7,10 @@ import logging
 import random
 import string
 from django.conf import settings
+import sre_constants
 
 import tutorons.regex.parse as regex_parse
-from tutorons.regex.parse import InNode, RepeatNode, LiteralNode, BranchNode,\
+from tutorons.regex.nodes import InNode, RepeatNode, LiteralNode, BranchNode,\
     RangeNode, CategoryNode, AnyNode
 
 
@@ -18,19 +19,27 @@ RANDOM_WORD_LEN = 5
 SYMBOLS_ADDED = 2
 
 
-def urtext(regex, dictionary=None):
+def get_examples(regex, count=1, dictionary=None):
     '''
-    Generate representative, readable example of string that matches a regular expression.
+    Generate representative, readable examples of string that matches a regular expression.
     If dictionary is set to None, use the default dictionary.
     '''
     tree = regex_parse.parse_regex(regex)
     dictionary = get_default_dict() if dictionary is None else dictionary
-    urtext_visitor = UrtextVisitor(dictionary)
-    message = urtext_visitor.visit(tree)
-    return message
+    example_visitor = ExampleVisitor(dictionary)
+
+    examples = []
+    state_permutations = tree.get_state_permutations()
+    random.shuffle(state_permutations)
+    for perm in state_permutations[:count]:
+        tree.set_state(perm)
+        example = example_visitor.visit(tree)
+        examples.append(example)
+
+    return examples
 
 
-class UrtextVisitor(object):
+class ExampleVisitor(object):
     '''
     Visitor for parsed regular expression that generates a representative, readable example of a
     string that matches the regular expression.
@@ -39,7 +48,10 @@ class UrtextVisitor(object):
         self.word_builder = WordBuilder(dictionary)
         self.messy_words = messy_words
 
-    def visit(self, node):
+    def visit(self, tree):
+        return self.visit_node(tree.root)
+
+    def visit_node(self, node):
         if isinstance(node, RepeatNode):
             return self.visit_repeat(node)
         elif isinstance(node, InNode):
@@ -51,23 +63,30 @@ class UrtextVisitor(object):
         elif isinstance(node, AnyNode):
             return self.visit_any(node)
         else:
-            return ''.join([self.visit(ch) for ch in node.children])
+            return ''.join([self.visit_node(ch) for ch in node.children])
 
     def visit_repeat(self, node):
-        # As far as I can tell, repeat only ever has exactly 1 child
-        first_child = node.children[0]
-        if (isinstance(first_child, InNode) or
-                isinstance(first_child, AnyNode) or
-                isinstance(first_child, CategoryNode) and first_child.classname == 'word'):
-            chars = get_valid_characters(first_child)
-            return self.word_builder.build_word(
-                chars, messy=self.messy_words, length=node.repetitions)
+        # As far as I can tell, a repeat node only ever has exactly 1 child
+        child = node.children[0]
+        reps = node.repetitions
+        if (isinstance(child, InNode) or
+                isinstance(child, AnyNode) or
+                isinstance(child, CategoryNode) and child.classname == 'word'):
+            messy = self.messy_words if isinstance(child, InNode) else False
+            chars = get_valid_characters(child)
+            if reps is None and node.max_repeat != sre_constants.MAXREPEAT:
+                reps = node.min_repeat
+            return self.word_builder.build_word(chars, messy=messy, length=reps)
         else:
-            node.repetitions = 1 if node.repetitions is None else node.repetitions
-            return ''.join([self.visit(first_child) for _ in range(node.repetitions)])
+            reps = max(1, node.min_repeat) if reps is None else reps
+            return ''.join([self.visit_node(child) for _ in range(reps)])
 
     def visit_branch(self, node):
-        return self.visit(random.choice(node.children))
+        if node.choice is None:
+            chosen_child = random.choice(node.children)
+        else:
+            chosen_child = node.children[node.choice]
+        return self.visit_node(chosen_child)
 
     def visit_in(self, node):
         chars = get_valid_characters(node)
@@ -140,7 +159,7 @@ class WordBuilder(object):
 
 
 def get_valid_characters(node):
-    """ Get the list of characters that can be used to match a character node. """
+    ''' Get the list of characters that can be used to match a character node. '''
 
     if isinstance(node, InNode):
         if node.negated:
@@ -205,4 +224,4 @@ if __name__ == '__main__':
         description="Generate readable string that satisfies a regular expression.")
     argparser.add_argument('regex', help="regular expression")
     args = argparser.parse_args()
-    print urtext(args.regex)
+    print get_examples(args.regex)

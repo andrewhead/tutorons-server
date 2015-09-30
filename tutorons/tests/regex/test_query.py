@@ -53,7 +53,7 @@ class FetchAllExplanationsTest(unittest.TestCase):
         r = regions[0]
         soup = BeautifulSoup(r['document'])
         self.assertEqual(len(soup.select('svg')), 1)
-        self.assertIn("This pattern can match a string like", soup.text)
+        self.assertIn("The pattern patt matches strings including:", soup.text)
 
 
 class FetchExplanationForPlaintextText(unittest.TestCase):

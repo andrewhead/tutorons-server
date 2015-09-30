@@ -10,10 +10,11 @@ from django.template.loader import get_template
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def render(visualization=None, example=None):
+def render(pattern, visualization=None, examples=None):
     context = {
+        'patt': pattern,
         'svg': visualization,
-        'example': example,
+        'examples': examples,
     }
     template = get_template('regex.html')
     html = template.render(Context(context))
