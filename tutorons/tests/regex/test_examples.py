@@ -9,7 +9,7 @@ import re
 import mock
 
 from tutorons.regex.parse import InNode, LiteralNode, RepeatNode, BranchNode,\
-    ChoiceNode, RangeNode, NegateNode, CategoryNode
+    ChoiceNode, RangeNode, NegateNode, CategoryNode, GroupNode, AnyNode
 import tutorons.regex.examples as regex_examples
 from tutorons.regex.examples import UrtextVisitor, urtext
 
@@ -75,12 +75,36 @@ class UrtestVisitorTest(unittest.TestCase):
             msg = self.visitor.visit(br_node)
             self.assertEqual(msg, 'b')
 
+    def test_visit_group(self):
+        lit1 = LiteralNode(ord('a'), "")
+        lit2 = LiteralNode(ord('b'), "")
+        grp = GroupNode()
+        grp.children.extend([lit1, lit2])
+        msg = self.visitor.visit(grp)
+        self.assertEqual(msg, 'ab')
+
+    def test_visit_any_node(self):
+        any_node = AnyNode()
+        msg = self.visitor.visit(any_node)
+        self.assertEqual(len(msg), 1)
+
 
 class UrtextRepeatsText(unittest.TestCase):
 
     def setUp(self):
         dictionary = ["aaaa", "bbbb", "gfed", "yxxy"]
         self.visitor = UrtextVisitor(dictionary, messy_words=False)
+
+    def test_visit_repeat_once_if_child_not_in_and_repetitions_not_specified(self):
+        rpt_node = RepeatNode(False, 0)
+        grp_node = GroupNode()
+        grp_node.children.extend([
+            LiteralNode(ord('a'), ""),
+            LiteralNode(ord('b'), ""),
+        ])
+        rpt_node.children.append(grp_node)
+        msg = self.visitor.visit(rpt_node)
+        self.assertEqual(msg, 'ab')
 
     def test_visit_repeat_literal_specified_times(self):
         rpt_node = RepeatNode(False, 2, 2)
@@ -155,6 +179,11 @@ class PatternTest(unittest.TestCase):
 
     def test_mac_address(self):
         patt = r'([0-9A-F]{2}[:]){5}([0-9A-F]{2})'
+        text = urtext(patt)
+        self.assertTrue(bool(re.match(patt, text)))
+
+    def test_parse_this(self):
+        patt = "^(www.)?domain.com$"
         text = urtext(patt)
         self.assertTrue(bool(re.match(patt, text)))
 

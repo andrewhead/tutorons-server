@@ -10,7 +10,7 @@ from django.conf import settings
 
 import tutorons.regex.parse as regex_parse
 from tutorons.regex.parse import InNode, RepeatNode, LiteralNode, BranchNode,\
-    RangeNode, CategoryNode
+    RangeNode, CategoryNode, AnyNode
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -48,18 +48,21 @@ class UrtextVisitor(object):
             return self.visit_literal(node)
         elif isinstance(node, BranchNode):
             return self.visit_branch(node)
+        elif isinstance(node, AnyNode):
+            return self.visit_any(node)
         else:
             return ''.join([self.visit(ch) for ch in node.children])
 
     def visit_repeat(self, node):
         # As far as I can tell, repeat only ever has exactly 1 child
-        reps = node.repetitions
         if isinstance(node.children[0], InNode):
             in_node = node.children[0]
             chars = get_valid_characters(in_node)
-            return self.word_builder.build_word(chars, messy=self.messy_words, length=reps)
+            return self.word_builder.build_word(
+                chars, messy=self.messy_words, length=node.repetitions)
         else:
-            return ''.join([self.visit(node.children[0]) for _ in range(reps)])
+            node.repetitions = 1 if node.repetitions is None else node.repetitions
+            return ''.join([self.visit(node.children[0]) for _ in range(node.repetitions)])
 
     def visit_branch(self, node):
         return self.visit(random.choice(node.children))
@@ -70,6 +73,19 @@ class UrtextVisitor(object):
 
     def visit_literal(self, node):
         return unichr(node.value)
+
+    def visit_any(self, node):
+        # According to Python documentation:
+        # '.', in the default mode, matches any character except a newline.
+        # - (https://docs.python.org/2/library/re.html)
+        # We approximate this by replace a 'dot' with a character from the 'printable'
+        #  attribute of the 'string' module, ignoring characters that will insert
+        #  new lines to make sure that examples can be read on one line.
+        NEWLINE_CHARS = ['\n', '\r', '\x0b', '\x0c']
+        printable_chars = string.printable
+        for char in NEWLINE_CHARS:
+            printable_chars.replace(char, '')
+        return random.choice(printable_chars)
 
 
 class WordBuilder(object):

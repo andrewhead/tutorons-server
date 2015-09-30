@@ -6,7 +6,7 @@ import logging
 import unittest
 
 from tutorons.regex.parse import parse_regex, InNode, RepeatNode, BranchNode,\
-    LiteralNode, RangeNode, CategoryNode
+    LiteralNode, RangeNode, CategoryNode, AnyNode
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -22,6 +22,11 @@ class ParseRegexTest(unittest.TestCase):
         child = self._get_first_child(root)
         self.assertEqual(type(child), InNode)
 
+    def test_any_node(self):
+        root = parse_regex('.')
+        child = self._get_first_child(root)
+        self.assertEqual(type(child), AnyNode)
+
     def test_category_word_node(self):
         root = parse_regex('\w')
         cat_node = root.children[0].children[0]
@@ -33,6 +38,12 @@ class ParseRegexTest(unittest.TestCase):
         cat_node = root.children[0].children[0]
         self.assertEqual(type(cat_node), CategoryNode)
         self.assertEqual(cat_node.classname, "space")
+
+    def test_repeat_question_node(self):
+        root = parse_regex('a?')
+        child = self._get_first_child(root)
+        self.assertEqual(type(child), RepeatNode)
+        self.assertEqual(child.min_repeat, 0)
 
     def test_repeat_plus_node(self):
         root = parse_regex('a+')

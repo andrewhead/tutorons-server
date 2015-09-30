@@ -24,6 +24,7 @@ class LineType(Enum):
     RANGE = "^range"
     NEGATE = "^negate"
     CATEGORY = "^category"
+    ANY = "^any"
 
     @staticmethod
     def getLineType(string):
@@ -63,6 +64,10 @@ class CategoryNode(Node):
     def __init__(self, classname, *args, **kwargs):
         super(CategoryNode, self).__init__(*args, **kwargs)
         self.classname = classname
+
+
+class AnyNode(Node):
+    pass
 
 
 class RangeNode(Node):
@@ -173,6 +178,8 @@ def getnode(line):
         node = NegateNode(line)
     elif line_type == LineType.CATEGORY:
         node = CategoryNode(parse_category(line), line)
+    elif line_type == LineType.ANY:
+        node = AnyNode(line)
     else:
         node = Node(line)
     return node
