@@ -27,6 +27,10 @@ It is recommended that you install these into a virtualenv:
     source venv/bin/activate
     pip install -r launch/roles/webserver/files/tutorons-reqs.txt
 
+You may need to upgrade/install xcode command line tools: 
+    
+    xcode-select --install
+
 Remember that if you use a virtual environment, you will have to run `source venv/bin/activate` every time that you want to run the server.
 
 ## Additional precompiled dependencies
