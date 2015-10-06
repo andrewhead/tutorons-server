@@ -78,6 +78,7 @@ If you have installed `automake` using Homebrew, you may need to point the build
 
 While you're developing, you can use the following convenience script to launch the Django server:
 
+    source venv/bin/activate
     ./rundevserver
 
 This script does, among other things:
@@ -100,6 +101,10 @@ This script does, among other things:
 
 ## Running the unit tests
 
+First, make sure the `rundevserver` script is running in another terminal.
+This will launch the Py4J gateway to the CSS explanation code that is invoked in the CSS selector unit tests.
+
 From the main directory of this project, run:
 
+    source venv/bin/activate
     DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py test --failfast
