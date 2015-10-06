@@ -54,6 +54,7 @@ def capture_stdout(func):
 
 @capture_stdout
 def describe_regex(regex):
+    re.purge()
     re.compile(regex, re.DEBUG)
 
 
