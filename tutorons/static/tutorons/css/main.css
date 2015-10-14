@@ -1,27 +1,50 @@
 .main-title {
   font-family: "Lucida Console", Monaco, monospace;
   font-size: 64px;
+  margin: 20px auto;
 }
 
 .central-div {
   margin: 0px auto;
-  margin-top: 100px;
-  width: 50%;
+  margin-top: 40px;
+  width: 60%;
+  max-width: 700px;
 }
 
 p {
   margin-top: .6em;
-  font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+
+h2, h3, h4, h5, h6 {
+  margin-top: 20px;
+}
+
+p, h2, h3, h4, h5, h6, li {
+  font-family: Helvetica, sans-serif;
+  line-height: 1.3em;
+}
+
+h2 {
+  font-size: 20px;
+}
+
+code {
+  font-family: "Lucida Console", Monaco, monospace;
 }
 
 pre {
   font-family: "Lucida Console", Monaco, monospace;
-  background-color: #D1E9E9;
+  background-color: #E1EFFF;
   border: 1px dashed black;
   padding-top: .6em;
   padding-bottom: .6em;
   padding-left: 15px;
-  margin: 0;
-  margin-top: 10px;
+  margin-top: 10px 0;
   font-size: 14px;
+  overflow: scroll;
+  line-height: 1.2em;
+}
+
+.img-inline {
+  height: 0.9em;
 }

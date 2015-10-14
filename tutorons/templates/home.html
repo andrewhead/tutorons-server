@@ -14,16 +14,72 @@
     <body>
         <div class='central-div'>
             <h1 class='main-title'>Tutorons</h1>
+            <!--
             <p>
                 <i>n. pl.</i>
                 <i>Routines that generate micro-explanations of online code.</i>
             </p>
-            <p>Click on highlighted regions to view code explanations.</p>
-            <pre><code>$('table tr td').css('font-size', '12px');</code></pre>
+            -->
+            <p>
+            <b>Tutorons automatically detect and explain code embedded in tutorial pages.</b>
+            They make context-relevant descriptions of the purpose and syntax of code available available from a tooltip with a single click.
+            </p>
+            <p>
+            Go ahead and see what these explanations look like.
+            Click on the highlighted code below to view automatically generated explanations.
+            </p>
             <pre><code>wget -A".pdf" -r -l1 -p -k http://eecs.berkeley.edu/~andrewhead</code></pre>
+            <pre><code>$('table tr td').css('font-size', '12px');</code></pre>
             <pre><code>RewriteRule ^(scripts|assets|daemons)($|/) - [L]</code></pre>
-            <br>
-            <p><a href='https://github.com/andrewhead/Tutorons'>View source on Github</a></p>
+            <p>
+            This highlighted code was detected by Tutorons that read this page and searched for code.
+            The Tutorons then built explanations for the code and returned them to your browser, where they could be viewed in a tooltip.
+            </p>
+            <h2>Start browsing with Tutorons</h2>
+            <p>
+            To start seeing automatic explanations for wget, CSS selectors, and regular expressions everywhere you navigate online, install the <a href="{% static "tutorons-addon.xpi" %}">Firefox addon</a>.
+            <!--Just open the file to install into Firefox.-->
+            Then click on the <img class='img-inline' src="{% static "tutorons/img/icon.png" %}"/> icon to enable automatic detection of code and insertion of explanations.
+            </p>
+            <h2>Add context-relevant explanations to your tutorial</h2>
+            <p>
+            By adding Tutorons to your webpage, visitors to your page will be able to click on snippets of wget, CSS selectors, and regular expressions to see automatic explanations of the code.
+            To enable Tutorons for your webpage, add the following lines to the <code>&lt;head&gt;</code> of your page.
+            </p>
+            <pre><code>&lt;script src="http://www.tutorons.com/static/tutorons-library.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  document.addEventListener("DOMContentLoaded", function (event) {
+    var tutoronsConnection = new tutorons.TutoronsConnection(window);
+    tutoronsConnection.scanDom();
+&lt;/script&gt;
+</code></pre>
+            <p>
+            You can download the Tutorons library for local use from <a href="{% static "tutorons-library.js" %}">here</a>.
+            You can also feel free to fork the libary.  The source is <a href="https://github.com/andrewhead/tutorons-library">here</a>.
+            </p>
+            <h2>Build your own Tutorons</h2>
+            <p>The Tutorons project is built from two components:</p>
+            <ul>
+                <li><a href='https://github.com/andrewhead/tutorons-server'>Tutorons server</a>:
+                    A server that receives requests requests to explain HTML pages and returns explanations of code.
+                </li>
+                <li><a href='https://github.com/andrewhead/tutorons-library'>Tutorons library</a>:
+                    A library and browser addon that can be used to fetch and display explanations of code as a programmer browses the web.
+                </li>
+            </ul>
+            <p>
+            <!--If you are interested in working to improve detection and explanation of code on the web, download the local versions of the software and start playing around with it.-->
+            For personal use, you can build a Tutoron for a language of your choice by programming a Tutorons server that runs locally, and then rebuilding the Firefox addon with an added endpoint that points to your local server.
+            The current Tutorons server code for the wget command, CSS selectors, and regular expressions should serve as inspiration for building new Tutorons.
+            </p>
+            <h2>Contribute</h2>
+            <p>
+            If you're passionate about context-relevant programming documentation for the web and want to contribute, feel free to contact me [head dot andrewm at gmail dot com], or send along a pull request for a feature you're working on.
+            </p>
+            <p>
+            I welcome comments about the format of explanations, new languages to support, or other suggestions you have about Tutorons.
+            </p>
+            <a href="https://github.com/andrewhead/tutorons-server"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
         </div>
     </body>
 </html>
