@@ -144,10 +144,17 @@ def optcombo_explain(url, options):
         key = re.sub('^--', '', opt.long_name)
         templ_args[key] = opt.value
 
+    def update_plurals(exp, arg, value):
+        ending = '' if value == 1 or value == '1' else 's'
+        replaced = exp.replace('{' + arg + 'p}', ending)
+        return replaced
+
     for optcombo, templ in COMBOHELP.items():
         match = all([opt in optnames for opt in optcombo])
         if match:
             exp = templ.format(**templ_args)
+            for arg, value in templ_args.items():
+                exp = update_plurals(exp, arg, value)
             explanations.append(exp)
             # Remove all explained options from the list of options that need
             # to be explained to avoid redundant explanations.

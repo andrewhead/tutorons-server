@@ -97,7 +97,7 @@ class BuildCompoundHelpTest(unittest.TestCase):
         ]
         exps = optcombo_explain(url, options)
         self.assertEqual(exps, [
-            "Recursively scrape web pages linked from http://google.com of type '*.jpg'."
+            "Recursively scrape web pages of type '*.jpg' from http://google.com."
         ])
 
     def testDescribeRLCombination(self):
@@ -108,7 +108,18 @@ class BuildCompoundHelpTest(unittest.TestCase):
         ]
         exps = optcombo_explain(url, options)
         self.assertEqual(exps, [
-            "Recursively scrape web pages linked from http://google.com, recursing 4 times."
+            "Recursively scrape web pages from http://google.com, following links 4 times."
+        ])
+
+    def testDescribeRLCombinationWithSingularTime(self):
+        url = "http://google.com"
+        options = [
+            Option('-l', '--level', '1'),
+            Option('-r', '--recursive', None),
+        ]
+        exps = optcombo_explain(url, options)
+        self.assertEqual(exps, [
+            "Recursively scrape web pages from http://google.com, following links 1 time."
         ])
 
     def testDescribeRALCombination(self):
@@ -121,8 +132,8 @@ class BuildCompoundHelpTest(unittest.TestCase):
         ]
         exps = optcombo_explain(url, options)
         self.assertEqual(exps, [
-            "Recursively scrape web pages linked from http://google.com " +
-            "of type '*.jpg', following links 4 times."
+            "Recursively scrape web pages of type '*.jpg' from http://google.com, " +
+            "following links 4 times."
         ])
 
 

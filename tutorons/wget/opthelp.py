@@ -7,10 +7,10 @@ from __future__ import unicode_literals
 # Custom templates for messages that describe a combination of arguments
 # Order by priority.  Options will not be described in more than one combination
 COMBOHELP = {
-    ('--recursive', '--level', '--accept'): "Recursively scrape web pages linked from {url} of type '{accept}', following links {level} times.",
+    ('--recursive', '--level', '--accept'): "Recursively scrape web pages of type '{accept}' from {url}, following links {level} time{{levelp}}.",
     ('--user', '--password'): "Authenticate at {url} with username '{user}' and password '{password}'.",
-    ('--recursive', '--level'): "Recursively scrape web pages linked from {url}, recursing {level} times.",
-    ('--recursive', '--accept'): "Recursively scrape web pages linked from {url} of type '{accept}'.",
+    ('--recursive', '--level'): "Recursively scrape web pages from {url}, following links {level} time{{levelp}}.",
+    ('--recursive', '--accept'): "Recursively scrape web pages of type '{accept}' from {url}.",
 }
 
 
