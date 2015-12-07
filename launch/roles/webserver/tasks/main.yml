@@ -9,29 +9,32 @@
   - python-dev
   - supervisor
   - memcached
-  sudo: true
   tags: serverpkgs
 
 - name: Install application dependencies
   apt: name={{ item }} update_cache=yes
   with_items: systempkgs
-  sudo: true
   when: systempkgs is defined
   tags: systempkgs
 
 - name: Install Docker
   shell: curl -sSL https://get.docker.com/ | sh
-  sudo: true
   tags: dockerinstall
 
 - name: Install Docker Python library
   pip: name=docker-py version=1.1.0
-  sudo: true
   tags: dockerinstall
+
+- name: Create the ubuntu group
+  group: name=ubuntu
+  tags: user
+
+- name: Create the ubuntu user
+  user: name=ubuntu group=ubuntu
+  tags: user
 
 - name: Create project directory
   file: state=directory path={{ projectdir }} owner=ubuntu
-  sudo: true
 
 - name: Create static directory
   file: state=directory path={{ scriptdir }} owner=ubuntu
@@ -44,69 +47,70 @@
 
 - name: Create log file
   file: state=touch path={{ logfile }} owner=ubuntu
-  sudo: true
   when: logfile is defined
 
 - name: Install virtualenv
   pip: name=virtualenv
-  sudo: true
 
 - name: Transfer Python dependencies list
   copy: src={{ appname }}-reqs.txt dest={{ projectdir }}
   tags: pythonpkgs
+  become_user: ubuntu
 
 - name: Install server Python dependencies
   pip: requirements={{ projectdir }}/{{ appname }}-reqs.txt virtualenv="{{ venv }}"
   tags: pythonpkgs
+  become_user: ubuntu
 
 - name: Checkout source code
   git: repo={{ repo }} dest={{ src }} force=yes recursive=yes
   tags: updatecode
+  become_user: ubuntu
 
 - name: Make Java project dependencies directory
   file: state=directory path={{ src }}/deps owner=ubuntu
+  become_user: ubuntu
 
 - name: Remove previous versions of project dependencies
   file: state=absent path={{ src }}/deps/{{ item }}
   with_items: external_deps
   when: external_deps is defined
   tags: dependencies
+  become_user: ubuntu
 
 - name: Install dependencies for project
-  s3: bucket={{ publicbucket }} object={{ publicdir }}/{{ item }} dest={{ src }}/deps/{{ item }} mode=get overwrite=false
+  s3: bucket={{ publicbucket }} object={{ publicdir }}/{{ item }} dest={{ src }}/deps/{{ item }} 
+      mode=get overwrite=false aws_access_key={{ aws_access_key_id }} aws_secret_key={{ aws_secret_access_key }}
   with_items: external_deps
   when: external_deps is defined
   tags: dependencies
+  become_user: ubuntu
 
 - name: Install gunicorn
   pip: name=gunicorn virtualenv="{{ venv }}"
+  become_user: ubuntu
 
 - name: Configure nginx main site
   template: src=nginx-site.j2 dest=/etc/nginx/sites-enabled/{{ appname }}
-  sudo: true
 
 - name: Add subdomains for localsites
   template: src=local-server.j2 dest=/etc/nginx/sites-enabled/{{ item.subdomain }}
   with_items: subdomains
   when: subdomains is defined
-  sudo: true
   tags: subdomains
 
 - name: Remove default nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user www-data;" state=absent
-  sudo: true
 
 - name: Add nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user ubuntu ubuntu;"
-  sudo: true
 
 - name: Create directory for Django secret keys
   file: state=directory path=/etc/django
-  sudo: true
 
 - name: Fetch Django app secret key
   s3: bucket={{ privatebucket }} object={{ djkey }} dest=/etc/django/{{ djkey }} mode=get
-  sudo: true
+      aws_access_key={{ aws_access_key_id }} aws_secret_key={{ aws_secret_access_key }}
 
 - name: Sync DB with Django models
   django_manage: >
@@ -118,6 +122,7 @@
   - syncdb
   - migrate
   tags: updatecode
+  become_user: ubuntu
 
 - name: Update static files
   django_manage: >
@@ -127,27 +132,30 @@
     settings={{ djsettings }}
   when: staticfiles is defined
   tags: updatecode
+  become_user: ubuntu
 
 - name: Transfer setup scripts
   template: src={{ item }}.j2 dest={{ scriptdir }}/{{ item }}.sh
   with_items: scripts
   when: scripts is defined
   tags: scripts
+  become_user: ubuntu
 
 - name: Run setup scripts
   command: /bin/bash {{ item }}.sh chdir={{ scriptdir }}
   with_items: scripts
   when: scripts is defined
   tags: scripts
+  become_user: ubuntu
 
 - name: Make sure memcached is running
   service: name=memcached state=started
-  sudo: true
   tags: memcached
 
 - name: Create Docker group
   group: name=docker state=present
   tags: containers
+  become_user: ubuntu
 
 - name: Fetch and start Docker containers
   docker:
@@ -156,57 +164,48 @@
     ports: "{{ item.host_port }}:{{ item.exposed_port }}"
   with_items: containers
   when: containers is defined
-  sudo: true
   tags: containers
 
 - name: Add auxiliary processes to supervisor
   template: src={{ item }}.j2 dest=/etc/supervisor/conf.d/{{ item }}.conf
   with_items: processes
   when: processes is defined
-  sudo: true
   tags: processes
 
 - name: Load auxiliary processes
   supervisorctl: name={{ item }} state=present
   with_items: processes
   when: processes is defined
-  sudo: true
   tags: processes
 
 - name: Restart auxiliary processes (stop)
   supervisorctl: name={{ item }} state=stopped
   with_items: processes
   when: processes is defined
-  sudo: true
   tags: processes
 
 - name: Restart auxiliary processes (start)
   supervisorctl: name={{ item }} state=started
   with_items: processes
   when: processes is defined
-  sudo: true
   tags: processes
 
 - name: Copy app to supervisor
   template: src=supervisor.j2 dest=/etc/supervisor/conf.d/{{ appname }}.conf
-  sudo: true
 
 - name: Stop application
   supervisorctl: name={{ appname }} state={{ item }}
   with_items:
   - present
   - stopped
-  sudo: true
   tags: updatecode
 
 - name: Cleanup after last application run
   file: dest=/tmp/{{ appname }}.pid state=absent
-  sudo: true
   tags: updatecode
 
 - name: Start application
   supervisorctl: name={{ appname }} state=started
-  sudo: true
   tags: updatecode
 
 - name: Restart nginx

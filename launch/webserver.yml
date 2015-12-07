@@ -1,7 +1,7 @@
 ---
 - hosts: webservers
   gather_facts: false
-  user: ubuntu
+  user: root
   serial: 1
   roles:
   - webserver
