@@ -25,7 +25,7 @@ class TestRenderDescription(unittest.TestCase):
         html = render(self.test_explanation, self.test_document)
         doc = BeautifulSoup(html)
         self.assertIn("You found a CSS selector", doc.text)
-        self.assertIn("selectors pick sections of HTML pages", doc.text)
+        self.assertIn("selectors choose sections of HTML pages", doc.text)
 
     def test_render_description(self):
         html = render(self.test_explanation, self.test_document)
