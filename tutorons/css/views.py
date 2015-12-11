@@ -13,7 +13,8 @@ from tutorons.common.htmltools import HtmlDocument
 from tutorons.common.util import log_region, package_region
 from tutorons.common.scanner import NodeScanner
 from tutorons.css.detect import find_jquery_selector
-from tutorons.css.explain import CssSelectorExtractor, explain as css_explain, is_selector
+from tutorons.css.explain import JavascriptSelectorExtractor, StylesheetSelectorExtractor
+from tutorons.css.explain import explain as css_explain, is_selector
 from tutorons.css.render import render as css_render
 from parsers.css.examples.examplegen import get_example as css_example
 
@@ -31,10 +32,12 @@ def scan(request):
 
     explained_regions = []
     document = HtmlDocument(doc_body)
-    extractor = CssSelectorExtractor()
+    js_extractor = JavascriptSelectorExtractor()
+    stylesheet_extractor = StylesheetSelectorExtractor()
 
-    scanner = NodeScanner(extractor, ['code', 'pre'])
-    regions = scanner.scan(document)
+    js_scanner = NodeScanner(js_extractor, ['code', 'pre'])
+    stylesheet_scanner = NodeScanner(stylesheet_extractor, ['code', 'pre', 'div'])
+    regions = js_scanner.scan(document) + stylesheet_scanner.scan(document)
     for r in regions:
         log_region(r, origin)
         exp = css_explain(r.string)

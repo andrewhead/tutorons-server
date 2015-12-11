@@ -8,8 +8,123 @@ import json
 from bs4 import BeautifulSoup
 from django.test import Client
 
-
 logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+class FetchExplanationsForSelectorsInStylesheetTest(unittest.TestCase):
+
+    def setUp(self):
+        self.client = Client()
+
+    def get_regions(self, document):
+        resp = self.client.post(
+            '/css/scan',
+            data={'origin': 'www.test.com', 'document': document})
+        regions = json.loads(resp.content)
+        return regions
+
+    def test_single_css_selector(self):
+
+        string = "".join([
+            "<html> <body> <code>",
+            " p { background-color: lightblue; } ",
+            "</code> </body> </html>"
+            ])
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 1)
+        r = regions[0]
+        self.assertEqual(
+            r['node'],
+            'HTML > BODY:nth-of-type(1) > CODE:nth-of-type(1)')
+        self.assertEqual(r['start_index'], 1)
+        self.assertEqual(r['end_index'], 1)
+
+    def test_multiple_css_selectors(self):
+
+        string = "".join([
+            "<html> <body> <code>",
+            " p { background-color: lightblue; }  ",
+            "h1 {color: navy; margin-left: 20px;} ",
+            "</code> </body> </html>"
+            ])
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 2)
+        r1 = regions[0]
+        self.assertEqual(
+            r1['node'],
+            'HTML > BODY:nth-of-type(1) > CODE:nth-of-type(1)')
+        self.assertEqual(r1['start_index'], 1)
+        self.assertEqual(r1['end_index'], 1)
+
+        r2 = regions[1]
+        self.assertEqual(
+            r2['node'],
+            'HTML > BODY:nth-of-type(1) > CODE:nth-of-type(1)')
+        self.assertEqual(r2['start_index'], 37)
+        self.assertEqual(r2['end_index'], 38)
+
+    def test_ignore_empty_declaration(self):
+
+        string = "<html> <body> <code> sel { }  </code> </body> </html>"
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 0)
+
+    def test_ignore_malformed_declaration(self):
+
+        string = "<html> <body> <code> sel : }  </code> </body> </html>"
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 0)
+
+        string = "<html> <body> <code> sel {  </code> </body> </html>"
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 0)
+
+    def test_ignore_missing_declaration(self):
+
+        string = "<html> <body> <code> sel </code> </body> </html>"
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 0)
+
+    def test_ignore_java_class(self):
+
+        string = "".join([
+            "<html> <body> <code>",
+            "  public class JavaClass{ protected JavaClass(int x){} ",
+            "public void main(String[] args){ }} ",
+            "</code> </body> </html>"
+            ])
+        regions = self.get_regions(string)
+
+        self.assertEqual(len(regions), 0)
+
+    def test_find_css_selector_filter_non_ascii(self):
+
+        s = '\n'.join([
+            "  p",
+            "{",
+            "text-align: center;",
+            "   ",
+            "color: red;",
+            "}"
+            ])
+
+        string = " <html> <body> <code> " + s + " </code> </body> </html>"
+        regions = self.get_regions(string)
+        self.assertEqual(len(regions), 1)
+
+    def test_find_tricky_selector(self):
+
+        s = "table { width: 100%;} th { height: 50px; }"
+
+        string = " <html> <body> <code> " + s + " </code> </body> </html>"
+        regions = self.get_regions(string)
+        self.assertEqual(len(regions), 2)
 
 
 class FetchAllExplanationsTest(unittest.TestCase):
@@ -18,7 +133,9 @@ class FetchAllExplanationsTest(unittest.TestCase):
         self.client = Client()
 
     def get_regions(self, document):
-        resp = self.client.post('/css/scan', data={'origin': 'www.test.com', 'document': document})
+        resp = self.client.post(
+            '/css/scan',
+            data={'origin': 'www.test.com', 'document': document})
         regions = json.loads(resp.content)
         return regions
 
@@ -62,7 +179,9 @@ class FetchExplanationForPlaintextTest(unittest.TestCase):
         self.client = Client()
 
     def get_explanation(self, text):
-        resp = self.client.post('/css/explain', data={'origin': 'www.test.com', 'text': text})
+        resp = self.client.post(
+            '/css/explain',
+            data={'origin': 'www.test.com', 'text': text})
         return resp.content
 
     def test_explain_css_selector_from_plaintext(self):
