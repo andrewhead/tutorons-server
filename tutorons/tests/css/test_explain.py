@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import unittest
 from tutorons.common.htmltools import HtmlDocument
-from tutorons.css.explain import CssSelectorExtractor, explain
+from tutorons.css.explain import JavascriptSelectorExtractor, explain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 class SelectorExtractionTest(unittest.TestCase):
 
     def setUp(self):
-        self.extractor = CssSelectorExtractor()
+        self.extractor = JavascriptSelectorExtractor()
 
     def test_extract_selector(self):
         node = HtmlDocument("<code>$('p').text('hello');</code>")
