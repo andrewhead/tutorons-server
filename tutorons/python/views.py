@@ -45,7 +45,7 @@ def scan(request):
 
 @csrf_exempt
 def explain(request):
-
+# TODO adapt for python
     text = request.POST.get('text')
     edge_size = int(request.POST.get('edge_size', 0))
     origin = request.POST.get('origin')

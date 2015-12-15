@@ -9,33 +9,33 @@ from tutorons.common.extractor import Region
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
-
+# TODO add real explanations for python docs
+# TODO better variable, method naming
 explanations = {"len" : "len_explain",
                 "abs" : "abs_explain",
                 "bin" : "bin_explain", 
                 "all" : "all_explain", }
- 
+
 def filter_non_ascii(c):
     if ord(c) > 127:
         return ' '
     return c
 
 def findOffset(text_list, call):
-    """Takes in a text as a list and a call and finds the start of call within text"""
+    # Takes in a text as a list and a call and finds the start of call within text
     offset = 0
     if call.lineno > 1:
         for l in xrange(call.lineno - 1):
             # add 1 to account for newline characters
             offset += len(text_list[l]) + 1
     offset += call.col_offset
-    # print offset
     return offset
 
 def findBuiltIns(ast_object):
     """Takes in an ast_object and recursively checks for builtin-ins, returns a list of all builtins in the ast_object"""
     rtn = []
     #turn into a case switch
-    # print ast_object
+    # print ast_objects
     if isinstance(ast_object, ast.Expr):
         ast_object = ast_object.value
     if isinstance(ast_object, ast.Num):
@@ -61,26 +61,33 @@ def findBuiltIns(ast_object):
         # print rtn
         return rtn
 
+class BuiltInFinder(ast.NodeVisitor):
+    def __init__(self):
+        self.calls = []
+
+    def generic_visit(self, node):
+        if isinstance(node, ast.Call) and node.func.id in explanations:
+            self.calls.append(node)
+        ast.NodeVisitor.generic_visit(self, node)
+
 class PythonBuiltInExtractor(object):
-    #TODO:  recurse down binary operations checking left & right for calls
-    #       recurse down a call's args
     def extract(self, node):
         text = ''.join(map(filter_non_ascii, node.text))
-        print "...................................\n" + text + "\n"
         text_list = text.split('\n')
         offset = 0
         valid_regions = []
+        print "...................................\n" + text + "\n"
 
-        calls = []
+        # parse text into an ast tree, calls is all call nodes in the tree
         try:
-            ast_objects = ast.parse(text).body
+            ast_tree = ast.parse(text)
+            finder = BuiltInFinder()
+            finder.visit(ast_tree)
+            calls = finder.calls
         except:
-            ast_objects = []
-        print "ast_objects: " + str(ast_objects)
-        for ast_object in ast_objects:
-            calls += findBuiltIns(ast_object)
+            calls = []
 
-        # package call objects into regions
+        # package ast nodes into region objects
         for call in calls:
             built_in = call.func.id
             start = findOffset(text_list, call)

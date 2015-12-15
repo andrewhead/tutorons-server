@@ -10,12 +10,6 @@ import re
 from bs4 import BeautifulSoup
 import tinycss
 
-# from tutorons.common.extractor import JavascriptStringExtractor
-# from tutorons.common.extractor import Region
-
-# from tutorons.common.util import get_descendants
-# from tutorons.css.tags import HTML_TAGS
-# from tutorons.css.fileext import EXTENSIONS
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
