@@ -32,12 +32,13 @@ def scan(request):
     document = HtmlDocument(doc_body)
     builtin_extractor = PythonBuiltInExtractor()
 
-    builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
+    builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre', 'span'])
     regions = builtin_scanner.scan(document)
     for r in regions:
         log_region(r, origin)
+        # exp should come from the explanations dictionary
         exp = python_explain(r.string)
-        document = python_render(exp)
+        document = python_render(r.string, exp)
         explained_regions.append(package_region(r, document))
 
     return HttpResponse(json.dumps(explained_regions, indent=2))

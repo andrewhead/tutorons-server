@@ -6,15 +6,11 @@ import logging
 import ast
 
 from tutorons.common.extractor import Region
-
+from tutorons.python.explain import explanations
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 # TODO add real explanations for python docs
 # TODO better variable, method naming
-explanations = {"len" : "len_explain",
-                "abs" : "abs_explain",
-                "bin" : "bin_explain", 
-                "all" : "all_explain", }
 
 def filter_non_ascii(c):
     if ord(c) > 127:
@@ -31,43 +27,23 @@ def findOffset(text_list, call):
     offset += call.col_offset
     return offset
 
-def findBuiltIns(ast_object):
-    """Takes in an ast_object and recursively checks for builtin-ins, returns a list of all builtins in the ast_object"""
-    rtn = []
-    #turn into a case switch
-    # print ast_objects
-    if isinstance(ast_object, ast.Expr):
-        ast_object = ast_object.value
-    if isinstance(ast_object, ast.Num):
-        return rtn
-    elif isinstance(ast_object, ast.Call):
-        if ast_object.func.id in explanations:
-            rtn += [ast_object]
-        #flatten this into a list comprehension
-        for arg in ast_object.args:
-            # print "in here"
-            rtn += findBuiltIns(arg)
-        # print rtn 
-        return rtn
-    elif isinstance(ast_object, ast.BinOp):
-        return findBuiltIns(ast_object.left) + findBuiltIns(ast_object.right)
-    elif isinstance(ast_object, ast.Assign) or isinstance(ast_object, ast.AugAssign):
-        return findBuiltIns(ast_object.value)
-    elif isinstance(ast_object, ast.Print):
-        for value in ast_object.values:
-            rtn += findBuiltIns(value) 
-        return rtn
-    else:
-        # print rtn
-        return rtn
-
 class BuiltInFinder(ast.NodeVisitor):
     def __init__(self):
         self.calls = []
 
+    # def generic_visit(self, node):
+    #     if isinstance(node, ast.Call) and node.func.id in explanations:
+    #         self.calls.append(node)
+    #     ast.NodeVisitor.generic_visit(self, node)
+
     def generic_visit(self, node):
-        if isinstance(node, ast.Call) and node.func.id in explanations:
-            self.calls.append(node)
+        print self.calls
+        print node
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            print node.func.id
+            if node.func.id in explanations:
+                print "found builtin!!"
+                self.calls.append(node)
         ast.NodeVisitor.generic_visit(self, node)
 
 class PythonBuiltInExtractor(object):
@@ -76,7 +52,7 @@ class PythonBuiltInExtractor(object):
         text_list = text.split('\n')
         offset = 0
         valid_regions = []
-        print "...................................\n" + text + "\n"
+        print ".................START..................\n" + text + "\n.................END..................\n"
 
         # parse text into an ast tree, calls is all call nodes in the tree
         try:
@@ -84,7 +60,10 @@ class PythonBuiltInExtractor(object):
             finder = BuiltInFinder()
             finder.visit(ast_tree)
             calls = finder.calls
-        except:
+            print calls
+        except Exception,e:
+            print str(e)
+            print 'I have failed :('
             calls = []
 
         # package ast nodes into region objects

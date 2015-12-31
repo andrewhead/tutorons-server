@@ -13,8 +13,8 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 # TODO add support for arguments and examples, how to actually evaluate the expression
 # TODO need some tweaking of html template?
 
-def render(explanation):
+def render(builtin, explanation):
     python_template = get_template('python.html')
-    context = {'exp': explanation,}
+    context = {'builtin': builtin, 'exp': explanation,}
     exp_html = python_template.render(Context(context))
     return exp_html
