@@ -32,13 +32,12 @@ def scan(request):
     document = HtmlDocument(doc_body)
     builtin_extractor = PythonBuiltInExtractor()
 
-    builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre', 'span'])
+    builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
     regions = builtin_scanner.scan(document)
     for r in regions:
         log_region(r, origin)
-        # exp should come from the explanations dictionary
-        exp = python_explain(r.string)
-        document = python_render(r.string, exp)
+        hdr, exp = python_explain(r.string)
+        document = python_render(r.string, exp, hdr)
         explained_regions.append(package_region(r, document))
 
     return HttpResponse(json.dumps(explained_regions, indent=2))
@@ -46,23 +45,27 @@ def scan(request):
 
 @csrf_exempt
 def explain(request):
-# TODO adapt for python
     text = request.POST.get('text')
-    edge_size = int(request.POST.get('edge_size', 0))
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
 
     error_template = get_template('error.html')
 
-    if edge_size > 0:
-        text = find_jquery_selector(text, edge_size)
+    explained_regions = []
+    text = HtmlDocument(text)
+    builtin_extractor = PythonBuiltInExtractor()
 
-    if is_selector(text):
-        exp = css_explain(text)
-        example = css_example(text)
-        exp_html = css_render(exp, example)
-        return HttpResponse(exp_html)
+    builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
+    regions = builtin_scanner.scan(text)
+
+    if regions:
+        for r in regions:
+            log_region(r, origin)
+            hdr, exp = python_explain(r.string)
+            document = python_render(r.string, exp, hdr)
+            explained_regions.append(package_region(r, document))
+        return HttpResponse(json.dumps(explained_regions, indent=2))
     else:
-        logging.error("Error processing CSS selector %s", text)
-        error_html = error_template.render(Context({'text': text, 'type': 'CSS selector'}))
+        logging.error("Error processing python built-in %s", text)
+        error_html = error_template.render(Context({'text': text, 'type': 'python built-in'}))
         return HttpResponse(error_html)
