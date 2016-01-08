@@ -1,9 +1,7 @@
-<h5>You found a python built-in.</h5>
+<h5>You found the python built-in, <i> {{ builtin }} <i>.</h5>
+<dl>
+	{{ hdr | safe }}
+	{{ exp | safe }}
+</dl>
 
-<p>
-    {{ exp }}
-</p>
-
-<p>
-    <i>If you haven't seen them before</i>, built-ins are predefined functions that the python interpreter provides.
-</p>
+<a href = {{url | safe}}>View on Python docs.</a>
