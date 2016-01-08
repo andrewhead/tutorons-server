@@ -36,8 +36,8 @@ def scan(request):
     regions = builtin_scanner.scan(document)
     for r in regions:
         log_region(r, origin)
-        hdr, exp = python_explain(r.string)
-        document = python_render(r.string, exp, hdr)
+        hdr, exp, url = python_explain(r.string)
+        document = python_render(r.string, hdr, exp, url)
         explained_regions.append(package_region(r, document))
 
     return HttpResponse(json.dumps(explained_regions, indent=2))
@@ -61,8 +61,8 @@ def explain(request):
     if regions:
         for r in regions:
             log_region(r, origin)
-            hdr, exp = python_explain(r.string)
-            document = python_render(r.string, exp, hdr)
+            hdr, exp, url = python_explain(r.string)
+            document = python_render(r.string, hdr, exp, url)
             explained_regions.append(package_region(r, document))
         return HttpResponse(json.dumps(explained_regions, indent=2))
     else:

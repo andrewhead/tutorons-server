@@ -17,15 +17,10 @@ explanations = collections.OrderedDict()  # builtin : explanation (dt, dd)
 
 def resolve(a):
     """Resolve relative hyperlinks to poin to python docs instead of current page"""
-    if a['href'][0] == '#':
-        a['href'] = a['href'].replace(
-            a['href'],
-            'https://docs.python.org/2/library/functions.html' + a['href'])
-    else:
-        a['href'] = a['href'].replace(a['href'], 'https://docs.python.org/2/library/' + a['href'])
+    a['href'] = a['href'].replace(a['href'], 'https://docs.python.org/2/library/' + a['href'])
 
 # fix all relative hyperlinks
-for tag in dd + dt:
+for tag in dd:
     map(resolve, tag.findAll('a'))
 
 # group dt tags for the same builtin and add to explanations dict
@@ -35,9 +30,14 @@ for tag in dt:
     else:
         explanations[tag.code.text.encode()].append(tag)
 
+# remove hyperlink from headers
+[tag.a.extract() for tag in dt if tag.a]
+
 # add descriptions to explanations dict
 for builtin, desc in zip(explanations, dd):
-    explanations[builtin] = (str(explanations[builtin]), str(desc))
+    explanations[builtin] = (
+        str(explanations[builtin]), str(desc),
+        'https://docs.python.org/2/library/functions.html#' + builtin)
 
 
 def explain(builtin):

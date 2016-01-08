@@ -10,8 +10,8 @@ from django.template import Context
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def render(builtin, explanation, header):
+def render(builtin, header, explanation, url):
     python_template = get_template('python.html')
-    context = {'builtin': builtin, 'hdr': header, 'exp': explanation}
+    context = {'builtin': builtin, 'hdr': header, 'exp': explanation, 'url': url}
     exp_html = python_template.render(Context(context))
     return exp_html
