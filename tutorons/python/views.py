@@ -45,26 +45,26 @@ def scan(request):
 
 @csrf_exempt
 def explain(request):
+
     text = request.POST.get('text')
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
 
     error_template = get_template('error.html')
 
-    explained_regions = []
     text = HtmlDocument(text)
     builtin_extractor = PythonBuiltInExtractor()
 
     builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
     regions = builtin_scanner.scan(text)
 
-    if regions:
-        for r in regions:
-            log_region(r, origin)
-            hdr, exp, url = python_explain(r.string)
-            document = python_render(r.string, hdr, exp, url)
-            explained_regions.append(package_region(r, document))
-        return HttpResponse(json.dumps(explained_regions, indent=2))
+    if regions[0].start_offset == 0:
+        print "in explain"
+        log_region(regions[0], origin)
+        hdr, exp, url = python_explain(regions[0].string)
+        document = python_render(regions[0].string, hdr, exp, url)
+        explained_region = package_region(regions[0], document)
+        return HttpResponse(json.dumps(explained_region, indent=2))
     else:
         logging.error("Error processing python built-in %s", text)
         error_html = error_template.render(Context({'text': text, 'type': 'python built-in'}))

@@ -11,41 +11,37 @@ from tutorons.python.explain import explanations
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def filter_non_ascii(c):
-    if ord(c) > 127:
-        return ' '
-    return c
-
-
-def findOffset(text_list, call):
-    """Takes in a text as a list and function call and finds the start of call within text"""
+def find_offset(text, call):
+    """Takes in a text and function call and finds the start of call within text"""
+    text_list = text.split('\n')
     offset = 0
-    if call.lineno > 1:
-        for l in xrange(call.lineno - 1):
-            # add 1 to account for newline characters
-            offset += len(text_list[l]) + 1
+    for l in range(call.lineno - 1):
+        # add 1 to account for newline characters
+        offset += len(text_list[l]) + 1
     offset += call.col_offset
     return offset
 
 
 class BuiltInFinder(ast.NodeVisitor):
+
     def __init__(self):
         self.calls = []
+        self.explanations = explanations
 
     def generic_visit(self, node):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            if node.func.id in explanations:
+            if node.func.id in self.explanations:
                 self.calls.append(node)
-        ast.NodeVisitor.generic_visit(self, node)
+        super(BuiltInFinder, self).generic_visit(node)
 
 
 class PythonBuiltInExtractor(object):
+
     def extract(self, node):
-        text = ''.join(map(filter_non_ascii, node.text))
-        text_list = text.split('\n')
+        text = node.text.encode('ascii', 'ignore')
         valid_regions = []
 
-        # Parse text into an ast tree and add all nodes in the tree to calls
+        # Parse text into an ast tree and add all call nodes in the tree to calls
         try:
             ast_tree = ast.parse(text)
             finder = BuiltInFinder()
@@ -57,6 +53,6 @@ class PythonBuiltInExtractor(object):
         # Package ast nodes as region objects
         for call in calls:
             built_in = call.func.id
-            start = findOffset(text_list, call)
+            start = find_offset(text, call)
             valid_regions.append(Region(node, start, start + len(built_in) - 1, built_in))
         return valid_regions

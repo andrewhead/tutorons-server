@@ -79,7 +79,7 @@ class FetchExplanationsForPythonBuiltInsTest(unittest.TestCase):
         regions = self.get_regions(string)
         self.assertEqual(len(regions), 0)
 
-    def test_detect_increment(self):
+    def test_detect_builtin_after_increment(self):
         string = "<html> <body> <code>x = 2\nx += abs(-1)</code> </body> </html>"
         regions = self.get_regions(string)
         self.assertEqual(len(regions), 1)
