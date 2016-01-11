@@ -15,6 +15,8 @@ from tutorons.common.scanner import NodeScanner
 from tutorons.python.detect import PythonBuiltInExtractor
 from tutorons.python.explain import explain as python_explain
 from tutorons.python.render import render as python_render
+from tutorons.python.builtins import explanations
+from tutorons.common.extractor import Region
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -52,19 +54,12 @@ def explain(request):
 
     error_template = get_template('error.html')
 
-    text = HtmlDocument(text)
-    builtin_extractor = PythonBuiltInExtractor()
-
-    builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
-    regions = builtin_scanner.scan(text)
-
-    if regions[0].start_offset == 0:
-        print "in explain"
-        log_region(regions[0], origin)
-        hdr, exp, url = python_explain(regions[0].string)
-        document = python_render(regions[0].string, hdr, exp, url)
-        explained_region = package_region(regions[0], document)
-        return HttpResponse(json.dumps(explained_region, indent=2))
+    if text in explanations:
+        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
+        log_region(region, origin)
+        hdr, exp, url = python_explain(text)
+        exp_html = python_render(text, hdr, exp, url)
+        return HttpResponse(exp_html)
     else:
         logging.error("Error processing python built-in %s", text)
         error_html = error_template.render(Context({'text': text, 'type': 'python built-in'}))
