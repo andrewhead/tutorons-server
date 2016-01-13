@@ -6,7 +6,7 @@ import logging
 import ast
 
 from tutorons.common.extractor import Region
-from tutorons.python.explain import explanations
+from tutorons.python.builtins import explanations
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -24,13 +24,13 @@ def find_offset(text, call):
 
 class BuiltInFinder(ast.NodeVisitor):
 
-    def __init__(self):
+    def __init__(self, builtin_names):
         self.calls = []
-        self.explanations = explanations
+        self.builtin_names = builtin_names
 
     def generic_visit(self, node):
         if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            if node.func.id in self.explanations:
+            if node.func.id in self.builtin_names:
                 self.calls.append(node)
         super(BuiltInFinder, self).generic_visit(node)
 
@@ -44,7 +44,7 @@ class PythonBuiltInExtractor(object):
         # Parse text into an ast tree and add all call nodes in the tree to calls
         try:
             ast_tree = ast.parse(text)
-            finder = BuiltInFinder()
+            finder = BuiltInFinder(explanations.keys())
             finder.visit(ast_tree)
             calls = finder.calls
         except:

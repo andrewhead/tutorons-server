@@ -1,3 +1,8 @@
+#! /usr/bin/env python
+# encoding: utf-8
+
+from __future__ import unicode_literals
+
 explanations = {
   "bytearray": [
     "<dt id=\"bytearray\">\n<em class=\"property\">class </em><code class=\"descname\">bytearray</code><span class=\"sig-paren\">(</span><span class=\"optional\">[</span><em>source</em><span class=\"optional\">[</span>, <em>encoding</em><span class=\"optional\">[</span>, <em>errors</em><span class=\"optional\">]</span><span class=\"optional\">]</span><span class=\"optional\">]</span><span class=\"sig-paren\">)</span></dt>", 

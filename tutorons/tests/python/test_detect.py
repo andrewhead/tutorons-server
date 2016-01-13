@@ -86,7 +86,7 @@ class PythonBuiltInDetectionTest(unittest.TestCase):
         self.assertEqual(r['start_index'], 11)
         self.assertEqual(r['end_index'], 13)
 
-    def test_detect_print(self):
+    def ttest_detect_builtin_within_print(self):
         string = "<html> <body> <code>print(len([1,2,3,4]))</code> </body> </html>"
         regions = self.get_regions(string)
 
