@@ -109,7 +109,7 @@ class FetchExplanationsForSelectorsInStylesheetTest(unittest.TestCase):
             "  p",
             "{",
             "text-align: center;",
-            "   ",
+            "   ",
             "color: red;",
             "}"
             ])

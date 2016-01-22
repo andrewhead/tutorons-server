@@ -17,10 +17,13 @@ from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, Javasc
 from tutorons.regex.explain import InvalidRegexException, visualize as regex_viz
 from tutorons.regex.examples import get_examples
 from tutorons.regex.render import render as regex_render
+from tutorons.common.dblogger import DBLogger
+from tutorons.common.extractor import Region
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
+db_logger = DBLogger()
 
 
 @csrf_exempt
@@ -29,6 +32,7 @@ def scan(request):
     doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
+    db_logger.log(request)
 
     explained_regions = []
     document = HtmlDocument(doc_body)
@@ -46,6 +50,7 @@ def scan(request):
         for r in regions:
 
             log_region(r, origin)
+            db_logger.log(request, r)
 
             try:
                 svg = regex_viz(r.pattern)
@@ -72,10 +77,13 @@ def explain(request):
     text = request.POST.get('text')
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
+    db_logger.log(request)
 
     try:
         svg = regex_viz(text)
         html = regex_render(svg)
+        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
+        db_logger.log(request, region)
     except InvalidRegexException as e:
         logging.error("Error processing regular expression %s: %s", e.pattern, e.msg)
         error_template = get_template('error.html')

@@ -14,10 +14,13 @@ from tutorons.common.util import log_region, package_region
 from tutorons.common.scanner import CommandScanner, InvalidCommandException
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.wget.render import render as wget_render
+from tutorons.common.dblogger import DBLogger
+from tutorons.common.extractor import Region
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
+db_logger = DBLogger()
 
 
 @csrf_exempt
@@ -26,6 +29,7 @@ def scan(request):
     doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
+    db_logger.log(request)
 
     explained_regions = []
     document = HtmlDocument(doc_body)
@@ -34,6 +38,7 @@ def scan(request):
     regions = scanner.scan(document)
     for r in regions:
         log_region(r, origin)
+        db_logger.log(request, r)
         try:
             exp = wget_explain(r.string)
         except InvalidCommandException as e:
@@ -51,11 +56,14 @@ def explain(request):
     text = request.POST.get('text')
     origin = request.POST.get('origin')
     region_logger.info("Request for explanation for text from origin: %s", origin)
+    db_logger.log(request)
 
     error_template = get_template('error.html')
 
     try:
         exp = wget_explain(text)
+        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
+        db_logger.log(request, region)
     except InvalidCommandException as e:
         logging.error("Error processing wget command %s: %s", e.cmd, e.exception)
         error_html = error_template.render(Context({'text': text, 'type': 'wget command'}))

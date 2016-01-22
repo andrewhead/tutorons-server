@@ -17,10 +17,12 @@ from tutorons.css.explain import JavascriptSelectorExtractor, StylesheetSelector
 from tutorons.css.explain import explain as css_explain, is_selector
 from tutorons.css.render import render as css_render
 from parsers.css.examples.examplegen import get_example as css_example
-
+from tutorons.common.dblogger import DBLogger
+from tutorons.common.extractor import Region
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
+db_logger = DBLogger()
 
 
 @csrf_exempt
@@ -29,6 +31,7 @@ def scan(request):
     doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
     region_logger.info("Request for page from origin: %s", origin)
+    db_logger.log(request)
 
     explained_regions = []
     document = HtmlDocument(doc_body)
@@ -40,6 +43,7 @@ def scan(request):
     regions = js_scanner.scan(document) + stylesheet_scanner.scan(document)
     for r in regions:
         log_region(r, origin)
+        db_logger.log(request, r)
         exp = css_explain(r.string)
         example = css_example(r.string)
         document = css_render(exp, example)
@@ -55,6 +59,7 @@ def explain(request):
     edge_size = int(request.POST.get('edge_size', 0))
     origin = request.POST.get('origin')
     region_logger.info("Request for text from origin: %s", origin)
+    db_logger.log(request)
 
     error_template = get_template('error.html')
 
@@ -62,6 +67,8 @@ def explain(request):
         text = find_jquery_selector(text, edge_size)
 
     if is_selector(text):
+        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
+        db_logger.log(request, region)
         exp = css_explain(text)
         example = css_example(text)
         exp_html = css_render(exp, example)
