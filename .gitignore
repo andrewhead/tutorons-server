@@ -5,6 +5,7 @@ venv
 
 # Logging
 .*.log
+npm-debug.log
 
 # Editing
 *.swp

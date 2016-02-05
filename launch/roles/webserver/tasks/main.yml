@@ -111,6 +111,7 @@
 - name: Fetch Django app secret key
   s3: bucket={{ privatebucket }} object={{ djkey }} dest=/etc/django/{{ djkey }} mode=get
       aws_access_key={{ aws_access_key_id }} aws_secret_key={{ aws_secret_access_key }}
+  tags: appkey
 
 - name: Sync DB with Django models
   django_manage: >
