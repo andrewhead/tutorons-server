@@ -6,7 +6,7 @@ import logging
 import django
 import json
 from django.test import Client
-from tutorons.common.models import Block, Query, Region
+from tutorons.common.models import Block, ServerQuery, Region
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -33,7 +33,7 @@ class DBLoggerTest(django.test.TestCase):
         string = "<html> <body> <code>abs(2)</code> </body> </html>"
         self.get_python_regions(string)
         b = Block.objects.all()[0]
-        q = Query.objects.all()[0]
+        q = ServerQuery.objects.all()[0]
         r = Region.objects.all()[0]
         self.assertEqual(b.block_type, 'code')
         self.assertEqual(q.path, '/python/scan')
@@ -52,7 +52,7 @@ class DBLoggerTest(django.test.TestCase):
         self.get_python_regions(string)
         b = Block.objects.all()
         self.assertEqual(len(b), 1)
-        q = Query.objects.all()
+        q = ServerQuery.objects.all()
         self.assertEqual(len(q), 2)
 
     def test_multiple_documents(self):
@@ -66,5 +66,5 @@ class DBLoggerTest(django.test.TestCase):
         string = "<html> <body> <code>abs(2)\nlen('fdsjkfds')</code><code>h1 {color: navy; margin-left: 20px;}</code> </body> </html>"
         self.get_python_regions(string)
         self.get_css_regions(string)
-        q = Query.objects.all()
+        q = ServerQuery.objects.all()
         self.assertNotEqual(q[0].path, q[1].path)

@@ -22,12 +22,11 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Query',
+            name='ClientQuery',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('time', models.DateTimeField(auto_now_add=True)),
-                ('ip_addr', models.GenericIPAddressField(null=True, blank=True)),
-                ('path', models.CharField(max_length=100)),
+                ('start_time', models.DateTimeField(null=True, blank=True)),
+                ('end_time', models.DateTimeField(null=True, blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -42,7 +41,26 @@ class Migration(migrations.Migration):
                 ('r_type', models.CharField(max_length=100)),
                 ('r_method', models.CharField(max_length=100)),
                 ('block', models.ForeignKey(blank=True, to='common.Block', null=True)),
-                ('query', models.ForeignKey(blank=True, to='common.Query', null=True)),
             ],
+        ),
+        migrations.CreateModel(
+            name='ServerQuery',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('start_time', models.DateTimeField(auto_now_add=True)),
+                ('end_time', models.DateTimeField(auto_now=True, null=True)),
+                ('ip_addr', models.GenericIPAddressField(null=True, blank=True)),
+                ('path', models.CharField(max_length=100)),
+            ],
+        ),
+        migrations.AddField(
+            model_name='region',
+            name='query',
+            field=models.ForeignKey(blank=True, to='common.ServerQuery', null=True),
+        ),
+        migrations.AddField(
+            model_name='clientquery',
+            name='server_query',
+            field=models.ForeignKey(blank=True, to='common.ServerQuery', null=True),
         ),
     ]

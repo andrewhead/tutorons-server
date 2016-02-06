@@ -19,7 +19,9 @@ class PythonBuiltInDetectionTest(unittest.TestCase):
         resp = self.client.post(
             '/python/scan',
             data={'origin': 'www.test.com', 'document': document})
-        regions = json.loads(resp.content)
+        
+        regions = json.loads(resp.content)['explained_regions']
+
         return regions
 
     def test_single_built_in(self):

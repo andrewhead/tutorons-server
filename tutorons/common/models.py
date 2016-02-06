@@ -21,24 +21,37 @@ class Block(models.Model):
 
 
 @python_2_unicode_compatible
-class Query(models.Model):
-    '''A request to get regions for a document'''
-    time = models.DateTimeField(auto_now_add=True)
+class ServerQuery(models.Model):
+    '''Server view of a request to get regions for a document'''
+    start_time = models.DateTimeField(auto_now_add=True)
 
+    end_time = models.DateTimeField(null=True,blank=True, auto_now=True)
     ip_addr = models.GenericIPAddressField(blank=True, null=True)
     path = models.CharField(max_length=100)
 
     def __str__(self):
         return "Time:%s, IP:%s, Path:%s" % (
-            self.time,
+            self.start_time,
             self.ip_addr,
             self.path)
 
+@python_2_unicode_compatible
+class ClientQuery(models.Model):
+    '''Client view of a request to get regions for a document'''
+    start_time = models.DateTimeField(null=True,blank=True, auto_now_add=False)
+    end_time = models.DateTimeField(null=True,blank=True, auto_now_add=False)
+    server_query = models.ForeignKey(ServerQuery, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return "Start:%s, End:%s, Query:%s" % (
+            self.start_time,
+            self.end_time,
+            self.server_query)
 
 @python_2_unicode_compatible
 class Region(models.Model):
     '''An explainable region of text'''
-    query = models.ForeignKey(Query, on_delete=models.CASCADE, null=True, blank=True)
+    query = models.ForeignKey(ServerQuery, on_delete=models.CASCADE, null=True, blank=True)
     block = models.ForeignKey(Block, on_delete=models.CASCADE, null=True, blank=True)
     time = models.DateTimeField(auto_now_add=True)
 

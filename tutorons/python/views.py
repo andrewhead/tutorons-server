@@ -29,8 +29,9 @@ db_logger = DBLogger()
 def scan(request):
     doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
+    client_start_time = request.POST.get('client_start_time')
     region_logger.info("Request for page from origin: %s", origin)
-    db_logger.log(request)
+    qid = db_logger.log(request)
 
     explained_regions = []
     document = HtmlDocument(doc_body)
@@ -44,9 +45,18 @@ def scan(request):
         hdr, exp, url = python_explain(r.string)
         document = python_render(r.string, hdr, exp, url)
         explained_regions.append(package_region(r, document))
-
-    return HttpResponse(json.dumps(explained_regions, indent=2))
-
+    # print "Regions: " + str(len(explained_regions))
+    db_logger.update_server_end_time(qid)
+    print "QID: " + str(qid)
+    a = json.dumps({"explained_regions": explained_regions, 
+                    "url": "http://localhost:8002/api/v1/client_query/", 
+                    "sq_id": str(qid),
+                    "client_start_time": client_start_time}, 
+                    indent=2)
+    # print "JSON: " + a
+    b = HttpResponse(a)
+    # print "HTTP: " + str(b)
+    return b
 
 @csrf_exempt
 def explain(request):
@@ -61,9 +71,10 @@ def explain(request):
     if text in explanations:
         region = Region(HtmlDocument(text), 0, len(text) - 1, text)
         log_region(region, origin)
-        db_logger.log(request, region)
+        qid = db_logger.log(request, region)
         hdr, exp, url = python_explain(text)
         exp_html = python_render(text, hdr, exp, url)
+        db_logger.update_server_end_time(qid)
         return HttpResponse(exp_html)
     else:
         logging.error("Error processing python built-in %s", text)
