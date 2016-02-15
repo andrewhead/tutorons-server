@@ -30,8 +30,9 @@ def scan(request):
 
     doc_body = request.POST.get('document')
     origin = request.POST.get('origin')
+    client_start_time = request.POST.get('client_start_time')
     region_logger.info("Request for page from origin: %s", origin)
-    db_logger.log(request)
+    qid = db_logger.log_query(request)
 
     explained_regions = []
     document = HtmlDocument(doc_body)
@@ -43,13 +44,16 @@ def scan(request):
     regions = js_scanner.scan(document) + stylesheet_scanner.scan(document)
     for r in regions:
         log_region(r, origin)
-        db_logger.log(request, r)
+        rid = db_logger.log_region(request, r)
         exp = css_explain(r.string)
         example = css_example(r.string)
         document = css_render(exp, example)
-        explained_regions.append(package_region(r, document))
+        explained_regions.append(package_region(r, document, rid, qid))
 
-    return HttpResponse(json.dumps(explained_regions, indent=2))
+    return HttpResponse(json.dumps({"explained_regions": explained_regions,
+                                    "url": "http://localhost:8002/api/v1/client_query/",
+                                    "sq_id": qid,
+                                    "client_start_time": client_start_time}, indent=2))
 
 
 @csrf_exempt
@@ -58,8 +62,9 @@ def explain(request):
     text = request.POST.get('text')
     edge_size = int(request.POST.get('edge_size', 0))
     origin = request.POST.get('origin')
+    client_start_time = request.POST.get('client_start_time')
     region_logger.info("Request for text from origin: %s", origin)
-    db_logger.log(request)
+    qid = db_logger.log_query(request)
 
     error_template = get_template('error.html')
 
@@ -68,12 +73,19 @@ def explain(request):
 
     if is_selector(text):
         region = Region(HtmlDocument(text), 0, len(text) - 1, text)
-        db_logger.log(request, region)
+        rid = db_logger.log_region(request, region)
         exp = css_explain(text)
         example = css_example(text)
         exp_html = css_render(exp, example)
-        return HttpResponse(exp_html)
+        explained_region = package_region(region, exp_html, rid, qid)
+
+        return HttpResponse(json.dumps({"explained_region": explained_region,
+                                        "url": "http://localhost:8002/api/v1/client_query/",
+                                        "sq_id": qid,
+                                        "client_start_time": client_start_time,
+                                        "error": 0}, indent=2))
+
     else:
         logging.error("Error processing CSS selector %s", text)
         error_html = error_template.render(Context({'text': text, 'type': 'CSS selector'}))
-        return HttpResponse(error_html)
+        return HttpResponse(json.dumps({"error": 1, "html": error_html}))

@@ -1,13 +1,15 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from tastypie.api import Api
-from tutorons.common.api import ServerQueryResource, ClientQueryResource, BlockResource, RegionResource
+from tutorons.common.api import ServerQueryResource, ClientQueryResource, BlockResource
+from tutorons.common.api import RegionResource, ViewedRegionResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(RegionResource())
 v1_api.register(BlockResource())
 v1_api.register(ServerQueryResource())
 v1_api.register(ClientQueryResource())
+v1_api.register(ViewedRegionResource())
 
 urlpatterns = patterns(
     '',

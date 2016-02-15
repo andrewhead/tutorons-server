@@ -27,7 +27,7 @@ class FetchAllExplanationsTest(unittest.TestCase):
             body="<div><div><svg><g class='root'></g></svg></div></div>")
         resp = self.client.post(
             '/regex/scan', data={'origin': 'www.test.com', 'document': document})
-        return json.loads(resp.content)
+        return json.loads(resp.content)['explained_regions']
 
     def get_regions_for_line(self, command):
         return self.get_regions("<code>" + command + "</code>")
@@ -63,7 +63,8 @@ class FetchExplanationForPlaintextText(unittest.TestCase):
 
     def get_explanation(self, text):
         resp = self.client.post('/regex/explain', data={'origin': 'www.test.com', 'text': text})
-        return resp.content
+        print type(json.loads(resp.content)['explained_region'])
+        return json.loads(resp.content)['explained_region']['document']
 
     @httpretty.activate
     def test_explain_regex_plaintext(self):

@@ -10,12 +10,14 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
 
 
-def package_region(region, document):
+def package_region(region, document, rid, qid):
     return {
         'node': get_css_selector(region.node),
         'start_index': region.start_offset,
         'end_index': region.end_offset,
         'document': document,
+        'region_id' : rid,
+        'query_id' : qid,
     }
 
 
