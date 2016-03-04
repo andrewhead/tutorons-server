@@ -82,9 +82,11 @@ class ViewedRegion(models.Model):
     region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
     server_query = models.ForeignKey(ServerQuery, on_delete=models.CASCADE, null=True, blank=True)
     time = models.DateTimeField(null=True, blank=True, auto_now=True)
+    action = models.CharField(null=True, blank=True, max_length=6)
 
     def __str__(self):
         return "Region ID:%s, ServerQuery ID:%s, Time:%s" % (
             self.region,
+            self.action,
             self.server_query,
             self.time)
