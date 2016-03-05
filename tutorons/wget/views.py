@@ -16,6 +16,7 @@ from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.wget.render import render as wget_render
 from tutorons.common.dblogger import DBLogger
 from tutorons.common.extractor import Region
+from tutorons.common.util import dec
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -24,35 +25,22 @@ db_logger = DBLogger()
 
 
 @csrf_exempt
-def scan(request):
+@dec
+def scan(html_doc):
 
-    doc_body = request.POST.get('document')
-    origin = request.POST.get('origin')
-    client_start_time = request.POST.get('client_start_time')
-    region_logger.info("Request for page from origin: %s", origin)
-    qid = db_logger.log_query(request)
-
-    explained_regions = []
-    document = HtmlDocument(doc_body)
-
+    rendered_regions = []
     scanner = CommandScanner('wget', WgetExtractor())
-    regions = scanner.scan(document)
+    regions = scanner.scan(html_doc)
     for r in regions:
-        log_region(r, origin)
-        rid = db_logger.log_region(request, r)
         try:
             exp = wget_explain(r.string)
         except InvalidCommandException as e:
             logging.error("Error processing wget command %s: %s", e.cmd, e.exception)
             continue
         document = wget_render(exp['url'], exp['opts'], exp['combo_exps'])
-        explained_regions.append(package_region(r, document, rid, qid))
+        rendered_regions.append((r, document))
 
-    return HttpResponse(json.dumps({"explained_regions": explained_regions,
-                                    "url": "http://localhost:8002/api/v1/client_query/",
-                                    "sq_id": qid,
-                                    "client_start_time": client_start_time}, indent=2))
-
+    return rendered_regions
 
 @csrf_exempt
 def explain(request):

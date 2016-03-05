@@ -19,6 +19,7 @@ from tutorons.css.render import render as css_render
 from parsers.css.examples.examplegen import get_example as css_example
 from tutorons.common.dblogger import DBLogger
 from tutorons.common.extractor import Region
+from tutorons.common.util import dec
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
@@ -26,35 +27,23 @@ db_logger = DBLogger()
 
 
 @csrf_exempt
-def scan(request):
+@dec
+def scan(html_doc):
 
-    doc_body = request.POST.get('document')
-    origin = request.POST.get('origin')
-    client_start_time = request.POST.get('client_start_time')
-    region_logger.info("Request for page from origin: %s", origin)
-    qid = db_logger.log_query(request)
-
-    explained_regions = []
-    document = HtmlDocument(doc_body)
     js_extractor = JavascriptSelectorExtractor()
     stylesheet_extractor = StylesheetSelectorExtractor()
 
     js_scanner = NodeScanner(js_extractor, ['code', 'pre'])
     stylesheet_scanner = NodeScanner(stylesheet_extractor, ['code', 'pre', 'div'])
-    regions = js_scanner.scan(document) + stylesheet_scanner.scan(document)
+    regions = js_scanner.scan(html_doc) + stylesheet_scanner.scan(html_doc)
+    rendered_regions = []
     for r in regions:
-        log_region(r, origin)
-        rid = db_logger.log_region(request, r)
         exp = css_explain(r.string)
         example = css_example(r.string)
         document = css_render(exp, example)
-        explained_regions.append(package_region(r, document, rid, qid))
+        rendered_regions.append((r, document))
 
-    return HttpResponse(json.dumps({"explained_regions": explained_regions,
-                                    "url": "http://localhost:8002/api/v1/client_query/",
-                                    "sq_id": qid,
-                                    "client_start_time": client_start_time}, indent=2))
-
+    return rendered_regions
 
 @csrf_exempt
 def explain(request):

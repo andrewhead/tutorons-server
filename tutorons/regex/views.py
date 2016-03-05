@@ -19,7 +19,7 @@ from tutorons.regex.examples import get_examples
 from tutorons.regex.render import render as regex_render
 from tutorons.common.dblogger import DBLogger
 from tutorons.common.extractor import Region
-
+from tutorons.common.util import dec
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
@@ -27,32 +27,22 @@ db_logger = DBLogger()
 
 
 @csrf_exempt
-def scan(request):
-
-    doc_body = request.POST.get('document')
-    origin = request.POST.get('origin')
-    client_start_time = request.POST.get('client_start_time')
-    region_logger.info("Request for page from origin: %s", origin)
-    qid = db_logger.log_query(request)
+@dec
+def scan(html_doc):
 
     explained_regions = []
-    document = HtmlDocument(doc_body)
     extractors = [
         GrepRegexExtractor(),
         SedRegexExtractor(),
         JavascriptRegexExtractor(),
         ApacheConfigRegexExtractor(),
     ]
-
+    
+    rendered_regions = []
     for extractor in extractors:
         scanner = NodeScanner(extractor, ['code', 'pre'])
-        regions = scanner.scan(document)
-
+        regions = scanner.scan(html_doc)
         for r in regions:
-
-            log_region(r, origin)
-            rid = db_logger.log_region(request, r)
-
             try:
                 svg = regex_viz(r.pattern)
             except InvalidRegexException as e:
@@ -67,12 +57,8 @@ def scan(request):
 
             if examples is not None or svg is not None:
                 document = regex_render(r.pattern, svg, examples)
-                explained_regions.append(package_region(r, document, rid, qid))
-
-    return HttpResponse(json.dumps({"explained_regions": explained_regions,
-                                    "url": "http://localhost:8002/api/v1/client_query/",
-                                    "sq_id": qid,
-                                    "client_start_time": client_start_time}, indent=2))
+                rendered_regions.append((r,document))
+    return rendered_regions
 
 
 @csrf_exempt

@@ -18,7 +18,7 @@ from tutorons.python.render import render as python_render
 from tutorons.python.builtins import explanations
 from tutorons.common.extractor import Region
 from tutorons.common.dblogger import DBLogger
-
+from tutorons.common.util import dec
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
@@ -26,31 +26,19 @@ db_logger = DBLogger()
 
 
 @csrf_exempt
-def scan(request):
-    doc_body = request.POST.get('document')
-    origin = request.POST.get('origin')
-    client_start_time = request.POST.get('client_start_time')
-    region_logger.info("Request for page from origin: %s", origin)
-    qid = db_logger.log_query(request)
-
-    explained_regions = []
-    document = HtmlDocument(doc_body)
+@dec
+def scan(html_doc):
     builtin_extractor = PythonBuiltInExtractor()
-
     builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
-    regions = builtin_scanner.scan(document)
+    regions = builtin_scanner.scan(html_doc)
+    rendered_regions = []
     for r in regions:
-        log_region(r, origin)
-        rid = db_logger.log_region(request, r)
+        # log_region(r, origin)
         hdr, exp, url = python_explain(r.string)
         document = python_render(r.string, hdr, exp, url)
-        explained_regions.append(package_region(r, document, rid, qid))
-    db_logger.update_server_end_time(qid)
-    return HttpResponse(json.dumps({"explained_regions": explained_regions,
-                                    "url": "http://localhost:8002/api/v1/client_query/",
-                                    "sq_id": qid,
-                                    "client_start_time": client_start_time}, indent=2))
-
+        rendered_regions.append((r, document))
+    # db_logger.update_server_end_time(qid)
+    return rendered_regions
 
 @csrf_exempt
 def explain(request):

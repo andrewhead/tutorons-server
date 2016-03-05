@@ -65,11 +65,10 @@ class FetchExplanationForPlaintextTest(unittest.TestCase):
 
     def get_explanation(self, text):
         resp = self.client.post('/wget/explain', data={'origin': 'www.test.com', 'text': text})
-        return json.loads(resp.content)['explained_region']['document']
+        return resp.content
 
     def test_explain_wget_command(self):
         resp = self.get_explanation('wget http://google.com')
-        print resp
         self.assertIn("is a Terminal command you run to download", resp)
 
     def test_fail_to_explain_not_wget(self):
