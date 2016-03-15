@@ -3,20 +3,15 @@
 
 from __future__ import unicode_literals
 import logging
-import json
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import get_template
 from django.template import Context
-from django.http import HttpResponse
 
-from tutorons.common.htmltools import HtmlDocument
-from tutorons.common.util import log_region, package_region
 from tutorons.common.scanner import CommandScanner, InvalidCommandException
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.wget.render import render as wget_render
 from tutorons.common.dblogger import DBLogger
-from tutorons.common.extractor import Region
-from tutorons.common.util import dec
+from tutorons.common.views import pagescan, snippetexplain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -25,7 +20,7 @@ db_logger = DBLogger()
 
 
 @csrf_exempt
-@dec
+@pagescan
 def scan(html_doc):
 
     rendered_regions = []
@@ -42,31 +37,16 @@ def scan(html_doc):
 
     return rendered_regions
 
-@csrf_exempt
-def explain(request):
 
-    text = request.POST.get('text')
-    origin = request.POST.get('origin')
-    client_start_time = request.POST.get('client_start_time')
-    region_logger.info("Request for explanation for text from origin: %s", origin)
-    qid = db_logger.log_query(request)
+@csrf_exempt
+@snippetexplain
+def explain(text, edge_size):
 
     error_template = get_template('error.html')
 
     try:
         exp = wget_explain(text)
-        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
-        rid = db_logger.log_region(request, region)
-
-    except InvalidCommandException as e:
-        logging.error("Error processing wget command %s: %s", e.cmd, e.exception)
-        error_html = error_template.render(Context({'text': text, 'type': 'wget command'}))
-        return HttpResponse(json.dumps({"error": 1, "html": error_html}))
-    else:
-        exp_html = wget_render(exp['url'], exp['opts'], exp['combo_exps'])
-        explained_region = package_region(region, exp_html, rid, qid)
-        return HttpResponse(json.dumps({"explained_region": explained_region,
-                                        "url": "http://localhost:8002/api/v1/client_query/",
-                                        "sq_id": qid,
-                                        "client_start_time": client_start_time,
-                                        "error": 0}, indent=2))
+        document = wget_render(exp['url'], exp['opts'], exp['combo_exps'])
+    except InvalidCommandException:
+        document = error_template.render(Context({'text': text, 'type': 'wget command'}))
+    return document

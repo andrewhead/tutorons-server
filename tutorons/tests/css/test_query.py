@@ -20,7 +20,7 @@ class FetchExplanationsForSelectorsInStylesheetTest(unittest.TestCase):
         resp = self.client.post(
             '/css/scan',
             data={'origin': 'www.test.com', 'document': document})
-        regions = json.loads(resp.content)['explained_regions']
+        regions = json.loads(resp.content)['regions']
         return regions
 
     def test_single_css_selector(self):
@@ -136,7 +136,7 @@ class FetchAllExplanationsTest(unittest.TestCase):
         resp = self.client.post(
             '/css/scan',
             data={'origin': 'www.test.com', 'document': document})
-        regions = json.loads(resp.content)['explained_regions']
+        regions = json.loads(resp.content)['regions']
         return regions
 
     def _make_code_block(self, text):

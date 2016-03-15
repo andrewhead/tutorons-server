@@ -20,7 +20,7 @@ class PythonBuiltInDetectionTest(unittest.TestCase):
             '/python/scan',
             data={'origin': 'www.test.com', 'document': document})
 
-        regions = json.loads(resp.content)['explained_regions']
+        regions = json.loads(resp.content)['regions']
 
         return regions
 

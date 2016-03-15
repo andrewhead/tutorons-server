@@ -63,7 +63,14 @@ class DBLoggerTest(django.test.TestCase):
         self.assertEqual(len(b), 2)
 
     def test_multiple_tutorons(self):
-        string = "<html> <body> <code>abs(2)\nlen('fdsjkfds')</code><code>h1 {color: navy; margin-left: 20px;}</code> </body> </html>"
+        string = '\n'.join([
+            "<html>",
+            "  <body>",
+            "    <code>abs(2)\nlen('fdsjkfds')</code>",
+            "    <code>h1 {color: navy; margin-left: 20px;}</code>",
+            "  </body>",
+            "</html>"
+        ])
         self.get_python_regions(string)
         self.get_css_regions(string)
         q = ServerQuery.objects.all()

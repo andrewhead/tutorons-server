@@ -1,53 +1,62 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+import logging
+
 from tutorons.common.models import Block, ServerQuery
 from tutorons.common.htmltools import get_css_selector
 import datetime
 
-def extract_HTTP_request_fields(request):
-        url = request.POST.get('origin')
-        path = request.path_info
-        ip = request.META.get('HTTP_X_FORWARDED_FOR')
-        if ip:
-            ip = ip.split(',')[-1].strip()
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return url, path, ip
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+def _get_request_metadata(request):
+    url = request.POST.get('origin')
+    path = request.path_info
+    forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    ip = forwarded_for.split(',')[-1].strip() if forwarded_for \
+        else request.META.get('REMOTE_ADDR')
+    return url, path, ip
+
 
 class DBLogger():
 
     def log_query(self, request):
-        # extract request fields
-        url, path, ip = extract_HTTP_request_fields(request)
-        q = ServerQuery(ip_addr=ip, path=path)
-        q.save()
-        return q.id
+        _, path, ip = _get_request_metadata(request)
+        query = ServerQuery.objects.create(ip_addr=ip, path=path)
+        return query
 
-    def log_region(self, request, region):
-        url, path, ip = extract_HTTP_request_fields(request)
-        r_type = request.path_info.split('/')[1]
-        r_method = request.path_info.split('/')[2]
+    def log_region(self, request, query, region):
+
+        url, path, ip = _get_request_metadata(request)
+        region_type, request_method = request.path_info.split('/')[0:2]
         block_hash = hash(region.node)
         block_type = region.node.name
-        # find corresponding query
-        q = ServerQuery.objects.filter(ip_addr=ip, path=path)[0]
-        # find/create block
-        b = Block.objects.filter(url=url, block_type=block_type, block_hash=block_hash)
-        if not b:
-            b = Block(url=url, block_type=block_type, block_text=region.node, block_hash=block_hash)
-        else:
-            b = b[0]
-        b.save()
-        r = q.region_set.create(
-            block=b,
+
+        # Make a record for the block of text that is being explained
+        block, created = Block.objects.get_or_create(
+            url=url,
+            block_type=block_type,
+            block_hash=block_hash
+        )
+        if created:
+            block.block_test = region.node
+            block.save()
+
+        # Create and save a new region
+        region = query.region_set.create(
+            block=block,
             node=get_css_selector(region.node),
             start=region.start_offset,
             end=region.end_offset,
             string=region.string,
-            r_type=r_type,
-            r_method=r_method)
-        return r.id #also other stuff
+            r_type=region_type,
+            r_method=request_method
+        )
+        return region
 
-    def update_server_end_time(self, qid):
-        q = ServerQuery.objects.filter(id=qid)[0]
-        q.end_time = datetime.datetime.now()
-        q.save()
-
+    def update_server_end_time(self, query):
+        query.end_time = datetime.datetime.now()
+        query.save()

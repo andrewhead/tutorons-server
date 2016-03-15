@@ -7,6 +7,7 @@ import logging
 from django.http import HttpResponse
 import json
 
+from tutorons.common.extractor import Region
 from tutorons.common.htmltools import get_css_selector, HtmlDocument
 from tutorons.common.dblogger import DBLogger
 
@@ -29,7 +30,7 @@ def pagescan(scan_func):
     '''
     A wrapper around 'scan' views.
     Handles a lot of the "scanning" boilerplate of fetching request
-    arguments, logging the request and its results, and retturning the
+    arguments, logging the request and its results, and returning the
     results as and HTTP response.
     '''
     def wrapper(request):
@@ -59,9 +60,44 @@ def pagescan(scan_func):
         return HttpResponse(
             json.dumps({
                 'regions': regions_explained,
-                'url': "http://localhost:8002/api/v1/client_query/",
+                'url': "http://tutorons.com/api/v1/client_query/",
                 'query_id': query_record.id,
                 'client_start_time': client_req_time,
             }, indent=2))
+
+    return wrapper
+
+
+def snippetexplain(explain_func):
+    '''
+    A wrapper around 'explaining' views.
+    Handles a lot of the "explaining" boilerplate of fetching request
+    arguments, logging the request and its results, and returning the
+    results as and HTTP response.
+    '''
+    def wrapper(request):
+
+        text = request.POST.get('text')
+        client_start_time = request.POST.get('client_start_time')
+        edge_size = int(request.POST.get('edge_size', 0))
+
+        db_logger = DBLogger()
+        query_record = db_logger.log_query(request)
+
+        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
+        explanation = explain_func(text, edge_size)
+        region_record = db_logger.log_region(request, query_record, region)
+        explained_region = _package_region(region, explanation, region_record.id, query_record.id)
+
+        # Update the runtime of the scan
+        db_logger.update_server_end_time(query_record)
+
+        return HttpResponse(json.dumps({
+            "region": explained_region,
+            "url": "http://tutorons.com/api/v1/client_query/",
+            "sq_id": query_record.id,
+            "client_start_time": client_start_time,
+            "error": 0
+        }, indent=2))
 
     return wrapper

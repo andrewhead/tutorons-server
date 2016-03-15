@@ -26,9 +26,9 @@ class FetchAllExplanationsTest(unittest.TestCase):
             httpretty.GET, settings.REGEX_SVG_ENDPOINT,
             body="<div><div><svg><g class='root'></g></svg></div></div>")
         resp = self.client.post(
-            '/regex/scan', 
+            '/regex/scan',
             data={'origin': 'www.test.com', 'document': document})
-        return json.loads(resp.content)['explained_regions']
+        return json.loads(resp.content)['regions']
 
     def get_regions_for_line(self, command):
         return self.get_regions("<code>" + command + "</code>")
