@@ -1,18 +1,12 @@
 from tastypie.authorization import Authorization
 from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
 
-from tutorons.common.models import Block, ServerQuery, ClientQuery, Region, View
+from tutorons.common.models import ServerQuery, ClientQuery, Region, View
 from tastypie import fields
 
 
-class BlockResource(ModelResource):
-    class Meta:
-        queryset = Block.objects.all()
-        resource_name = 'block'
-        authorization = Authorization()
-
-
 class ServerQueryResource(ModelResource):
+
     class Meta:
         queryset = ServerQuery.objects.all()
         resource_name = 'server_query'
@@ -35,8 +29,6 @@ class ClientQueryResource(ModelResource):
 
 
 class RegionResource(ModelResource):
-    query = fields.ForeignKey(ServerQueryResource, 'query')
-    block = fields.ForeignKey(BlockResource, 'block')
 
     class Meta:
         queryset = Region.objects.all()
