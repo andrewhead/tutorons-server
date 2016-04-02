@@ -43,9 +43,9 @@ class ServerQuery(models.Model):
 class ClientQuery(models.Model):
     ''' The timing of a request to this server from the client's perspctive. '''
 
-    start_time = models.DateTimeField(null=True, blank=True, auto_now_add=False)
-    end_time = models.DateTimeField(null=True, blank=True, auto_now_add=False)
-    server_query = models.ForeignKey(ServerQuery, on_delete=models.CASCADE, null=True, blank=True)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    server_query = models.ForeignKey(ServerQuery, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return "Start:%s, End:%s, Query:%s" % (
@@ -58,14 +58,14 @@ class ClientQuery(models.Model):
 class Region(models.Model):
     ''' An explainable segment of text from a webpage. '''
 
-    query = models.ForeignKey(ServerQuery, on_delete=models.CASCADE, null=True, blank=True)
-    block = models.ForeignKey(Block, on_delete=models.CASCADE, null=True, blank=True)
+    query = models.ForeignKey(ServerQuery, on_delete=models.SET_NULL, null=True)
+    block = models.ForeignKey(Block, on_delete=models.SET_NULL, null=True)
     created_time = models.DateTimeField(auto_now_add=True)
 
     node = models.CharField(max_length=1000)
     start = models.IntegerField()
     end = models.IntegerField()
-    string = models.CharField(max_length=400)
+    string = models.CharField(max_length=1000)
     region_type = models.CharField(max_length=100)
     region_method = models.CharField(max_length=100)
 
@@ -83,10 +83,10 @@ class Region(models.Model):
 class View(models.Model):
     ''' The act of a user viewing or closing an explanation. '''
 
-    region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
-    server_query = models.ForeignKey(ServerQuery, on_delete=models.CASCADE, null=True, blank=True)
-    time = models.DateTimeField(null=True, blank=True, auto_now=True)
-    action = models.CharField(null=True, blank=True, max_length=6)
+    region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
+    server_query = models.ForeignKey(ServerQuery, on_delete=models.SET_NULL, null=True)
+    time = models.DateTimeField(auto_now_add=True)
+    action = models.CharField(max_length=6)
 
     def __str__(self):
         return "Region ID:%s, ServerQuery ID:%s, Time:%s" % (
