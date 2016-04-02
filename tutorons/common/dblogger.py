@@ -21,7 +21,7 @@ def _get_request_metadata(request):
     return url, path, ip
 
 
-class DBLogger():
+class DbLogger(object):
 
     def log_query(self, request):
         _, path, ip = _get_request_metadata(request)

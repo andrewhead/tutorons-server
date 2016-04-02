@@ -10,13 +10,13 @@ from django.template import Context
 from tutorons.common.scanner import CommandScanner, InvalidCommandException
 from tutorons.wget.explain import WgetExtractor, explain as wget_explain
 from tutorons.wget.render import render as wget_render
-from tutorons.common.dblogger import DBLogger
+from tutorons.common.dblogger import DbLogger
 from tutorons.common.views import pagescan, snippetexplain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
-db_logger = DBLogger()
+db_logger = DbLogger()
 
 
 @csrf_exempt

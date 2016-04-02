@@ -11,7 +11,7 @@ from tutorons.common.models import Block, ServerQuery, Region
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-class DBLoggerTest(django.test.TestCase):
+class DbLoggerTest(django.test.TestCase):
     def setUp(self):
         self.client = Client()
 

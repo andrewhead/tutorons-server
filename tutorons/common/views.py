@@ -9,7 +9,7 @@ import json
 
 from tutorons.common.extractor import Region
 from tutorons.common.htmltools import get_css_selector, HtmlDocument
-from tutorons.common.dblogger import DBLogger
+from tutorons.common.dblogger import DbLogger
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -39,7 +39,7 @@ def pagescan(scan_func):
         client_req_time = request.POST.get('client_start_time')
 
         # Log request information
-        db_logger = DBLogger()
+        db_logger = DbLogger()
         query_record = db_logger.log_query(request)
 
         # Scan document with wrapped method to get regions
@@ -81,7 +81,7 @@ def snippetexplain(explain_func):
         client_start_time = request.POST.get('client_start_time')
         edge_size = int(request.POST.get('edge_size', 0))
 
-        db_logger = DBLogger()
+        db_logger = DbLogger()
         query_record = db_logger.log_query(request)
 
         region = Region(HtmlDocument(text), 0, len(text) - 1, text)

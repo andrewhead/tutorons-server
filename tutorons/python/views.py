@@ -12,13 +12,13 @@ from tutorons.python.detect import PythonBuiltInExtractor
 from tutorons.python.explain import explain as python_explain
 from tutorons.python.render import render as python_render
 from tutorons.python.builtins import explanations
-from tutorons.common.dblogger import DBLogger
+from tutorons.common.dblogger import DbLogger
 from tutorons.common.views import pagescan, snippetexplain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
-db_logger = DBLogger()
+db_logger = DbLogger()
 
 
 @csrf_exempt

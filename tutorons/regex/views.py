@@ -13,13 +13,13 @@ from tutorons.regex.extract import GrepRegexExtractor, SedRegexExtractor, Javasc
 from tutorons.regex.explain import InvalidRegexException, visualize as regex_viz
 from tutorons.regex.examples import get_examples
 from tutorons.regex.render import render as regex_render
-from tutorons.common.dblogger import DBLogger
+from tutorons.common.dblogger import DbLogger
 from tutorons.common.views import pagescan, snippetexplain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
-db_logger = DBLogger()
+db_logger = DbLogger()
 
 
 @csrf_exempt

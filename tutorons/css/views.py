@@ -13,13 +13,13 @@ from tutorons.css.explain import JavascriptSelectorExtractor, StylesheetSelector
 from tutorons.css.explain import explain as css_explain, is_selector
 from tutorons.css.render import render as css_render
 from parsers.css.examples.examplegen import get_example as css_example
-from tutorons.common.dblogger import DBLogger
+from tutorons.common.dblogger import DbLogger
 from tutorons.common.views import pagescan, snippetexplain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
-db_logger = DBLogger()
+db_logger = DbLogger()
 
 
 @csrf_exempt
