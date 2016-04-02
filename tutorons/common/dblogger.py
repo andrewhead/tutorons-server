@@ -52,8 +52,8 @@ class DbLogger(object):
             start=region.start_offset,
             end=region.end_offset,
             string=region.string,
-            r_type=region_type,
-            r_method=request_method
+            region_type=region_type,
+            region_method=request_method
         )
         return region
 

@@ -63,8 +63,8 @@ class Region(models.Model):
     start = models.IntegerField()
     end = models.IntegerField()
     string = models.CharField(max_length=400)
-    r_type = models.CharField(max_length=100)
-    r_method = models.CharField(max_length=100)
+    region_type = models.CharField(max_length=100)
+    region_method = models.CharField(max_length=100)
 
     def __str__(self):
         return "Node: %s, Start:%d, End:%d, String:%s, Type:%s, Method:%s" % (
@@ -72,8 +72,8 @@ class Region(models.Model):
             self.start,
             self.end,
             self.string,
-            self.r_type,
-            self.r_method)
+            self.region_type,
+            self.region_method)
 
 
 @python_2_unicode_compatible
