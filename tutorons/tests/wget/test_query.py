@@ -19,7 +19,7 @@ class FetchAllExplanationsTest(unittest.TestCase):
 
     def get_resp_data(self, document):
         resp = self.client.post('/wget/scan', data={'origin': 'www.test.com', 'document': document})
-        return json.loads(resp.content)
+        return json.loads(resp.content)['regions']
 
     def get_regions_from_code(self, code):
         return self.get_resp_data("<code>" + code + "</code>")
@@ -65,7 +65,7 @@ class FetchExplanationForPlaintextTest(unittest.TestCase):
 
     def get_explanation(self, text):
         resp = self.client.post('/wget/explain', data={'origin': 'www.test.com', 'text': text})
-        return resp.content
+        return json.loads(resp.content)['region']['document']
 
     def test_explain_wget_command(self):
         resp = self.get_explanation('wget http://google.com')

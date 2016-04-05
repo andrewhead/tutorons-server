@@ -5,6 +5,7 @@ cssselect==0.9.1
 Django==1.8.2
 django-cors-headers==1.1.0
 django-sslserver==0.15
+django-tastypie==0.13.3
 enum34==1.0.4
 funcsigs==0.4
 html5lib==0.999999
@@ -17,7 +18,9 @@ pbr==1.6.0
 ply==3.4
 py4j==0.8.2.1
 pyquery==1.2.9
+python-dateutil==2.5.0
 python-memcached==1.54
+python-mimeparse==1.5.1
 requests==2.7.0
 six==1.9.0
 slimit==0.8.1
