@@ -57,10 +57,12 @@ def pagescan(scan_func):
         db_logger.update_server_end_time(query_record)
 
         # Send back a response
+        resource_url = lambda r: request.scheme + "://" + request.get_host() + r
         return HttpResponse(
             json.dumps({
                 'regions': regions_explained,
-                'url': "http://tutorons.com/api/v1/client_query/",
+                'client_query_url': resource_url("/api/v1/client_query/"),
+                'view_url': resource_url("/api/v1/view/"),
                 'query_id': query_record.id,
                 'client_start_time': client_req_time,
             }, indent=2))
