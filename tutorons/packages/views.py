@@ -8,7 +8,7 @@ from django.template.loader import get_template
 from django.template import Context
 
 from tutorons.common.scanner import NodeScanner
-from tutorons.packages.detect import PythonPackageExtractor
+from tutorons.packages.detect import PackageExtractor
 from tutorons.packages.explain import explain as package_explain
 from tutorons.packages.render import render as package_render
 from tutorons.packages.packages import explanations
@@ -24,7 +24,7 @@ db_logger = DbLogger()
 @csrf_exempt
 @pagescan
 def scan(html_doc):
-    package_extractor = PythonPackageExtractor()
+    package_extractor = PackageExtractor()
     package_scanner = NodeScanner(package_extractor, ['p'])
     regions = package_scanner.scan(html_doc)
     rendered_regions = []

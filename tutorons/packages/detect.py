@@ -3,7 +3,8 @@
 
 from __future__ import unicode_literals
 import logging
-import ast
+import re
+import string
 
 from tutorons.common.extractor import Region
 from tutorons.packages.packages import explanations
@@ -11,48 +12,21 @@ from tutorons.packages.packages import explanations
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def find_offset(text, call):
-    """Takes in a text and function call and finds the start of call within text"""
-    text_list = text.split('\n')
-    offset = 0
-    for l in range(call.lineno - 1):
-        # add 1 to account for newline characters
-        offset += len(text_list[l]) + 1
-    offset += call.col_offset
-    return offset
-
-
-class PackageFinder(ast.NodeVisitor):
-
-    def __init__(self, package_names):
-        self.calls = []
-        self.package_names = package_names
-
-    def generic_visit(self, node):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            if node.func.id.replace(" ", "-").lower() in self.package_names:
-                self.calls.append(node)
-        super(PackageFinder, self).generic_visit(node)
-
-
-class PythonPackageExtractor(object):
+class PackageExtractor(object):
 
     def extract(self, node):
         text = node.text.encode('ascii', 'ignore')
-        valid_regions = []
+        regions = []
+        char_index = 0
+        for line in text.split('\n'):
+            words = re.split("\b[^\W\d_]+-*'*[^\W\d_]+\b", line)
 
-        # Parse text into an ast tree and add all call nodes in the tree to calls
-        try:
-            ast_tree = ast.parse(text)
-            finder = PackageFinder(explanations.keys())
-            finder.visit(ast_tree)
-            calls = finder.calls
-        except:
-            calls = []
+            for word in words:
+                if word.replace("-", " ").lower() in explanations.keys(): # Picked up on a package name
+                    first_char = char_index + string.index(line, word)
+                    last_char = char_index + string.index(line, word) + len(word)
+                    r = Region(node, first_char, last_char, word)
+                    regions.append(r)
+                    char_index += (len(line) + 1)  # every line has at least 1 char: the newline
 
-        # Package ast nodes as region objects
-        for call in calls:
-            package = call.func.id
-            start = find_offset(text, call)
-            valid_regions.append(Region(node, start, start + len(package) - 1, package))
-        return valid_regions
+        return regions

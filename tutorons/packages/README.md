@@ -1,1 +1,1 @@
-The Python Tutoron detects and explains builtin functions in Python 2, pulling its documentation from the ([Python 2 Docs](https://docs.python.org/2/library/functions.html)). It includes non-essential builtins (apply, buffer, coerce, and intern). 
+The Package Tutoron detects and explains packages hosted on NPM. Explanations and details are pulled from various well-known sources on the internet.

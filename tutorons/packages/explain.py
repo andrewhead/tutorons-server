@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import logging
-from packages import explanations
+from tutorons.packages.packages import explanations
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
