@@ -30,9 +30,11 @@ def scan(html_doc):
     rendered_regions = []
     for r in regions:
         # log_region(r, origin)
-        hdr, exp, url = package_explain(r.string)
-        document = package_render(r.string, hdr, exp, url)
-        rendered_regions.append((r, document))
+        explanation = package_explain(r.string)
+        if explanation is not None:
+            description, documented_since, url, response_time, resolution_time, num_questions, results_with_code = explanation
+            document = package_render(r.string, description, documented_since, url, response_time, resolution_time, num_questions, results_with_code)
+            rendered_regions.append((r, document))
     # db_logger.update_server_end_time(qid)
     return rendered_regions
 

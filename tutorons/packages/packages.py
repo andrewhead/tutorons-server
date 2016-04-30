@@ -4,9 +4,13 @@
 from __future__ import unicode_literals
 
 explanations = {
-  "express": [
-    "<dt id=\"bytearray\">\n<em class=\"property\">class </em><code class=\"descname\">bytearray</code><span class=\"sig-paren\">(</span><span class=\"optional\">[</span><em>source</em><span class=\"optional\">[</span>, <em>encoding</em><span class=\"optional\">[</span>, <em>errors</em><span class=\"optional\">]</span><span class=\"optional\">]</span><span class=\"optional\">]</span><span class=\"sig-paren\">)</span></dt>",
-    "<dd><p>Return a new array of bytes.  The <a class=\"reference internal\" href=\"https://docs.python.org/2/library/#bytearray\" title=\"bytearray\"><code class=\"xref py py-class docutils literal\"><span class=\"pre\">bytearray</span></code></a> class is a mutable\nsequence of integers in the range 0 &lt;= x &lt; 256.  It has most of the usual\nmethods of mutable sequences, described in <a class=\"reference internal\" href=\"https://docs.python.org/2/library/stdtypes.html#typesseq-mutable\"><span>Mutable Sequence Types</span></a>, as well\nas most methods that the <a class=\"reference internal\" href=\"https://docs.python.org/2/library/#str\" title=\"str\"><code class=\"xref py py-class docutils literal\"><span class=\"pre\">str</span></code></a> type has, see <a class=\"reference internal\" href=\"https://docs.python.org/2/library/stdtypes.html#string-methods\"><span>String Methods</span></a>.</p>\n<p>The optional <em>source</em> parameter can be used to initialize the array in a few\ndifferent ways:</p>\n<ul class=\"simple\">\n<li>If it is <em>unicode</em>, you must also give the <em>encoding</em> (and optionally,\n<em>errors</em>) parameters; <a class=\"reference internal\" href=\"https://docs.python.org/2/library/#bytearray\" title=\"bytearray\"><code class=\"xref py py-func docutils literal\"><span class=\"pre\">bytearray()</span></code></a> then converts the unicode to\nbytes using <code class=\"xref py py-meth docutils literal\"><span class=\"pre\">unicode.encode()</span></code>.</li>\n<li>If it is an <em>integer</em>, the array will have that size and will be\ninitialized with null bytes.</li>\n<li>If it is an object conforming to the <em>buffer</em> interface, a read-only buffer\nof the object will be used to initialize the bytes array.</li>\n<li>If it is an <em>iterable</em>, it must be an iterable of integers in the range\n<code class=\"docutils literal\"><span class=\"pre\">0</span> <span class=\"pre\">&lt;=</span> <span class=\"pre\">x</span> <span class=\"pre\">&lt;</span> <span class=\"pre\">256</span></code>, which are used as the initial contents of the array.</li>\n</ul>\n<p>Without an argument, an array of size 0 is created.</p>\n<div class=\"versionadded\">\n<p><span class=\"versionmodified\">New in version 2.6.</span></p>\n</div>\n</dd>",
-    "https://docs.python.org/2/library/functions.html#bytearray"
+  "node-mailer": [
+    '"Easy as cake e-mail sending from your Node.js applications"',
+    "2013",
+    "https://www.npmjs.com/package/nodemailer",
+    "1 day",
+    "3.5 days",
+    "50",
+    "60-90% (typical queries)"
   ]
 }

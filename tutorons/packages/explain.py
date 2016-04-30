@@ -9,4 +9,5 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def explain(package):
-    return explanations[package]
+    if package in explanations:
+        return explanations[package]
