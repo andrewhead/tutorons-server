@@ -51,7 +51,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'fetcher',
         'USER': 'reader',
-        'PASSWORD': "icangoanywheretakelook",
+        'PASSWORD': 'PASSWORD',
         'HOST': 'clarence.eecs.berkeley.edu',
         'PORT': '5432',
     },
