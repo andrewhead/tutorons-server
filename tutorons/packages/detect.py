@@ -7,7 +7,7 @@ import re
 import string
 
 from tutorons.common.extractor import Region
-from tutorons.packages.packages import explanations
+from tutorons.packages.packages import package_list
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -22,7 +22,7 @@ class PackageExtractor(object):
             words = re.findall(r"\b[^\W\d_]+-?'?[^\W\d_]+\b", line)
 
             for word in words:
-                if word in explanations.keys(): # Picked up on a package name
+                if word in package_list: # Picked up on a package name
                     first_char = char_index + string.index(line, word)
                     last_char = char_index + string.index(line, word) + len(word) - 1
                     r = Region(node, first_char, last_char, word)

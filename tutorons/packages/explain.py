@@ -3,11 +3,14 @@
 
 from __future__ import unicode_literals
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from tutorons.packages.models import NPMPackageTutoron
+from django.db import models
+from tutorons.packages.models import WebPageVersion, WebPageContent, Search, SearchResult, SearchResultContent, Code
 import cache
 import logging
 import slumber
 import time
+
+from bs4 import BeautifulSoup
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 default_requests_session = cache.get_session(timeout=1)
@@ -53,31 +56,54 @@ def make_request(method, *args, **kwargs):
 
     return res
 
+
 def explain(package):
-    try:
-        p = NPMPackageTutoron.objects.get(package=package)
-    except ObjectDoesNotExist:
-        p = fetch_package_data(package)
-        logging.warn("Tried to retrieve object from database that does not exist.")
-    except MultipleObjectsReturned:
-        logging.warn("Multiple objects in database with the same package name.")
-
-    return p.description, p.documented_since, p.url, p.response_time, p.resolution_time, p.num_questions, p.results_with_code
-
-
-def fetch_package_data(p):
-    NPM_url = "https://www.npmjs.com/package/{pkg}".format(pkg=p.name)
+    NPM_url = "https://www.npmjs.com/package/{pkg}".format(pkg=package)
     res = make_request(default_requests_session.get, NPM_url)
     if res is not None:
         page = BeautifulSoup(res.content, 'html.parser')
-        p.readme = str(page.select('div#readme')[0])
-        p.description = page.select('p.package-description')[0].text
-        p.url = NPM_url
+        readme = str(page.select('div#readme')[0])
+        description = page.select('p.package-description')[0].text
+        url = NPM_url
 
-    # TODO(austinhle): Fetch documented_since from WebPageVersion model.
-    # TODO(austinhle): Fetch response_time, resolution_time from GitHub issues.
-    # TODO(austinhle): Fetch num_questions from StackOverflow.
-    # TODO(austinhle): Fetch results_with_code from Andrew's scraped data.
+    documented_since = get_documented_since(package)
 
-    p.save()
-    return p
+    response_time, resolution_time = get_response_time(package), get_resolution_time(package)
+
+    num_questions = get_num_questions(package)
+
+    results_with_code = get_results_with_code(package)
+
+    return description, documented_since, url, response_time, resolution_time, num_questions, results_with_code
+
+
+def get_documented_since(p):
+    documented_since = (SearchResult.objects
+        .filter(search_id=models.F('search__id'))
+        .filter(web_page_version__url=models.F('url'))
+        .filter(search__fetch_index=13)
+        .filter(search__package=p)
+        .aggregate(models.Min('web_page_version__timestamp'))['web_page_version__timestamp__min']
+    )
+    return documented_since
+
+
+def get_response_time(p):
+    # TODO: Fetch response_time from GitHub issues.
+    return '1 day'
+
+
+def get_resolution_time(p):
+    # TODO: Fetch resolution_time from GitHub issues.
+    return '3.5 days'
+
+
+def get_num_questions(p):
+    # TODO: Fetch num_questions by doing a join between the `tag` table, the `questionsnapshottag` table, and the `questionsnapshot` tables
+    return 50
+
+
+def get_results_with_code(p):
+    # TODO: Fetch results_with_code using a Django version of Andrew's JavaScript code on Package-Community.
+    # See example.sql for the translated SQL query.
+    return 100

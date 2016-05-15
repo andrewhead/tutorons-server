@@ -11,7 +11,7 @@ from tutorons.common.scanner import NodeScanner
 from tutorons.packages.detect import PackageExtractor
 from tutorons.packages.explain import explain as package_explain
 from tutorons.packages.render import render as package_render
-from tutorons.packages.packages import explanations
+from tutorons.packages.packages import package_list
 from tutorons.common.dblogger import DbLogger
 from tutorons.common.views import pagescan, snippetexplain
 
@@ -44,7 +44,7 @@ def scan(html_doc):
 def explain(text, edge_size):
     error_template = get_template('error.html')
 
-    if text in explanations:
+    if text in package_list:
         hdr, exp, url = package_explain(text)
         explanation = package_render(text, hdr, exp, url)
     else:
