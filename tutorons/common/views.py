@@ -15,6 +15,10 @@ from tutorons.common.dblogger import DbLogger
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
+def _get_resource_url(request, resource):
+    return "//" + request.get_host() + resource
+
+
 def _package_region(region, document, region_id, query_id):
     return {
         'node': get_css_selector(region.node),
@@ -57,12 +61,11 @@ def pagescan(scan_func):
         db_logger.update_server_end_time(query_record)
 
         # Send back a response
-        resource_url = lambda r: request.scheme + "://" + request.get_host() + r
         return HttpResponse(
             json.dumps({
                 'regions': regions_explained,
-                'client_query_url': resource_url("/api/v1/client_query/"),
-                'view_url': resource_url("/api/v1/view/"),
+                'client_query_url': _get_resource_url(request, "/api/v1/client_query/"),
+                'view_url': _get_resource_url(request, "/api/v1/view/"),
                 'query_id': query_record.id,
                 'client_start_time': client_req_time,
             }, indent=2))
@@ -96,7 +99,7 @@ def snippetexplain(explain_func):
 
         return HttpResponse(json.dumps({
             "region": explained_region,
-            "url": "http://tutorons.com/api/v1/client_query/",
+            "url": _get_resource_url(request, "/api/v1/client_query/"),
             "sq_id": query_record.id,
             "client_start_time": client_start_time,
             "error": 0
