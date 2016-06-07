@@ -9,45 +9,56 @@
   - python-dev
   - supervisor
   - memcached
+  become: true
   tags: serverpkgs
 
 - name: Install application dependencies
   apt: name={{ item }} update_cache=yes
   with_items: systempkgs
   when: systempkgs is defined
+  become: true
   tags: systempkgs
 
 - name: Install Docker
   shell: curl -sSL https://get.docker.com/ | sh
+  become: true
   tags: dockerinstall
 
 - name: Install Docker Python library
-  pip: name=docker-py version=1.1.0
+  pip: name=docker-py
   tags: dockerinstall
 
-- name: Create the ubuntu group
-  group: name=ubuntu
+- name: Create the main group
+  group: name={{ ansible_ssh_user }}
+  become: true
   tags: user
 
-- name: Create the ubuntu user
-  user: name=ubuntu group=ubuntu
+- name: Create the main user
+  user: name={{ ansible_ssh_user }} group={{ ansible_ssh_user }}
+  become: true
   tags: user
 
 - name: Create project directory
-  file: state=directory path={{ projectdir }} owner=ubuntu
+  file: state=directory path={{ projectdir }} owner={{ ansible_ssh_user }}
+  become: true
 
 - name: Create static directory
-  file: state=directory path={{ scriptdir }} owner=ubuntu
+  file: state=directory path={{ scriptdir }} owner={{ ansible_ssh_user }}
+  become: true
 
 - name: Create static files directory
-  file: state=directory path={{ staticdir }} owner=ubuntu
+  file: state=directory path={{ staticdir }} owner={{ ansible_ssh_user }}
+  become: true
 
 - name: Create folder for uploadable libraries and content
-  file: state=directory path=/var/www/{{ appname }} owner=ubuntu
+  file: state=directory path=/var/www/{{ appname }} owner={{ ansible_ssh_user }}
+  become: true
 
 - name: Create log file
-  file: state=touch path={{ logfile }} owner=ubuntu
+  file: state=touch path={{ logfile }} owner={{ ansible_ssh_user }}
   when: logfile is defined
+  become: true
+  tags: log
 
 - name: Install virtualenv
   pip: name=virtualenv
@@ -55,67 +66,66 @@
 - name: Transfer Python dependencies list
   copy: src={{ appname }}-reqs.txt dest={{ projectdir }}
   tags: pythonpkgs
-  become_user: ubuntu
 
 - name: Install server Python dependencies
   pip: requirements={{ projectdir }}/{{ appname }}-reqs.txt virtualenv="{{ venv }}"
   tags: pythonpkgs
-  become_user: ubuntu
 
 - name: Checkout source code
   git: repo={{ repo }} dest={{ src }} force=yes recursive=yes
   tags: updatecode
-  become_user: ubuntu
 
 - name: Make Java project dependencies directory
-  file: state=directory path={{ src }}/deps owner=ubuntu
-  become_user: ubuntu
+  file: state=directory path={{ src }}/deps owner={{ ansible_ssh_user }}
 
 - name: Remove previous versions of project dependencies
   file: state=absent path={{ src }}/deps/{{ item }}
   with_items: external_deps
   when: external_deps is defined
   tags: dependencies
-  become_user: ubuntu
 
 - name: Install dependencies for project
-  s3: bucket={{ publicbucket }} object={{ publicdir }}/{{ item }} dest={{ src }}/deps/{{ item }} 
+  s3: bucket={{ publicbucket }} object={{ publicdir }}/{{ item }} dest={{ src }}/deps/{{ item }} region=us-west-2
       mode=get overwrite=false aws_access_key={{ aws_access_key_id }} aws_secret_key={{ aws_secret_access_key }}
   with_items: external_deps
   when: external_deps is defined
   tags: dependencies
-  become_user: ubuntu
 
 - name: Install gunicorn
   pip: name=gunicorn virtualenv="{{ venv }}"
-  become_user: ubuntu
 
 - name: Configure nginx main site
   template: src=nginx-site.j2 dest=/etc/nginx/sites-enabled/{{ appname }}
+  become: true
   tags: nginx
 
 - name: Add subdomains for localsites
   template: src=local-server.j2 dest=/etc/nginx/sites-enabled/{{ item.subdomain }}
   with_items: subdomains
   when: subdomains is defined
+  become: true
   tags:
   - subdomains
   - nginx
 
 - name: Remove default nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user www-data;" state=absent
+  become: true
   tags: nginx
 
 - name: Add nginx user
-  lineinfile: dest=/etc/nginx/nginx.conf line="user ubuntu ubuntu;"
+  lineinfile: dest=/etc/nginx/nginx.conf line="user {{ ansible_ssh_user }} {{ ansible_ssh_user }};"
+  become: true
   tags: nginx
 
 - name: Create directory for Django secret keys
   file: state=directory path=/etc/django
+  become: true
 
 - name: Fetch Django app secret key
-  s3: bucket={{ privatebucket }} object={{ djkey }} dest=/etc/django/{{ djkey }} mode=get
+  s3: bucket={{ privatebucket }} object={{ djkey }} dest=/etc/django/{{ djkey }} mode=get region=us-west-2
       aws_access_key={{ aws_access_key_id }} aws_secret_key={{ aws_secret_access_key }}
+  become: true
   tags: appkey
 
 - name: Sync DB with Django models
@@ -125,10 +135,10 @@
     virtualenv={{ venv }}
     settings={{ djsettings }}
   with_items:
-  - syncdb
   - migrate
-  tags: updatecode
-  become_user: ubuntu
+  tags:
+  - updatecode
+  - migrate
 
 - name: Update static files
   django_manage: >
@@ -138,84 +148,92 @@
     settings={{ djsettings }}
   when: staticfiles is defined
   tags: updatecode
-  become_user: ubuntu
 
 - name: Transfer setup scripts
   template: src={{ item }}.j2 dest={{ scriptdir }}/{{ item }}.sh
   with_items: scripts
   when: scripts is defined
   tags: scripts
-  become_user: ubuntu
 
 - name: Run setup scripts
   command: /bin/bash {{ item }}.sh chdir={{ scriptdir }}
   with_items: scripts
   when: scripts is defined
   tags: scripts
-  become_user: ubuntu
 
 - name: Make sure memcached is running
   service: name=memcached state=started
+  become: true
   tags: memcached
 
 - name: Create Docker group
   group: name=docker state=present
   tags: containers
-  become_user: ubuntu
 
 - name: Fetch and start Docker containers
-  docker:
+  docker_container:
+    name: "{{ item.name }}"
     image: "{{ item.image }}"
-    state: running
-    ports: "{{ item.host_port }}:{{ item.exposed_port }}"
+    state: started
+    exposed_ports: "{{ item.host_port }}:{{ item.exposed_port }}"
   with_items: containers
   when: containers is defined
+  become: true
   tags: containers
 
 - name: Add auxiliary processes to supervisor
   template: src={{ item }}.j2 dest=/etc/supervisor/conf.d/{{ item }}.conf
   with_items: processes
   when: processes is defined
+  become: true
   tags: processes
 
 - name: Load auxiliary processes
   supervisorctl: name={{ item }} state=present
   with_items: processes
   when: processes is defined
+  become: true
   tags: processes
 
 - name: Restart auxiliary processes (stop)
   supervisorctl: name={{ item }} state=stopped
   with_items: processes
   when: processes is defined
+  become: true
   tags: processes
 
 - name: Restart auxiliary processes (start)
   supervisorctl: name={{ item }} state=started
   with_items: processes
   when: processes is defined
+  become: true
   tags: processes
 
 - name: Copy app to supervisor
   template: src=supervisor.j2 dest=/etc/supervisor/conf.d/{{ appname }}.conf
+  become: true
 
 - name: Stop application
   supervisorctl: name={{ appname }} state={{ item }}
   with_items:
   - present
   - stopped
+  become: true
   tags: updatecode
 
 - name: Cleanup after last application run
   file: dest=/tmp/{{ appname }}.pid state=absent
+  become: true
   tags: updatecode
 
 - name: Start application
   supervisorctl: name={{ appname }} state=started
+  become: true
   tags: updatecode
 
 - name: Restart nginx
   service: name=nginx state=restarted
+  become: true
   tags:
   - subdomains
   - nginx

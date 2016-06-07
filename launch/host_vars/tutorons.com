@@ -37,8 +37,8 @@ scripts:
 - compile-sed
 - compile-wget
 containers:
-- {"image": "andrewhead/regexper-server", "host_port": 8005, "exposed_port": 8080}
-- {"image": "andrewhead/regex-svg-server", "host_port": 8006, "exposed_port": 8080}
+- {"image": "andrewhead/regexper-server", "host_port": 8005, "exposed_port": 8080, "name": "regexper-server"}
+- {"image": "andrewhead/regex-svg-server", "host_port": 8006, "exposed_port": 8080, "name": "regex-svg-server"}
 subdomains:
 - {"subdomain": "regexper", "port": 8005}
 - {"subdomain": "regexsvg", "port": 8006}

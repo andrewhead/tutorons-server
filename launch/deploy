@@ -1,2 +1,2 @@
 #! /bin/bash
-ansible-playbook -i hosts webserver.yml --extra-vars "@aws-credentials.json" $@
+ansible-playbook -i hosts webserver.yml --ask-pass --ask-become-pass --extra-vars "@aws-credentials.json" $@
