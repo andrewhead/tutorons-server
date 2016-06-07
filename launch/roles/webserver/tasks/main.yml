@@ -92,18 +92,23 @@
 
 - name: Configure nginx main site
   template: src=nginx-site.j2 dest=/etc/nginx/sites-enabled/{{ appname }}
+  tags: nginx
 
 - name: Add subdomains for localsites
   template: src=local-server.j2 dest=/etc/nginx/sites-enabled/{{ item.subdomain }}
   with_items: subdomains
   when: subdomains is defined
-  tags: subdomains
+  tags:
+  - subdomains
+  - nginx
 
 - name: Remove default nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user www-data;" state=absent
+  tags: nginx
 
 - name: Add nginx user
   lineinfile: dest=/etc/nginx/nginx.conf line="user ubuntu ubuntu;"
+  tags: nginx
 
 - name: Create directory for Django secret keys
   file: state=directory path=/etc/django
@@ -211,4 +216,6 @@
 
 - name: Restart nginx
   service: name=nginx state=restarted
-  tags: subdomains
+  tags:
+  - subdomains
+  - nginx

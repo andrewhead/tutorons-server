@@ -3,8 +3,14 @@ upstream {{ appname }}_server {
 }
  
 server {
+
     listen 80;
+    listen 443 ssl;
+
     server_name {{ domain }} www.{{ domain }};
+
+    ssl_certificate /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx.key;
 
     keepalive_timeout 5;
  
