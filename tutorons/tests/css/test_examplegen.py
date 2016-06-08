@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from parsers.css.examples.examplegen import get_example
+from tutorons.css.example import get_example
 import unittest
 import logging
 
@@ -31,7 +31,7 @@ class TestGenerateExamples(unittest.TestCase):
             "</span>",
             "&lt;/div&gt;<br>",
         ]))
-    
+
     def test_render_div_if_no_explicit_element(self):
         html = get_example('.klazz', indent=1)
         self.assertIn('div', html)

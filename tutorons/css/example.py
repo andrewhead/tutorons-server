@@ -7,14 +7,13 @@ import sys
 from antlr4 import CommonTokenStream, ParseTreeWalker
 from antlr4.InputStream import InputStream
 from antlr4.error.ErrorListener import ErrorListener
-import cgi
 from pyquery import PyQuery as pq
 from bs4 import BeautifulSoup
 import re
 
-from parser.CssLexer import CssLexer
-from parser.CssParser import CssParser
-from parser.CssListener import CssListener
+from parsers.css.CssLexer import CssLexer
+from parsers.css.CssParser import CssParser
+from parsers.css.CssListener import CssListener
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
