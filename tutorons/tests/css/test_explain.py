@@ -4,8 +4,10 @@
 from __future__ import unicode_literals
 import logging
 import unittest
+
 from tutorons.common.htmltools import HtmlDocument
-from tutorons.css.explain import JavascriptSelectorExtractor, explain
+from tutorons.css.detect import JavascriptSelectorExtractor
+from tutorons.css.explain import explain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")

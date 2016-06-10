@@ -8,9 +8,9 @@ from django.template.loader import get_template
 from django.template import Context
 
 from tutorons.common.scanner import NodeScanner
-from tutorons.css.detect import find_jquery_selector
-from tutorons.css.explain import JavascriptSelectorExtractor, StylesheetSelectorExtractor
-from tutorons.css.explain import explain as css_explain, is_selector
+from tutorons.css.detect import find_jquery_selector, JavascriptSelectorExtractor,\
+    StylesheetSelectorExtractor, is_selector
+from tutorons.css.explain import explain as css_explain
 from tutorons.css.render import render as css_render
 from tutorons.css.example import get_example as css_example
 from tutorons.common.dblogger import DbLogger
