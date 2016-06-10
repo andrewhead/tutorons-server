@@ -16,9 +16,6 @@ external_deps:
 - py4j-0.8.2.jar
 - simplenlg-v4.4.2.jar
 - antlr-4.5-complete.jar
-- css-explainer-0.1.jar
-processes:
-- css-explainer
 systempkgs:
 - default-jre
 - libssl-dev  # to compile wget

@@ -128,12 +128,17 @@
   become: true
   tags: appkey
 
+# For some reason, it is no longer sufficient to specify settings via the
+# 'settings' parameter passed to the django_manage command.  However, any
+# problems with unspecified settings disappear when we declare it as an
+# environment variable as below.
 - name: Sync DB with Django models
   django_manage: >
     command={{ item }}
     app_path={{ djdir }}
     virtualenv={{ venv }}
-    settings={{ djsettings }}
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ djsettings }}"
   with_items:
   - migrate
   tags:
@@ -145,7 +150,8 @@
     command=collectstatic
     app_path={{ djdir }}
     virtualenv={{ venv }}
-    settings={{ djsettings }}
+  environment:
+    DJANGO_SETTINGS_MODULE: "{{ djsettings }}"
   when: staticfiles is defined
   tags: updatecode
 
