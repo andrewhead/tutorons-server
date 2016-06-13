@@ -4,6 +4,15 @@ from antlr4 import *
 # This class defines a complete listener for a parse tree produced by CssParser.
 class CssListener(ParseTreeListener):
 
+    # Enter a parse tree produced by CssParser#selectors_group.
+    def enterSelectors_group(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#selectors_group.
+    def exitSelectors_group(self, ctx):
+        pass
+
+
     # Enter a parse tree produced by CssParser#selector.
     def enterSelector(self, ctx):
         pass
@@ -13,102 +22,120 @@ class CssListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by CssParser#node.
-    def enterNode(self, ctx):
+    # Enter a parse tree produced by CssParser#combinator.
+    def enterCombinator(self, ctx):
         pass
 
-    # Exit a parse tree produced by CssParser#node.
-    def exitNode(self, ctx):
-        pass
-
-
-    # Enter a parse tree produced by CssParser#element.
-    def enterElement(self, ctx):
-        pass
-
-    # Exit a parse tree produced by CssParser#element.
-    def exitElement(self, ctx):
+    # Exit a parse tree produced by CssParser#combinator.
+    def exitCombinator(self, ctx):
         pass
 
 
-    # Enter a parse tree produced by CssParser#qualifier.
-    def enterQualifier(self, ctx):
+    # Enter a parse tree produced by CssParser#simple_selector_sequence.
+    def enterSimple_selector_sequence(self, ctx):
         pass
 
-    # Exit a parse tree produced by CssParser#qualifier.
-    def exitQualifier(self, ctx):
-        pass
-
-
-    # Enter a parse tree produced by CssParser#klazz.
-    def enterKlazz(self, ctx):
-        pass
-
-    # Exit a parse tree produced by CssParser#klazz.
-    def exitKlazz(self, ctx):
+    # Exit a parse tree produced by CssParser#simple_selector_sequence.
+    def exitSimple_selector_sequence(self, ctx):
         pass
 
 
-    # Enter a parse tree produced by CssParser#ident.
-    def enterIdent(self, ctx):
+    # Enter a parse tree produced by CssParser#type_selector.
+    def enterType_selector(self, ctx):
         pass
 
-    # Exit a parse tree produced by CssParser#ident.
-    def exitIdent(self, ctx):
-        pass
-
-
-    # Enter a parse tree produced by CssParser#pseudoclass.
-    def enterPseudoclass(self, ctx):
-        pass
-
-    # Exit a parse tree produced by CssParser#pseudoclass.
-    def exitPseudoclass(self, ctx):
+    # Exit a parse tree produced by CssParser#type_selector.
+    def exitType_selector(self, ctx):
         pass
 
 
-    # Enter a parse tree produced by CssParser#prop.
-    def enterProp(self, ctx):
+    # Enter a parse tree produced by CssParser#namespace_prefix.
+    def enterNamespace_prefix(self, ctx):
         pass
 
-    # Exit a parse tree produced by CssParser#prop.
-    def exitProp(self, ctx):
-        pass
-
-
-    # Enter a parse tree produced by CssParser#attr.
-    def enterAttr(self, ctx):
-        pass
-
-    # Exit a parse tree produced by CssParser#attr.
-    def exitAttr(self, ctx):
+    # Exit a parse tree produced by CssParser#namespace_prefix.
+    def exitNamespace_prefix(self, ctx):
         pass
 
 
-    # Enter a parse tree produced by CssParser#attrname.
-    def enterAttrname(self, ctx):
+    # Enter a parse tree produced by CssParser#element_name.
+    def enterElement_name(self, ctx):
         pass
 
-    # Exit a parse tree produced by CssParser#attrname.
-    def exitAttrname(self, ctx):
-        pass
-
-
-    # Enter a parse tree produced by CssParser#rel.
-    def enterRel(self, ctx):
-        pass
-
-    # Exit a parse tree produced by CssParser#rel.
-    def exitRel(self, ctx):
+    # Exit a parse tree produced by CssParser#element_name.
+    def exitElement_name(self, ctx):
         pass
 
 
-    # Enter a parse tree produced by CssParser#attrvalue.
-    def enterAttrvalue(self, ctx):
+    # Enter a parse tree produced by CssParser#universal.
+    def enterUniversal(self, ctx):
         pass
 
-    # Exit a parse tree produced by CssParser#attrvalue.
-    def exitAttrvalue(self, ctx):
+    # Exit a parse tree produced by CssParser#universal.
+    def exitUniversal(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#class_.
+    def enterClass_(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#class_.
+    def exitClass_(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#attribute.
+    def enterAttribute(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#attribute.
+    def exitAttribute(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#pseudo.
+    def enterPseudo(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#pseudo.
+    def exitPseudo(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#functional_pseudo.
+    def enterFunctional_pseudo(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#functional_pseudo.
+    def exitFunctional_pseudo(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#expression.
+    def enterExpression(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#expression.
+    def exitExpression(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#negation.
+    def enterNegation(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#negation.
+    def exitNegation(self, ctx):
+        pass
+
+
+    # Enter a parse tree produced by CssParser#negation_argument.
+    def enterNegation_argument(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#negation_argument.
+    def exitNegation_argument(self, ctx):
         pass
 
 
