@@ -18,6 +18,9 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def explain(selector):
+
+    # Boilerplate code to parse the input string and initialize
+    # a tree walker that will traverse the syntax tree.
     walker = ParseTreeWalker()
     explainer = CssExplainer()
     input = InputStream(selector)
@@ -25,11 +28,15 @@ def explain(selector):
     stream = CommonTokenStream(lexer)
     parser = CssParser(stream)
     tree = parser.selector()
+
     try:
         walker.walk(explainer, tree)
-    except Exception as e:
-        logging.error("Encountered exception explaining CSS: %s", str(e))
-    return explainer.result
+        return explainer.result
+    except Exception:
+        # Although this is a pretty broad catch, we want the default
+        # behavior of explanation to be that the program continues to
+        # run, even if one selector was not properly explained.
+        return None
 
 
 # Convenience function for getting the unique identifier of a node that the
@@ -142,7 +149,7 @@ class CssExplainer(CssListener, ErrorListener):
             node_noun = tag_noun
         else:
             property_ = ctx.prop().IDENT().getText()
-            node_noun = self._getPropertyNoun(property_)
+            node_noun = nlg_factory.createNounPhrase(property_)
             node_noun.addPostModifier('from')
             node_noun.addPostModifier(tag_noun)
 
@@ -173,5 +180,5 @@ class CssExplainer(CssListener, ErrorListener):
         else:
             noun.addPostModifier('related to')
 
-        noun.addPostModifier("'" + ctx.attrvalue().getText + "'")
-        self.phrases(ctx, noun)
+        noun.addPostModifier("'" + ctx.attrvalue().getText() + "'")
+        self.phrases[_key(ctx)] = noun
