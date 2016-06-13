@@ -40,11 +40,12 @@ if __name__ == "__main__":
     from django.core.management import execute_from_command_line
     try:
         execute_from_command_line(sys.argv)
-    except KeyboardInterrupt:
-        # It's important to catch a keyboard interrupt for the main command
-        # if we are starting a gateway server to Java through Py4J, as we still
-        # want to do the tear-down of shutting down the gateway once the main
-        # command has finished running.
+    except:
+        # We make sure to catch all exceptions and raised events while running
+        # the main command.  This includes keyboard interrupts.
+        # Because we are starting a gateway server to Java through Py4J, we still
+        # need to do the tear-down of shutting down the gateway once the main
+        # command has finished running, regardless of its outcome.
         pass
 
     gateway.shutdown(raise_exception=True)

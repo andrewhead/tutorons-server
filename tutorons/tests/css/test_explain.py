@@ -102,3 +102,41 @@ class SelectorExplanationTest(unittest.TestCase):
     def test_explain_camelcase(self):
         exp = explain('.watchView')
         self.assertIn('.watchView', exp)
+
+    def test_explanations_regression_set(self):
+
+        # Regression tests of the original strings that we set out to test.
+        # At some point these should be refactored into tests that test for
+        # specific features (e.g., coverage of element types and tree structures).
+        self.assertEqual(
+            explain("div.featured a"),
+            "The selector 'div.featured a' chooses links from containers of class 'featured'."
+        )
+        self.assertEqual(
+            explain("div.video-summary-data a[href^=/video]"),
+            "The selector 'div.video-summary-data a[href^=/video]' chooses links with URLs " +
+            "starting with '/video' from containers of class 'video-summary-data'."
+        )
+        self.assertEqual(
+            explain("p.introduction::text"),
+            "The selector 'p.introduction::text' chooses text from paragraphs " +
+            "of class 'introduction'."
+        )
+        self.assertEqual(
+            explain("div#videobox h3"),
+            "The selector 'div#videobox h3' chooses headers (of level 3) " +
+            "from a container with the ID 'videobox'."
+        )
+        self.assertEqual(
+            explain(".watch-view-count"),
+            "The selector '.watch-view-count' chooses elements of class 'watch-view-count'."
+        )
+        self.assertEqual(
+            explain(".form_box input:checked"),
+            "The selector '.form_box input:checked' chooses checked inputs from " +
+            "elements of class 'form_box'."
+        )
+        self.assertEqual(
+            explain("input:focus"),
+            "The selector 'input:focus' chooses in-focus inputs."
+        )
