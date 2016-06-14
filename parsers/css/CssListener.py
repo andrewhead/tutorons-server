@@ -76,6 +76,15 @@ class CssListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CssParser#hash_.
+    def enterHash_(self, ctx):
+        pass
+
+    # Exit a parse tree produced by CssParser#hash_.
+    def exitHash_(self, ctx):
+        pass
+
+
     # Enter a parse tree produced by CssParser#class_.
     def enterClass_(self, ctx):
         pass

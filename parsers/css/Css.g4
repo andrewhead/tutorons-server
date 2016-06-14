@@ -27,46 +27,50 @@ combinator :
 
 simple_selector_sequence :
   (type_selector | universal)
-  (HASH | class_ | attribute | pseudo | negation)*
+  (hash_ | class_ | attribute | pseudo | negation)*
   ;
 
 type_selector : namespace_prefix? element_name
   ;
 
-namespace_prefix : (IDENTIFIER | '*')? '|'
+namespace_prefix : (IDENTIFIER | STAR)? BAR
   ;
 
 element_name : IDENTIFIER
   ;
 
-universal : namespace_prefix? '*'
+universal :
+  namespace_prefix? STAR |
   ;
 
-class_ : '.' IDENTIFIER
+hash_ : HASH
+  ;
+
+class_ : DOT IDENTIFIER
   ;
 
 attribute :
-  '[' SPACE* namespace_prefix? IDENTIFIER SPACE* ((
+  LEFT_BRACKET SPACE* namespace_prefix? IDENTIFIER SPACE* ((
     PREFIXMATCH |
     SUFFIXMATCH |
     SUBSTRINGMATCH |
-    '=' |
+    EQUALS |
     INCLUDES |
     DASHMATCH
   ) SPACE* (
     IDENTIFIER |
     STRING
-  ) SPACE*)? ']'
+  ) SPACE*)? RIGHT_BRACKET
   ;
 
 pseudo :
-  ':' ':'? (
+  COLON COLON? (
     IDENTIFIER |
     functional_pseudo
   )
   ;
 
-functional_pseudo : FUNCTION SPACE* expression ')'
+functional_pseudo : FUNCTION SPACE* expression RIGHT_PARENTHESIS
   ;
 
 expression :
@@ -81,13 +85,13 @@ expression :
   ;
 
 negation :
-  NOT SPACE* negation_argument SPACE* ')'
+  NOT SPACE* negation_argument SPACE* RIGHT_PARENTHESIS
   ;
 
 negation_argument:
   type_selector |
   universal |
-  HASH |
+  hash_ |
   class_ |
   attribute
   ;
@@ -103,6 +107,7 @@ Identifier : '-'? Nmstart Nmchar*
 fragment
 Nmstart :
   Alpha |
+  '_' |
   Escape
   ;
 
@@ -164,7 +169,7 @@ SingleQuoteString :
     ~('\n' | '\r' | '\f' | '\\' | '\'') |
     ('\\' Newline) |
     Escape
-  )
+  )*
   '\''
   ;
 
@@ -174,7 +179,7 @@ DoubleQuoteString :
     ~('\n' | '\r' | '\f' | '\\' | '"') |
     ('\\' Newline) |
     Escape
-  )
+  )*
   '"'
   ;
 
@@ -236,9 +241,6 @@ FUNCTION : Identifier '('
 NUMBER : Number
   ;
 
-HASH : '#' Name
-  ;
-
 PLUS : OptionalSpace '+'
   ;
 
@@ -251,7 +253,7 @@ COMMA : OptionalSpace ','
 TILDE : OptionalSpace '~'
   ;
 
-NOT : ':'
+NOT : COLON
   ('N' | 'n')
   ('O' | 'o')
   ('T' | 't')
@@ -265,4 +267,34 @@ PERCENTAGE : Number '%'
   ;
 
 DIMENSION : Number Identifier
+  ;
+
+COLON : ':'
+  ;
+
+STAR : '*'
+  ;
+
+DASH : '-'
+  ;
+
+EQUALS : '='
+  ;
+
+BAR : '|'
+  ;
+
+DOT : '.'
+  ;
+
+LEFT_BRACKET : '['
+  ;
+
+RIGHT_BRACKET : ']'
+  ;
+
+RIGHT_PARENTHESIS : ')'
+  ;
+
+HASH : '#' Name
   ;

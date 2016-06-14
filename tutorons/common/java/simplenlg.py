@@ -17,9 +17,14 @@ java_import(gateway.jvm, 'simplenlg.features.*')
 java_import(gateway.jvm, 'simplenlg.realiser.english.*')
 java_import(gateway.jvm, 'simplenlg.framework.*')
 java_import(gateway.jvm, 'simplenlg.lexicon.*')
+java_import(gateway.jvm, 'simplenlg.phrasespec.*')
 
 lexicon = gateway.jvm.Lexicon.getDefaultLexicon()
 factory = gateway.jvm.NLGFactory(lexicon)
 realiser = gateway.jvm.Realiser(lexicon)
 NumberAgreement = gateway.jvm.NumberAgreement
 Feature = gateway.jvm.Feature
+Form = gateway.jvm.Form
+DiscourseFunction = gateway.jvm.DiscourseFunction
+NPPhraseSpec = gateway.jvm.NPPhraseSpec
+SPhraseSpec = gateway.jvm.SPhraseSpec

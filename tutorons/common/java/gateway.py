@@ -7,7 +7,7 @@ import os.path
 from django.conf import settings
 
 from py4j.java_gateway import launch_gateway, JavaGateway,\
-    GatewayParameters, CallbackServerParameters
+    GatewayParameters, CallbackServerParameters, is_instance_of
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -31,3 +31,12 @@ gateway.java_gateway_server.resetCallbackClient(
     gateway.java_gateway_server.getCallbackClient().getAddress(),
     python_port,
 )
+
+
+def java_isinstance(java_object, java_class):
+    '''
+    Convenience method to abstract away the gateway server to the
+    Py4J `is_instance_of` method, which is documented here:
+    https://www.py4j.org/py4j_java_gateway.html#javaobject
+    '''
+    return is_instance_of(gateway, java_object, java_class)
