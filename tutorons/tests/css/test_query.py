@@ -127,6 +127,7 @@ class FetchExplanationsForSelectorsInStylesheetTest(unittest.TestCase):
         self.assertEqual(len(regions), 2)
 
 
+"""
 class FetchAllExplanationsTest(unittest.TestCase):
 
     def setUp(self):
@@ -210,3 +211,4 @@ class FetchExplanationForFuzzyMatchTestMatch(unittest.TestCase):
     def test_explain_css_selector_from_plaintext(self):
         resp = self.get_explanation_text('"div.klazz"', edge_size=1)
         self.assertIn("The selector 'div.klazz' chooses", resp)
+"""
