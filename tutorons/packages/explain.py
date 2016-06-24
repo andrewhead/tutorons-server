@@ -2,9 +2,10 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import models
-from tutorons.packages.models import WebPageVersion, WebPageContent, Search, SearchResult, SearchResultContent, Code
+from tutorons.packages.models import WebPageVersion, WebPageContent, Search, SearchResult, SearchResultContent, Code, QuestionSnapshotTag, IssueEvent, Issue
 import cache
 import logging
 import slumber
@@ -89,18 +90,73 @@ def get_documented_since(p):
 
 
 def get_response_time(p):
-    # TODO: Fetch response_time from GitHub issues.
-    return '1 day'
+    response_times = (IssueEvent.objects
+        .filter(issue_id=models.F('issue__id'))
+        .filter(issue__project_id=models.F('issue__project__id'))
+        .filter(issue__project__fetch_index=1)
+        .filter(issue__fetch_index=1)
+        .filter(fetch_index=10)
+        .filter(issue__project__name__icontains=p)
+        .annotate(t1=models.F('created_at'))
+        .annotate(t2=models.F('issue__created_at'))
+    )
+
+    total_seconds = 0
+    num_valid = 0
+    for t in response_times:
+        if t.t1 is not None and t.t2 is not None:
+            total_seconds += (t.t1 - t.t2).seconds
+            num_valid += 1
+
+    seconds = total_seconds // num_valid
+
+    hours = seconds // (60 * 60)
+
+    minutes_divisor = seconds % (60 * 60)
+    minutes = minutes_divisor // 60
+
+    seconds = minutes_divisor % 60
+
+    return '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
 
 
 def get_resolution_time(p):
-    # TODO: Fetch resolution_time from GitHub issues.
-    return '3.5 days'
+    resolution_times = (Issue.objects
+        .filter(project_id=models.F('project__id'))
+        .filter(fetch_index=1)
+        .filter(project__fetch_index=1)
+        .filter(project__name__icontains=p)
+    )
+
+    total_seconds = 0
+    num_valid = 0
+    for t in resolution_times:
+        if t.closed_at is not None and t.created_at is not None:
+            total_seconds += (t.closed_at - t.created_at).seconds
+            num_valid += 1
+
+    seconds = total_seconds // num_valid
+
+    hours = seconds // (60 * 60)
+
+    minutes_divisor = seconds % (60 * 60)
+    minutes = minutes_divisor // 60
+
+    seconds = minutes_divisor % 60
+
+    return '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
 
 
 def get_num_questions(p):
     # TODO: Fetch num_questions by doing a join between the `tag` table, the `questionsnapshottag` table, and the `questionsnapshot` tables
-    return 50
+    unique_questions = (QuestionSnapshotTag.objects
+        .filter(question_snapshot_id=models.F('question_snapshot__id'))
+        .filter(question_snapshot__fetch_index=13)
+        .filter(tag_id=models.F('tag__id'))
+        .filter(question_snapshot__title__icontains=p)
+        .annotate(num_tags=models.Count('question_snapshot__id'))
+    )
+    return len(unique_questions)
 
 
 def get_results_with_code(p):

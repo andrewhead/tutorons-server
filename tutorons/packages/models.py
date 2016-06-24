@@ -97,3 +97,140 @@ class Code(models.Model):
 
     class Meta:
         db_table = "code"
+
+
+class QuestionSnapshot(models.Model):
+    '''
+    A snapshot of a Stack Overflow question at a moment when the API is queried.
+    This contains much of the same data as the "Post" model.
+    Though 'Snapshot' models come from periodic queries to the Stack Overflow API,
+    rather than from a one-time data dump.  This allows us to describe the longitudinal change
+    in Stack Overflow posts and data.
+    '''
+
+    # Fetch logistics
+    fetch_index = models.IntegerField()
+    date = models.DateTimeField(db_index=True, default=datetime.datetime.now)
+
+    question_id = models.IntegerField(db_index=True)
+    owner_id = models.IntegerField(null=True)
+    comment_count = models.IntegerField()
+    delete_vote_count = models.IntegerField()
+    reopen_vote_count = models.IntegerField()
+    close_vote_count = models.IntegerField()
+    is_answered = models.BooleanField()
+    view_count = models.IntegerField()
+    favorite_count = models.IntegerField()
+    down_vote_count = models.IntegerField()
+    up_vote_count = models.IntegerField()
+    answer_count = models.IntegerField()
+    score = models.IntegerField()
+    last_activity_date = models.DateTimeField()
+    creation_date = models.DateTimeField()
+    title = models.TextField()
+    body = models.TextField()
+
+    class Meta:
+        db_table = "questionsnapshot"
+
+
+class Tag(models.Model):
+    ''' A tag for Stack Overflow posts. '''
+    # We will look up tags based on their tag names when making PostTags
+    tag_name = models.CharField(db_index=True, max_length=70)
+    count = models.IntegerField()
+    excerpt_post_id = models.IntegerField(db_index=True, null=True)
+    wiki_post_id = models.IntegerField(null=True)
+
+    class Meta:
+        db_table = "tag"
+
+
+class QuestionSnapshotTag(models.Model):
+    ''' A link between one snapshot of a Stack Overflow question and one of its tags. '''
+    # Both IDs are indexed to allow fast lookup of question snapshot for a given tag and vice versa.
+    question_snapshot_id = models.IntegerField(db_index=True)
+    tag_id = models.IntegerField(db_index=True)
+
+    question_snapshot = models.ForeignKey(QuestionSnapshot, db_column='question_snapshot_id', to_field='id')
+    tag = models.ForeignKey(Tag, db_column='tag_id', to_field='id')
+
+    class Meta:
+        db_table = "questionsnapshottag"
+
+
+class GitHubProject(models.Model):
+    ''' A project on GitHub. '''
+
+    # Fetch logistics
+    fetch_index = models.IntegerField()
+    date = models.DateTimeField(db_index=True, default=datetime.datetime.now)
+
+    # These identifiers identify the project from different contexts.
+    # 'name' will give the name of a package that has a GitHub project.
+    # 'owner' and 'repo' uniquely identify a GitHub project and provide
+    # the URL through which we reach it in the API.
+    name = models.TextField(db_index=True)
+    owner = models.TextField()
+    repo = models.TextField()
+
+    class Meta:
+        db_table = "githubproject"
+
+
+class Issue(models.Model):
+    '''
+    An issue for a GitHub project.
+    The 'body' field is nullable as we found during our initial fetch that some
+    of the issues data contained 'null' bodies.
+    '''
+
+    # Fetch logistics
+    fetch_index = models.IntegerField()
+    date = models.DateTimeField(db_index=True, default=datetime.datetime.now)
+
+    github_id = models.IntegerField()
+    project = models.ForeignKey(GitHubProject)
+
+    # Fields from the GitHub API
+    number = models.IntegerField()
+    created_at = models.DateTimeField(db_index=True)
+    updated_at = models.DateTimeField(db_index=True)
+    closed_at = models.DateTimeField(db_index=True, null=True)
+    state = models.TextField()
+    body = models.TextField(null=True)
+    comments = models.IntegerField()
+
+    class Meta:
+        db_table = "issue"
+
+
+class IssueEvent(models.Model):
+    ''' An event (e.g., "closed") for an issue for a GitHub project. '''
+
+    fetch_index = models.IntegerField()
+    date = models.DateTimeField(db_index=True, default=datetime.datetime.now)
+
+    github_id = models.IntegerField()
+    issue = models.ForeignKey(Issue)
+    created_at = models.DateTimeField(db_index=True)
+    event = models.TextField()
+
+    class Meta:
+        db_table = "issueevent"
+
+
+class IssueComment(models.Model):
+    ''' A comment on a GitHub issue. '''
+
+    fetch_index = models.IntegerField()
+    date = models.DateTimeField(db_index=True, default=datetime.datetime.now)
+
+    github_id = models.IntegerField()
+    issue = models.ForeignKey(Issue)
+    created_at = models.DateTimeField(db_index=True)
+    updated_at = models.DateTimeField(db_index=True)
+    body = models.TextField()
+
+    class Meta:
+        db_table = "issuecomment"
