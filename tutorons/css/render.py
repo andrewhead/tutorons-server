@@ -10,11 +10,11 @@ from django.template import Context
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def render(explanation, example):
+def render(explanations, examples):
     css_template = get_template('css.html')
     context = {
-        'exp': explanation,
-        'example': example,
+        'explanations': explanations,
+        'examples': examples,
     }
     exp_html = css_template.render(Context(context))
     return exp_html
