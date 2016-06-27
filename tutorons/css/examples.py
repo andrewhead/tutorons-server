@@ -113,14 +113,14 @@ def annotate_class(element, class_node):
 def annotate_pseudoclass(element, pseudo_node):
 
     PSEUDOCLASS_DESCRIPTIONS = {
-        'checked': "This input has been 'checked'",
-        'visible': "This element is 'visible' (it contains space in the document)",
-        'hidden': "This element is 'hidden' (it is of type hidden, consumes no space, or " +
+        'checked': "has been 'checked'",
+        'visible': "is 'visible' (it contains space in the document)",
+        'hidden': "is 'hidden' (it is of type hidden, consumes no space, or " +
                   "has 'display' property set to 'none'",
-        'enabled': "This element is 'enabled' to accept input or focus",
-        'active': "This element is being clicked by the mouse",
-        'empty': "This element has no children",
-        'visited': "This user has visited this link before",
+        'enabled': "is 'enabled' to accept input or focus",
+        'active': "is being clicked by the mouse",
+        'empty': "has no children",
+        'visited': "has been 'visited' by the user before",
     }
 
     functionalPseudo = pseudo_node.getChild(0, CssParser.Functional_pseudoContext)
