@@ -136,7 +136,7 @@ class PseudoclassCommentTest(unittest.TestCase):
         node, _ = annotate_pseudo(node, pseudo)
         self.assertEqual(
             node.attr('tip'),
-            "This input element has the pseudoclass 'unknown'",
+            "This element has the pseudoclass 'unknown'",
         )
 
 

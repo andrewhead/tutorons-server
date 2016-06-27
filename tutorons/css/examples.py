@@ -113,14 +113,14 @@ def annotate_class(element, class_node):
 def annotate_pseudoclass(element, pseudo_node):
 
     PSEUDOCLASS_DESCRIPTIONS = {
-        'checked': "has been 'checked'",
-        'visible': "is 'visible' (it contains space in the document)",
-        'hidden': "is 'hidden' (it is of type hidden, consumes no space, or " +
+        'checked': "This input has been 'checked'",
+        'visible': "This element is 'visible' (it contains space in the document)",
+        'hidden': "This element is 'hidden' (it is of type hidden, consumes no space, or " +
                   "has 'display' property set to 'none'",
-        'enabled': "is 'enabled' to accept input or focus",
-        'active': "is being clicked by the mouse",
-        'empty': "has no children",
-        'visited': "has been 'visited' by the user before",
+        'enabled': "This element is 'enabled' to accept input or focus",
+        'active': "This element is being clicked by the mouse",
+        'empty': "This element has no children",
+        'visited': "This user has visited this link before",
     }
 
     functionalPseudo = pseudo_node.getChild(0, CssParser.Functional_pseudoContext)
@@ -130,19 +130,19 @@ def annotate_pseudoclass(element, pseudo_node):
         # behavior that's not very easy to demonstrate with simple comments.
         # For now we settle with a pretty simple and very vague default.
         description =\
-            "satisfies the functional pseudoclass '" +\
+            "This element satisfies the functional pseudoclass '" +\
             functionalPseudo.getText() + "'"
     else:
         pseudoclass = pseudo_node.children[1].getText()
         description = PSEUDOCLASS_DESCRIPTIONS.get(
             pseudoclass,
-            "has the pseudoclass '" + pseudoclass + "'"
+            "This element has the pseudoclass '" + pseudoclass + "'"
         )
 
     # If this is an input element (which cannot have any children), then we add
     # this note as an attribute.
     if re.match('<input', str(element)):
-        element.attr("tip", "This input element " + description)
+        element.attr("tip", description)
     else:
         element.append("<!--This element " + description + "-->")
     return element
