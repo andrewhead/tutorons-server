@@ -9,7 +9,7 @@ from antlr4.tree.Tree import TerminalNodeImpl as TerminalNode
 
 from tutorons.common.java.gateway import java_isinstance
 from tutorons.common.java.simplenlg import factory as nlg_factory,\
-    Feature, NumberAgreement, Form, NPPhraseSpec
+    Feature, NumberAgreement, Form, NPPhraseSpec, realiser
 from parsers.css.CssLexer import CssLexer
 from parsers.css.CssParser import CssParser
 from parsers.css.CssListener import CssListener
@@ -24,11 +24,17 @@ def explain(selector):
     try:
         parse_tree = parse_plaintext(selector, CssLexer, CssParser, 'selectors_group')
         walk_tree(parse_tree, explainer)
-        return explainer.result
-    except Exception:
+        explanations = {}
+        for selector, clause in explainer.result.items():
+            explanations[selector] =\
+                "The '" + selector + "'selector chooses " +\
+                str(realiser.realise(clause)) + "."
+        return explanations
+    except Exception as exception:
         # Although this is a pretty broad catch, we want the default
         # behavior of explanation to be that the program continues to
         # run, even if one selector was not properly explained.
+        logging.error("Error generating examples: %s", str(exception))
         return None
 
 
@@ -148,9 +154,9 @@ def explain_type_selector(type_selector_node):
             'a': 'link',
             'img': 'image',
             'pre': 'preformatted text block',
-            'table': 'HTML table',
-            'tr': 'table row',
-            'td': 'table cell',
+            'table': 'table',
+            'tr': 'row',
+            'td': 'cell',
         }
         return TYPE_NAMES.get(type_, type_)
 
