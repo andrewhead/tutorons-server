@@ -145,11 +145,11 @@ class PseudofunctionCommentTest(unittest.TestCase):
 
 class PseudoelementAppendTest(unittest.TestCase):
 
-    def test_highlight_first_letter_for_first_letter_pseudoelement(self):
+    def test_highlight_first_line_of_first_letter_pseudoelement(self):
         pseudo = parse_selector('::first-letter', 'pseudo')
         node = P('<div></div>')
         node, _ = annotate_pseudo(node, pseudo)
-        self.assertTrue(re.match('<mark>[A-Z]</mark>', node.html()))
+        self.assertTrue(re.match('<mark>[^\n]+</mark>', node.html()))
 
     def test_highlight_first_line_for_first_line_pseudoelement(self):
         pseudo = parse_selector('::first-line', 'pseudo')

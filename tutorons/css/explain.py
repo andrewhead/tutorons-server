@@ -173,7 +173,8 @@ def explain_type_selector(type_selector_node):
     if type_name != type_:
         noun.setNoun(type_name)
     else:
-        noun.addPreModifier('\'' + _lookup_type_name(type_) + '\'')
+        type_adjective = nlg_factory.createAdjectivePhrase('\'' + _lookup_type_name(type_) + '\'')
+        noun.addPreModifier(type_adjective)
 
     # Make sure to plurarlize the count
     noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
@@ -300,7 +301,16 @@ def explain_simple_selector_sequence(simple_selector_sequence_node, focus=True):
     elif isinstance(tag_determiner, CssParser.UniversalContext):
         noun = explain_universal(tag_determiner)
     if focus is True:
-        noun.addPreModifier('all')
+        # We want to make sure that the word 'all' is appended to the very
+        # start of the subject of the selection.  This means going before
+        # all of the adjectives used to describe it.  So we check for pre-modifier
+        # adjectives, and apply 'all' before the first one.
+        all_phrase = nlg_factory.createAdjectivePhrase('all')
+        if len(noun.getPreModifiers()) > 0:
+            first_premodifier = noun.getPreModifiers()[0]
+            first_premodifier.addPreModifier(all_phrase)
+        else:
+            noun.addPreModifier(all_phrase)
     clause.setNoun(noun)
 
     # Each selector in the sequence produces another layer of specificity.

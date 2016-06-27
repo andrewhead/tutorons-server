@@ -168,6 +168,14 @@ class SimpleSelectorSequenceExplanationTest(unittest.TestCase):
             "all elements that belong to class 'klazz'"
         )
 
+    def test_all_adjective_goes_before_type_adjective(self):
+        sequence = parse_selector('unknown_element', 'simple_selector_sequence')
+        clause = explain_simple_selector_sequence(sequence)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "all 'unknown_element' elements"
+        )
+
 
 class SelectorExplanationTest(unittest.TestCase):
     '''

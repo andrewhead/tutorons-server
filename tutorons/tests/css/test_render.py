@@ -15,25 +15,29 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 class TestRenderDescription(unittest.TestCase):
 
     def setUp(self):
-        self.test_explanation = "The selector '.klazz' chooses elements of class 'watch-view-count'"
-        self.test_document = '\n'.join([
-            '&lt;div class=klazz&gt;',
-            '&lt;/div&gt;',
-        ])
+        self.test_explanations = {
+            '.klazz': "The selector '.klazz' chooses all elements of class 'klazz'"
+        }
+        self.test_examples = {
+            '.klazz': '\n'.join([
+                '&lt;div class=klazz&gt;',
+                '&lt;/div&gt;',
+            ])
+        }
 
     def test_render_preamble(self):
-        html = render(self.test_explanation, self.test_document)
+        html = render(self.test_explanations, self.test_examples)
         doc = BeautifulSoup(html)
         self.assertIn("You found a CSS selector", doc.text)
         self.assertIn("selectors choose sections of HTML pages", doc.text)
 
     def test_render_description(self):
-        html = render(self.test_explanation, self.test_document)
+        html = render(self.test_explanations, self.test_examples)
         doc = BeautifulSoup(html)
-        self.assertIn("chooses elements of class 'watch-view-count'", doc.text)
+        self.assertIn("chooses all elements of class 'klazz'", doc.text)
 
     def test_render_example_html(self):
-        html = render(self.test_explanation, self.test_document)
+        html = render(self.test_explanations, self.test_examples)
         doc = BeautifulSoup(html)
         self.assertIn('\n'.join([
             '<div class=klazz>',
