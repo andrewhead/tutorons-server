@@ -128,6 +128,17 @@ class PseudoclassCommentTest(unittest.TestCase):
         self.assertEqual(len(comment_children), 1)
         self.assertIn("This element has the pseudoclass 'unknown'", comment_children[0].text)
 
+    def test_comments_added_before_input_elements(self):
+        # To my knowledge, PyQuery only generated <input/> elements that cannot have any content.
+        # Therefore, any descriptive comments must appear before or after the input
+        pseudo = parse_selector(':unknown', 'pseudo')
+        node = P('<input></input>')
+        node, _ = annotate_pseudo(node, pseudo)
+        self.assertEqual(
+            node.attr('tip'),
+            "This input element has the pseudoclass 'unknown'",
+        )
+
 
 class PseudofunctionCommentTest(unittest.TestCase):
 

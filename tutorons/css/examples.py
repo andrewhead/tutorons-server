@@ -130,16 +130,21 @@ def annotate_pseudoclass(element, pseudo_node):
         # behavior that's not very easy to demonstrate with simple comments.
         # For now we settle with a pretty simple and very vague default.
         description =\
-            "This element satisfies the functional pseudoclass '" +\
+            "satisfies the functional pseudoclass '" +\
             functionalPseudo.getText() + "'"
     else:
         pseudoclass = pseudo_node.children[1].getText()
         description = PSEUDOCLASS_DESCRIPTIONS.get(
             pseudoclass,
-            "This element has the pseudoclass '" + pseudoclass + "'"
+            "has the pseudoclass '" + pseudoclass + "'"
         )
 
-    element.append("<!--" + description + "-->")
+    # If this is an input element (which cannot have any children), then we add
+    # this note as an attribute.
+    if re.match('<input', str(element)):
+        element.attr("tip", "This input element " + description)
+    else:
+        element.append("<!--This element " + description + "-->")
     return element
 
 
