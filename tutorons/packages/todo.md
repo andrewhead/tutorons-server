@@ -20,13 +20,7 @@ Each model has an embedded `class Meta` in order to explicitly tell it which tab
 I've included the StackOverflow post you linked to me previously down below under Useful Links and Resources.
 
 ## Complete the queries for the other data we want to show
-Based on our previous discussion of what we want to include in a package tutoron, we currently are only showing the package name, description, URL, and how long it has been documented (`documented_since`). In addition to these, we also want to show `response_time` of issues on GitHub, `resolution_time` of issues on GitHub, `num_questions` on StackOverflow, and `results_with_code` from a Google search.
-
-### Response time and resolution time
-This data still needs to be scraped from GitHub and then put into a table for us to query. This also means we'll need to then add models to `models.py` to be able to work with those new tables.
-
-### Number of questions
-This data can be obtained by doing a join between the `tag` table, the `questionsnapshottag` table, and the `questionsnapshot` tables.
+Based on our previous discussion of what we want to include in a package tutoron, we currently are only showing the package name, description, URL, how long it has been documented (`documented_since`), how quickly GitHub issues are responded to (`response_time`), how quickly GitHub issues are resolved (`resolution_time`), and the number of questions on StackOverflow (`num_questions`). In addition to these, we also want to show `results_with_code` from a Google search.
 
 ### Results with code
 We looked at your code on `Package-Community` and came up with an equivalent SQL query that should get the same result. This SQL query can be found at the top of `example.sql`. It still needs to be translated into Django, which might turn out to be rather involved.
@@ -40,8 +34,6 @@ In `tutorons/common/dblogger.py`, call `using('logging')` on the `QuerySet` when
 
 ### Accessing the database
 In `settings/defaults.py`, I define a global variable `PASSWORD_FILE` that goes to `/etc/django/password.key`, which is meant to be used to access `fetcher`. In `settings/dev.py`, update the `DATABASES` setting to whichever user you want to use. I currently have it set to `reader` and thus have `reader`'s password stored in `/etc/django/password.key`.
-
-**NOTE:** For some reason, I can't get the password to correctly load from the file. The text looks fine; I suspect it has something to do with the string encoding or raw strings or something of that sort... In the meantime, I've left a filler password `PASSWORD` in its place. You should update this value locally and avoid pushing it to the repository, until we can get it to properly read from a specified password file.
 
 ## Useful Links and Resources
 [Django: Aggregation](https://docs.djangoproject.com/en/1.9/topics/db/aggregation/)
