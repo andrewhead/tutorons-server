@@ -2,7 +2,8 @@
 <html>
     <head>
         <title>Tutorons</title>
-        <script src="http://www.tutorons.com/static/tutorons-library.js"></script>
+        <link rel='icon' href="{% static "tutorons/img/favicon.png" %}" />
+        <script src="//tutorons.com/static/tutorons-library.js"></script>
         <script>
           document.addEventListener("DOMContentLoaded", function (event) {
             var tutoronsConnection = new tutorons.TutoronsConnection(window);
@@ -40,7 +41,7 @@
             <p>
             To start seeing automatic explanations for wget, CSS selectors, regular expressions, and Python built-ins everywhere you navigate online, install the <a href="{% static "tutorons-addon.xpi" %}">Firefox addon</a>.
             <!--Just open the file to install into Firefox.-->
-            Then click on the <img class='img-inline' src="{% static "tutorons/img/icon.png" %}"/> icon to enable automatic detection of code and insertion of explanations.
+            Then click on the <img class='img-inline' src="{% static "tutorons/img/addon_icon.png" %}"/> icon to enable automatic detection of code and insertion of explanations.
             </p>
             <p>
             Give the new plugin a spin by viewing some explanations for wget <a href="http://riceball.com/d/content/screen-scraping-wget-and-mailarchiva">on this tutorial</a> and some explanations for regular expressions <a href="http://webmasters.stackexchange.com/questions/9457/apache-domain-redirect-to-subfolder">on this tutorial</a>.  Explanations may take a few seconds to appear as the Tutorons work to detect the code.
@@ -50,7 +51,7 @@
             By adding Tutorons to your webpage, visitors to your page will be able to click on snippets of wget, CSS selectors, regular expressions, and Python built-ins to see automatic explanations of the code.
             To enable Tutorons for your webpage, add the following lines to the <code>&lt;head&gt;</code> of your page.
             </p>
-            <pre><code>&lt;script src="http://www.tutorons.com/static/tutorons-library.js"&gt;&lt;/script&gt;
+            <pre><code>&lt;script src="//tutorons.com/static/tutorons-library.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   document.addEventListener("DOMContentLoaded", function (event) {
     var tutoronsConnection = new tutorons.TutoronsConnection(window);

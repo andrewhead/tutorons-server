@@ -4,9 +4,6 @@ DEPS=`ls deps/*.jar | tr '\n' ':'`
 CLASSPATH=$CLASSPATH:$DEPS
 DJANGO_PORT=${1:-8002}
 
-# Start the servers
-## Run Java Explanation server
-java -cp $CLASSPATH:$DEPS CssExplainerEntryPoint &
 ## Start the Python server
 DJANGO_SETTINGS_MODULE=tutorons.settings.dev python manage.py runserver $DJANGO_PORT
 

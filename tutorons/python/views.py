@@ -3,64 +3,51 @@
 
 from __future__ import unicode_literals
 import logging
-import json
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import get_template
 from django.template import Context
-from django.http import HttpResponse
 
-from tutorons.common.htmltools import HtmlDocument
-from tutorons.common.util import log_region, package_region
 from tutorons.common.scanner import NodeScanner
 from tutorons.python.detect import PythonBuiltInExtractor
 from tutorons.python.explain import explain as python_explain
 from tutorons.python.render import render as python_render
 from tutorons.python.builtins import explanations
-from tutorons.common.extractor import Region
+from tutorons.common.dblogger import DbLogger
+from tutorons.common.views import pagescan, snippetexplain
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 region_logger = logging.getLogger('region')
+db_logger = DbLogger()
 
 
 @csrf_exempt
-def scan(request):
-
-    doc_body = request.POST.get('document')
-    origin = request.POST.get('origin')
-    region_logger.info("Request for page from origin: %s", origin)
-
-    explained_regions = []
-    document = HtmlDocument(doc_body)
+@pagescan
+def scan(html_doc):
     builtin_extractor = PythonBuiltInExtractor()
-
     builtin_scanner = NodeScanner(builtin_extractor, ['code', 'pre'])
-    regions = builtin_scanner.scan(document)
+    regions = builtin_scanner.scan(html_doc)
+    rendered_regions = []
     for r in regions:
-        log_region(r, origin)
+        # log_region(r, origin)
         hdr, exp, url = python_explain(r.string)
         document = python_render(r.string, hdr, exp, url)
-        explained_regions.append(package_region(r, document))
-
-    return HttpResponse(json.dumps(explained_regions, indent=2))
+        rendered_regions.append((r, document))
+    # db_logger.update_server_end_time(qid)
+    return rendered_regions
 
 
 @csrf_exempt
-def explain(request):
-
-    text = request.POST.get('text')
-    origin = request.POST.get('origin')
-    region_logger.info("Request for text from origin: %s", origin)
+@snippetexplain
+def explain(text, edge_size):
 
     error_template = get_template('error.html')
 
     if text in explanations:
-        region = Region(HtmlDocument(text), 0, len(text) - 1, text)
-        log_region(region, origin)
         hdr, exp, url = python_explain(text)
-        exp_html = python_render(text, hdr, exp, url)
-        return HttpResponse(exp_html)
+        explanation = python_render(text, hdr, exp, url)
     else:
         logging.error("Error processing python built-in %s", text)
-        error_html = error_template.render(Context({'text': text, 'type': 'python built-in'}))
-        return HttpResponse(error_html)
+        explanation = error_template.render(Context({'text': text, 'type': 'python built-in'}))
+
+    return explanation
