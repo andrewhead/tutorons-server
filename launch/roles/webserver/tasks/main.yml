@@ -153,7 +153,9 @@
   environment:
     DJANGO_SETTINGS_MODULE: "{{ djsettings }}"
   when: staticfiles is defined
-  tags: updatecode
+  tags:
+  - updatecode
+  - static
 
 - name: Transfer setup scripts
   template: src={{ item }}.j2 dest={{ scriptdir }}/{{ item }}.sh
