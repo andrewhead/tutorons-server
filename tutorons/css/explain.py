@@ -9,7 +9,7 @@ from antlr4.tree.Tree import TerminalNodeImpl as TerminalNode
 
 from tutorons.common.java.gateway import java_isinstance
 from tutorons.common.java.simplenlg import factory as nlg_factory,\
-    Feature, NumberAgreement, Form, NPPhraseSpec, realiser
+    Feature, NumberAgreement, NPPhraseSpec, realiser
 from parsers.css.CssLexer import CssLexer
 from parsers.css.CssParser import CssParser
 from parsers.css.CssListener import CssListener
@@ -210,15 +210,15 @@ def explain_pseudoclass(pseudo_node):
     }
 
     clause = nlg_factory.createClause()
-    functionalPseudo = pseudo_node.getChild(0, CssParser.Functional_pseudoContext)
-    if functionalPseudo is not None:
+    functional_pseudo = pseudo_node.getChild(0, CssParser.Functional_pseudoContext)
+    if functional_pseudo is not None:
         # Here's where we need to make a bunch of custom rules for different
         # functional pseudo-classes, as each of them have some pretty involved
         # behavior that's not very easy to describe with English.
         # For now we settle with a pretty simple and very vague default.
         verb = nlg_factory.createVerbPhrase('satisfy')
         clause.setVerb(verb)
-        object_ = nlg_factory.createNounPhrase("'" + functionalPseudo.getText() + "'")
+        object_ = nlg_factory.createNounPhrase("'" + functional_pseudo.getText() + "'")
         object_.addPreModifier('function')
         object_.setDeterminer('the')
         clause.setObject(object_)
@@ -236,6 +236,16 @@ def explain_pseudoclass(pseudo_node):
 
 def explain_pseudoelement(pseudo_node):
 
+    # Check to see if this pseudoelement is a functional pseudo-element.
+    # If we succeed at explaining it as one, then return the explanation.
+    # Otherwise, proceed to explain it as a generic pseudo-element
+    # (See the note in the functional pseudo-element routine about how functional
+    # pseudo-elements don't exist in the actual selectors spec).
+    if isinstance(pseudo_node.children[2], CssParser.Functional_pseudoContext):
+        noun = explain_functional_pseudoelement(pseudo_node)
+        if noun is not None:
+            return noun
+
     pseudoelement_name = pseudo_node.children[2].getText()
 
     # Given the small list of pseudo-elements supported by CSS3,
@@ -250,16 +260,53 @@ def explain_pseudoelement(pseudo_node):
     else:
         noun.setNoun('content')
         verb = nlg_factory.createVerbPhrase('match')
-        verb.setFeature(Feature.FORM, Form.PRESENT_PARTICIPLE)
         object_ = nlg_factory.createNounPhrase("'" + pseudo_node.getText() + "'")
         object_.setPreModifier('pseudo-element')
         object_.setDeterminer('the')
         description_clause = nlg_factory.createClause()
         description_clause.setVerb(verb)
         description_clause.setObject(object_)
-        noun.addPostModifier(description_clause)
+        noun.addComplement(description_clause)
 
     return noun
+
+
+def explain_functional_pseudoelement(pseudo_node):
+    '''
+    Explain a functional pseudo-element by the 'pseudo' node from the parse tree.
+    This method returns None if it can't find a specialized explanation for this pseudoelement.
+    This allows whatever calls it to make a more generic explanation if this method fails.
+
+    Note that functional pseudo-elements don't exist in the vurrent celectors specification:
+    https://www.w3.org/TR/css3-selectors/#pseudo-elements
+    However, functional pseudo-elements are supported by some web scraping libraries, for example
+    the '::attr(<attr_name>)' pseudo-element for Scrapy:
+    http://doc.scrapy.org/en/latest/topics/selectors.html
+    This function provides support for describing these unofficial selectors.
+    '''
+    noun = nlg_factory.createNounPhrase()
+
+    # Extract name of function and expression from parse tree
+    # Function tokens for pseudo-elements are grouped with a right parenthesis, which we remove
+    functional_pseudo_node = pseudo_node.children[2]
+    function_token = functional_pseudo_node.children[0].getText()
+    function_name = re.sub('\($', '', function_token)
+    expression_node = functional_pseudo_node.getTypedRuleContexts(CssParser.ExpressionContext)[0]
+    expression = expression_node.getText()
+
+    if function_name == 'attr':
+        noun.setNoun('value')
+        noun.setDeterminer('the')
+        preposition = nlg_factory.createPrepositionPhrase('of')
+        attribute_noun = nlg_factory.createNounPhrase('attribute')
+        attribute_noun.setDeterminer('the')
+        attribute_adjective = nlg_factory.createAdjectivePhrase('\'' + expression + '\'')
+        attribute_noun.addPreModifier(attribute_adjective)
+        preposition.addComplement(attribute_noun)
+        noun.addComplement(preposition)
+        return noun
+
+    return None
 
 
 def explain_pseudo(pseudo_node):
@@ -267,7 +314,7 @@ def explain_pseudo(pseudo_node):
     Returns:
     * if the pseudo structure is a pseudo-class, this returns a
     clause describing the conditions where elements get selected.
-    * if the pseduo structure is a pseudo-element, this returns a noun
+    * if the pseudo structure is a pseudo-element, this returns a noun
     describing the content that is selected
     '''
 
@@ -335,7 +382,7 @@ def explain_simple_selector_sequence(simple_selector_sequence_node, focus=True):
             modifier = explain_hash(selector)
 
         if modifier is not None:
-            # Coerce all child phrases to describe multiple elements insteada
+            # Coerce all child phrases to describe multiple elements instead
             # of just one element.  Centralizes this operation.
             modifier.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
             modifiers.append(modifier)
