@@ -257,6 +257,10 @@ def explain_pseudoelement(pseudo_node):
         noun.addPreModifier('generated')
         preposition = nlg_factory.createPrepositionPhrase("before the element's content")
         noun.addComplement(preposition)
+    elif pseudoelement_name == 'text':
+        noun.setNoun('content')
+        adjective = nlg_factory.createAdjectivePhrase('text')
+        noun.addPreModifier(adjective)
     else:
         noun.setNoun('content')
         verb = nlg_factory.createVerbPhrase('match')
