@@ -144,7 +144,15 @@ class PseudoclassExplanationTest(unittest.TestCase):
         noun = explain_pseudo(pseudo)
         self.assertEqual(
             str(realiser.realise(noun)),
-            'content matching the pseudo-element \'::cheese\''
+            'content that matches the pseudo-element \'::cheese\''
+        )
+
+    def test_explain_attr_functional_pseudoelement(self):
+        pseudo = parse_selector('::attr(href)', 'pseudo')
+        noun = explain_pseudo(pseudo)
+        self.assertEqual(
+            str(realiser.realise(noun)),
+            'the value of the \'href\' attribute'
         )
 
 
@@ -159,7 +167,7 @@ class SimpleSelectorSequenceExplanationTest(unittest.TestCase):
             "have a link that starts with 'http://'"
         )
 
-    def test_shift_subject_with_pseudoelement(self):
+    def test_shift_subject_with_pseudoelement_and_class(self):
         sequence = parse_selector('.klazz::before', 'simple_selector_sequence')
         clause = explain_simple_selector_sequence(sequence)
         self.assertEqual(
