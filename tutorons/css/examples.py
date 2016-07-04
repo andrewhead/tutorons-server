@@ -83,17 +83,17 @@ def annotate_attribute(element, attribute_node):
             state = 'found all'
 
     if equality_operation == CssLexer.PREFIXMATCH:
-        element.attr(attribute_name, value + "_suffix")
+        element.attr(attribute_name, value + "<_suffix>")
     elif equality_operation == CssLexer.SUFFIXMATCH:
-        element.attr(attribute_name, 'prefix_' + value)
+        element.attr(attribute_name, '<prefix_>' + value)
     elif equality_operation == CssLexer.SUBSTRINGMATCH:
-        element.attr(attribute_name, 'prefix_' + value + '_suffix')
+        element.attr(attribute_name, '<prefix_>' + value + '<_suffix>')
     elif equality_operation == CssLexer.EQUALS:
         element.attr(attribute_name, value)
     elif equality_operation == CssLexer.INCLUDES:
         element.attr(attribute_name, 'value1 ' + value + ' value2')
     elif equality_operation == CssLexer.DASHMATCH:
-        element.attr(attribute_name, value + '-suffix')
+        element.attr(attribute_name, value + '-<suffix>')
 
     return element
 
