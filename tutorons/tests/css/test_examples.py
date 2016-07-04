@@ -31,7 +31,8 @@ def parse_selector(selector, rule_name):
 def _get_comment_children(node):
     comment_children = []
     for child in node.children():
-        if re.match("^<!--.*-->$", str(child)):
+        comment_pattern = "<!--.*-->"
+        if re.match(comment_pattern, str(child)):
             comment_children.append(child)
     return comment_children
 
@@ -191,6 +192,42 @@ class PseudoelementAppendTest(unittest.TestCase):
         self.assertEqual(nodes.length, 2)
         self.assertEqual(P(nodes[0]), node)
         self.assertTrue(_element_has_tag(P(nodes[1]), 'mark'))
+
+    def test_generate_generic_comment_to_describe_all_other_pseudoelements(self):
+        pseudo = parse_selector('::cheese', 'pseudo')
+        node = P('<div></div>')
+        node, _ = annotate_pseudo(node, pseudo)
+        marked_comments = node.children('mark')
+        self.assertEqual(len(marked_comments), 1)
+        comments = _get_comment_children(P(marked_comments[0]))
+        self.assertEqual(len(comments), 1)
+        self.assertIn(
+            "The selector chooses content from the 'cheese' pseudo-element of this element",
+            comments[0].text
+        )
+
+
+class FunctionalPseudoelementAppendTest(unittest.TestCase):
+
+    def test_append_comment_and_attribute_describing_attribute_functional_pseudoelement(self):
+        pseudo = parse_selector('::attr(href)', 'pseudo')
+        node = P('<div></div>')
+        node, _ = annotate_pseudo(node, pseudo)
+        marked_comments = node.children('mark')
+        self.assertEqual(len(marked_comments), 1)
+        comments = _get_comment_children(P(marked_comments[0]))
+        self.assertEqual(len(comments), 1)
+        self.assertIn(
+            "The selector chooses the value of this element's 'href' attribute",
+            comments[0].text
+        )
+        self.assertEqual(node.attr('href'), "<This value is selected>")
+
+    def test_dont_set_attribute_for_attribute_functional_pseudoelement_if_already_specified(self):
+        pseudo = parse_selector('::attr(href)', 'pseudo')
+        node = P('<div href="custom value"></div>')
+        node, _ = annotate_pseudo(node, pseudo)
+        self.assertEqual(node.attr('href'), "custom value")
 
 
 class UniversalSelectorElementCreationTest(unittest.TestCase):

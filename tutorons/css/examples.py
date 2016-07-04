@@ -150,6 +150,17 @@ def annotate_pseudoclass(element, pseudo_node):
 
 def append_pseudoelement(element, pseudo_node):
 
+    # Check to see if this pseudoelement is a functional pseudo-element.
+    # If it is, and we succeed at generating example behavior for it as a functional
+    # pseudo-element, then use this augmentation.
+    # Otherwise, proceed to explain it as a generic pseudo-element
+    # (See the note in the functional pseudo-element routine about how functional
+    # pseudo-elements don't exist in the actual selectors spec).
+    if isinstance(pseudo_node.children[2], CssParser.Functional_pseudoContext):
+        selection = annotate_functional_pseudoelement(element, pseudo_node)
+        if selection is not None:
+            return selection
+
     pseudoelement_name = pseudo_node.children[2].getText()
 
     if pseudoelement_name == 'first-letter':
@@ -173,8 +184,53 @@ def append_pseudoelement(element, pseudo_node):
             element,
             "<mark>This content (generated before a specific element) will be selected</mark>",
         ])
+    else:
+        element.append(
+            "<mark><!--The selector chooses content from the '" + pseudoelement_name +
+            "' pseudo-element of this element--></mark>"
+        )
+        selection = element
 
     return selection
+
+
+def annotate_functional_pseudoelement(element, pseudo_node):
+    '''
+    Annotate an HTML node with attributes and comments demonstrating what is getting chosen
+    by a functional pseudo-element.
+    This method returns None if it can't find a specialized explanation for this pseudoelement.
+    This allows whatever calls it to make a more generic explanation if this method fails.
+
+    Note that functional pseudo-elements don't exist in the vurrent celectors specification:
+    https://www.w3.org/TR/css3-selectors/#pseudo-elements
+    However, functional pseudo-elements are supported by some web scraping libraries, for example
+    the '::attr(<attr_name>)' pseudo-element for Scrapy:
+    http://doc.scrapy.org/en/latest/topics/selectors.html
+    This function provides support for making examples of what these unofficial selectors do.
+    '''
+    # Extract name of function and expression from parse tree
+    # Function tokens for pseudo-elements are grouped with a right parenthesis, which we remove
+    functional_pseudo_node = pseudo_node.children[2]
+    function_token = functional_pseudo_node.children[0].getText()
+    function_name = re.sub('\($', '', function_token)
+    expression_node = functional_pseudo_node.getTypedRuleContexts(CssParser.ExpressionContext)[0]
+    expression = expression_node.getText()
+
+    if function_name == 'attr':
+
+        # Only provide a "placeholder" value of the attribute if it isn't already specified
+        # by some other selector (for instance, by an attribute simple selector).
+        if element.attr(expression) is None:
+            element.attr(expression, "<This value is selected>")
+
+        # Add a (highlighted) comment explaining that the attribute is getting selected.
+        element.append(
+            "<mark><!--The selector chooses the value of this element's '" +
+            expression + "' attribute--></mark>",
+        )
+        return element
+
+    return None
 
 
 def annotate_pseudo(element, pseudo_node):
