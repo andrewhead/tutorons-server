@@ -48,7 +48,7 @@ def _get_marked_comment_children(node):
 
 def _element_has_tag(element, tag):
     ''' Element needs to be passed in as a PyQuery selection. '''
-    return bool(re.match("<" + tag + ".+</" + tag + ">", element.outer_html()))
+    return bool(re.match("<" + tag + "( |/>|>)", element.outer_html()))
 
 
 class AttributeAnnotationTest(unittest.TestCase):
@@ -360,9 +360,9 @@ class SelectorsGroupContentCreationTest(unittest.TestCase):
         contents = create_content_from_selectors_group(selectors_group)
         self.assertEqual(
             contents['.klazz'].outer_html(),
-            "<mark><div class=\"klazz\"></div></mark>"
+            "<mark><div class=\"klazz\"/></mark>"
         )
-        self.assertEqual(contents['p'].outer_html(), "<mark><p></p></mark>")
+        self.assertEqual(contents['p'].outer_html(), "<mark><p/></mark>")
 
 
 class HtmlRendererTest(unittest.TestCase):
@@ -401,4 +401,16 @@ class HtmlRendererTest(unittest.TestCase):
         html = self._render(element)
         self.assertEqual(html, '\n'.join([
             "&lt;base/&gt;<br>",
+        ]))
+
+    def test_dont_double_escape_chevrons(self):
+        # One of the routines that we use to pretty-print HTML documents already
+        # escapes the chevrons ('<', '>').  If we escape them twice, then they
+        # don't appear as a chevron in the rendered document.
+        # We test here to make sure that we don't escape them twice.
+        element = P('<a href="<pattern>"></a>')
+        html = self._render(element)
+        self.assertEqual(html, '\n'.join([
+            "&lt;a href=\"&lt;pattern&gt;\"&gt;<br>",
+            "&lt;/a&gt;<br>",
         ]))

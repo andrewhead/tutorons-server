@@ -492,7 +492,8 @@ class HtmlRenderer(object):
         Escaped characters that have a special meaning in HTML to make sure
         that they render as the right character from within a code block.
         '''
-        ampersands_escaped = re.sub(r"&", "&amp;", text)
+        # When we escape ampersands, we avoid those that are already part of escaped chevrons.
+        ampersands_escaped = re.sub(r"&(?!(lt;|gt;))", "&amp;", text)
         # When we escape the '<' and '>' characters, we make sure to avoid those that
         # are attached to a 'mark' tag, as these need to be preserved to make sure that
         # we can substitute them with a span with class "tutoron_selection"
