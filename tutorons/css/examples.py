@@ -439,13 +439,18 @@ class HtmlRenderer(object):
 
         # BeautifulSoup has a built-in prettifier that will get us most
         # of the way to a presentable document
-        soup_document = BeautifulSoup(html)
-        main_contents = soup_document.body.next
-        prettified_text = main_contents.prettify()
+        # We choose the 'html.parser' instead of the 'html5lib' parser because
+        # 1. We should be providing it valid HTML documents (no big need for leniency)
+        # 2. The documents are also small, so performance isn't that important right now.
+        # 3. 'html5lib' adds unwanted tags to make a document into valid HTML.
+        #    We're only interested in showing HTML fragments, not full documents.
+        soup_document = BeautifulSoup(html, 'html.parser')
+        prettified_text = soup_document.prettify()
 
         # Apply a number of transformations to escape and indent the
         # text to prepare it for presentation
-        escaped_text = self._escape(prettified_text)
+        stripped_text = prettified_text.strip()
+        escaped_text = self._escape(stripped_text)
         marked_text = self._format_marked_content(escaped_text)
         spans_unindented_text = self._unindent_spans(marked_text)
         indented_text = self._indent(spans_unindented_text, indent_level)

@@ -390,3 +390,15 @@ class HtmlRendererTest(unittest.TestCase):
             "</span>",
             "&lt;/div&gt;<br>",
         ]))
+
+    def test_render_head_element(self):
+        # Depending on the parser BeautifulSoup may try to insert HTML contents
+        # into well-formed <body> or <head> tags.  In a past version of the renderer,
+        # tags that appeared in an unexpected part of the document (like 'base' and
+        # 'title', which typically appear in the <head>) would not get rendered.
+        # This test makes sure that these elements do get rendered.
+        element = P('<base></base>')
+        html = self._render(element)
+        self.assertEqual(html, '\n'.join([
+            "&lt;base/&gt;<br>",
+        ]))
