@@ -37,6 +37,15 @@ def _get_comment_children(node):
     return comment_children
 
 
+def _get_marked_comment_children(node):
+    marks = node.children('mark')
+    comments = []
+    for mark in marks:
+        mark_comments = _get_comment_children(P(mark))
+        comments.extend(mark_comments)
+    return comments
+
+
 def _element_has_tag(element, tag):
     ''' Element needs to be passed in as a PyQuery selection. '''
     return bool(re.match("<" + tag + ".+</" + tag + ">", element.outer_html()))
@@ -193,13 +202,23 @@ class PseudoelementAppendTest(unittest.TestCase):
         self.assertEqual(P(nodes[0]), node)
         self.assertTrue(_element_has_tag(P(nodes[1]), 'mark'))
 
+    def test_generate_text_content_for_text_pseudoelement(self):
+
+        pseudo = parse_selector('::text', 'pseudo')
+        node = P('<div></div>')
+        node, _ = annotate_pseudo(node, pseudo)
+
+        # This node should have no other children.
+        # However, it should have a non-zero amount of HTML (added as text).
+        mark = P(node.children('mark'))
+        self.assertGreater(len(mark.html()), 0)
+        self.assertEqual(len(mark.children()), 0)
+
     def test_generate_generic_comment_to_describe_all_other_pseudoelements(self):
         pseudo = parse_selector('::cheese', 'pseudo')
         node = P('<div></div>')
         node, _ = annotate_pseudo(node, pseudo)
-        marked_comments = node.children('mark')
-        self.assertEqual(len(marked_comments), 1)
-        comments = _get_comment_children(P(marked_comments[0]))
+        comments = _get_marked_comment_children(node)
         self.assertEqual(len(comments), 1)
         self.assertIn(
             "The selector chooses content from the 'cheese' pseudo-element of this element",
@@ -213,9 +232,7 @@ class FunctionalPseudoelementAppendTest(unittest.TestCase):
         pseudo = parse_selector('::attr(href)', 'pseudo')
         node = P('<div></div>')
         node, _ = annotate_pseudo(node, pseudo)
-        marked_comments = node.children('mark')
-        self.assertEqual(len(marked_comments), 1)
-        comments = _get_comment_children(P(marked_comments[0]))
+        comments = _get_marked_comment_children(node)
         self.assertEqual(len(comments), 1)
         self.assertIn(
             "The selector chooses the value of this element's 'href' attribute",

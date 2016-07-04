@@ -184,6 +184,11 @@ def append_pseudoelement(element, pseudo_node):
             element,
             "<mark>This content (generated before a specific element) will be selected</mark>",
         ])
+    elif pseudoelement_name == 'text':
+        element.append(
+            "<mark>The text content of this element will be selected</mark>"
+        )
+        selection = element
     else:
         element.append(
             "<mark><!--The selector chooses content from the '" + pseudoelement_name +

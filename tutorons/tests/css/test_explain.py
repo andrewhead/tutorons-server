@@ -147,6 +147,9 @@ class PseudoclassExplanationTest(unittest.TestCase):
             'content that matches the pseudo-element \'::cheese\''
         )
 
+    # While the above tests are more for testing generic functionality, the test
+    # cases below are for checking that special pseudo selectors are described correctly.
+
     def test_explain_attr_functional_pseudoelement(self):
         pseudo = parse_selector('::attr(href)', 'pseudo')
         noun = explain_pseudo(pseudo)
@@ -154,6 +157,11 @@ class PseudoclassExplanationTest(unittest.TestCase):
             str(realiser.realise(noun)),
             'the value of the \'href\' attribute'
         )
+
+    def test_explain_text_pseudoelement(self):
+        pseudo = parse_selector('::text', 'pseudo')
+        noun = explain_pseudo(pseudo)
+        self.assertEqual(str(realiser.realise(noun)), 'text content')
 
 
 class SimpleSelectorSequenceExplanationTest(unittest.TestCase):
