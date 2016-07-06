@@ -178,13 +178,22 @@
   group: name=docker state=present
   tags: containers
 
-- name: Fetch and start Docker containers
+- name: Fetch Docker images
+  docker_image:
+    name: "{{ item.image }}"
+  with_items: "{{ containers }}"
+  when: containers is defined
+  become: true
+  tags: containers
+
+- name: Start Docker containers
   docker_container:
     name: "{{ item.name }}"
     image: "{{ item.image }}"
     state: started
-    exposed_ports: "{{ item.host_port }}:{{ item.exposed_port }}"
-  with_items: containers
+    published_ports: "{{ item.host_port }}:{{ item.exposed_port }}"
+    exposed_ports: "{{ item.exposed_port }}"
+  with_items: "{{ containers }}"
   when: containers is defined
   become: true
   tags: containers
