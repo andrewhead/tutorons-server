@@ -8,11 +8,11 @@ from django.template.loader import get_template
 from django.template import Context
 
 from tutorons.common.scanner import NodeScanner
-from tutorons.css.detect import find_jquery_selector
-from tutorons.css.explain import JavascriptSelectorExtractor, StylesheetSelectorExtractor
-from tutorons.css.explain import explain as css_explain, is_selector
+from tutorons.css.detect import find_jquery_selector, JavascriptSelectorExtractor,\
+    StylesheetSelectorExtractor, is_selector
+from tutorons.css.explain import explain as css_explain
 from tutorons.css.render import render as css_render
-from parsers.css.examples.examplegen import get_example as css_example
+from tutorons.css.examples import generate_examples
 from tutorons.common.dblogger import DbLogger
 from tutorons.common.views import pagescan, snippetexplain
 
@@ -34,9 +34,9 @@ def scan(html_doc):
     regions = js_scanner.scan(html_doc) + stylesheet_scanner.scan(html_doc)
     rendered_regions = []
     for r in regions:
-        exp = css_explain(r.string)
-        example = css_example(r.string)
-        document = css_render(exp, example)
+        explanations = css_explain(r.string)
+        examples = generate_examples(r.string)
+        document = css_render(explanations, examples)
         rendered_regions.append((r, document))
 
     return rendered_regions
@@ -52,9 +52,9 @@ def explain(text, edge_size):
         text = find_jquery_selector(text, edge_size)
 
     if is_selector(text):
-        exp = css_explain(text)
-        example = css_example(text)
-        explanation = css_render(exp, example)
+        explanations = css_explain(text)
+        examples = generate_examples(text)
+        explanation = css_render(explanations, examples)
     else:
         explanation = error_template.render(Context({'text': text, 'type': 'CSS selector'}))
 

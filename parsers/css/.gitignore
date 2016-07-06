@@ -1,0 +1,2 @@
+# Ignore any Java parser files generated while we tested our code
+*.java

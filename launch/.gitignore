@@ -1,1 +1,5 @@
-aws-credentials.json
+# Locally stored credentials
+*-credentials.json
+
+# Ansible "retry" checkpoints
+*.retry

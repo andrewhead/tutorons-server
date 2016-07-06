@@ -16,9 +16,6 @@ external_deps:
 - py4j-0.8.2.jar
 - simplenlg-v4.4.2.jar
 - antlr-4.5-complete.jar
-- css-explainer-0.1.jar
-processes:
-- css-explainer
 systempkgs:
 - default-jre
 - libssl-dev  # to compile wget
@@ -37,8 +34,8 @@ scripts:
 - compile-sed
 - compile-wget
 containers:
-- {"image": "andrewhead/regexper-server", "host_port": 8005, "exposed_port": 8080}
-- {"image": "andrewhead/regex-svg-server", "host_port": 8006, "exposed_port": 8080}
+- {"image": "andrewhead/regexper-server", "host_port": 8005, "exposed_port": 8080, "name": "regexper-server"}
+- {"image": "andrewhead/regex-svg-server", "host_port": 8006, "exposed_port": 8080, "name": "regex-svg-server"}
 subdomains:
 - {"subdomain": "regexper", "port": 8005}
 - {"subdomain": "regexsvg", "port": 8006}

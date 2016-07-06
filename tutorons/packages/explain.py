@@ -162,4 +162,33 @@ def get_num_questions(p):
 def get_results_with_code(p):
     # TODO: Fetch results_with_code using a Django version of Andrew's JavaScript code on Package-Community.
     # See example.sql for the translated SQL query.
-    return 100
+
+    pages_have_code = (SearchResultContent.objects
+        .filter(content_id=models.F('content__id'))
+        .filter(search_result_id=models.F('search_result__id'))
+        .filter(search_result__search_id=models.F('search_result__search__id'))
+        .filter(search_result__search__fetch_index=13)
+        .filter(search_result__search__package=p)
+        .filter(content__code__id=models.F('content__code__id'))
+        .annotate(web_page_url=models.F('content__url'))
+        .annotate(web_page_content_id=models.F('content__id'))
+        .annotate(page_missing_code=models.BoolOr(
+            models.Case(models.When(content__compute_index__isnull=True, then=True), default=False)))
+        .annotate(page_has_code=models.BoolOr(
+            models.Case(models.When(content__compute_index=3, then=True), default=False)))
+    )
+
+    #.filter(content__code_id=models.F('content__code__id')) # Check this filter
+
+    page_occurrences_with_code = (pages_have_code.objects
+        .filter(content_id=models.F('web_page_content_id'))
+        .filter(search_result_id=models.F('search_result__id'))
+        .filter(search_result__search_id=models.F('search_result__search__id'))
+        .filter(search_result__search__fetch_index=13)
+        .annotate(pages_with_code=models.Count('page_has_code'))
+        .annotate(pages_without_code=models.Count('page_missing_code'))
+    )
+
+    return page_occurrences_with_code.aggregate(ratio=
+        models.Sum(models.F('pages_with_code')) /
+                (models.Sum(models.F('pages_without_code')) + models.Sum(models.F('pages_with_code'))))
