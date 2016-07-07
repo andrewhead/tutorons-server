@@ -4,7 +4,8 @@
 from __future__ import unicode_literals
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
-from django.db import models
+from django.db import models, connection
+from django.contrib.postgres.aggregates import general
 from tutorons.packages.models import WebPageVersion, WebPageContent, Search, SearchResult, SearchResultContent, Code, QuestionSnapshotTag, IssueEvent, Issue
 import cache
 import logging
@@ -160,35 +161,60 @@ def get_num_questions(p):
 
 
 def get_results_with_code(p):
-    # TODO: Fetch results_with_code using a Django version of Andrew's JavaScript code on Package-Community.
-    # See example.sql for the translated SQL query.
+    cursor = connection.cursor()
 
-    pages_have_code = (SearchResultContent.objects
-        .filter(content_id=models.F('content__id'))
-        .filter(search_result_id=models.F('search_result__id'))
-        .filter(search_result__search_id=models.F('search_result__search__id'))
-        .filter(search_result__search__fetch_index=13)
-        .filter(search_result__search__package=p)
-        .filter(content__code__id=models.F('content__code__id'))
-        .annotate(web_page_url=models.F('content__url'))
-        .annotate(web_page_content_id=models.F('content__id'))
-        .annotate(page_missing_code=models.BoolOr(
-            models.Case(models.When(content__compute_index__isnull=True, then=True), default=False)))
-        .annotate(page_has_code=models.BoolOr(
-            models.Case(models.When(content__compute_index=3, then=True), default=False)))
+    cursor.execute(
+        """
+        SELECT SUM(pages_with_code) / (SUM(pages_with_code) + SUM(pages_without_code)) AS ratio
+        FROM (
+            SELECT web_page_url, COUNT(page_has_code) AS pages_with_code, COUNT(page_missing_code) AS pages_without_code
+            FROM (
+                SELECT webpagecontent.url as web_page_url,
+                  webpagecontent.id AS web_page_content_id,
+                  BOOL_OR(CASE WHEN (compute_index IS NULL) THEN true ELSE NULL END) AS page_missing_code,
+                  BOOL_OR(CASE WHEN (compute_index = 3) THEN true ELSE NULL END) AS page_has_code
+                FROM webpagecontent
+                LEFT OUTER JOIN code ON web_page_id = webpagecontent.id
+                JOIN searchresultcontent ON content_id = webpagecontent.id
+                JOIN searchresult ON searchresult.id = search_result_id
+                JOIN search ON search_id = search.id
+                WHERE search.fetch_index = 13 AND package = 'nodemailer'
+                GROUP BY webpagecontent.id
+                ) AS pages_have_code
+              JOIN searchresultcontent ON content_id = web_page_content_id
+              JOIN searchresult ON searchresult.id = search_result_id
+              JOIN search ON search_id = search.id
+              WHERE search.fetch_index = 13
+              GROUP BY web_page_url
+        ) AS page_occurrences_with_code
+        """
     )
 
-    #.filter(content__code_id=models.F('content__code__id')) # Check this filter
+    results = cursor.fetchall()
+    return results[0][0]
 
-    page_occurrences_with_code = (pages_have_code.objects
-        .filter(content_id=models.F('web_page_content_id'))
-        .filter(search_result_id=models.F('search_result__id'))
-        .filter(search_result__search_id=models.F('search_result__search__id'))
-        .filter(search_result__search__fetch_index=13)
-        .annotate(pages_with_code=models.Count('page_has_code'))
-        .annotate(pages_without_code=models.Count('page_missing_code'))
-    )
-
-    return page_occurrences_with_code.aggregate(ratio=
-        models.Sum(models.F('pages_with_code')) /
-                (models.Sum(models.F('pages_without_code')) + models.Sum(models.F('pages_with_code'))))
+    # pages_have_code = (SearchResultContent.objects
+    #     .select_related('content__code')
+    #     .filter(content_id=models.F('content__id'))
+    #     .filter(search_result_id=models.F('search_result__id'))
+    #     .filter(search_result__search_id=models.F('search_result__search__id'))
+    #     .filter(search_result__search__fetch_index=13)
+    #     .filter(search_result__search__package=p)
+    #     .filter(content_id=models.F('content__code__web_page_id'))
+    #     .annotate(web_page_url=models.F('content__url'))
+    #     .annotate(web_page_content_id=models.F('content__id'))
+    #     .annotate(page_missing_code=general.BoolOr(
+    #         models.Case(models.When(content__code__compute_index__isnull=True, then=True), default=False)))
+    #     .annotate(page_has_code=general.BoolOr(
+    #         models.Case(models.When(content__code__compute_index=3, then=True), default=False)))
+    #     .filter(content_id=models.F('web_page_content_id'))
+    #     .filter(search_result_id=models.F('search_result__id'))
+    #     .filter(search_result__search_id=models.F('search_result__search__id'))
+    #     .filter(search_result__search__fetch_index=13)
+    #     .annotate(pages_with_code=models.Count('page_has_code'))
+    #     .annotate(pages_without_code=models.Count('page_missing_code'))
+    # )
+    #
+    # return page_occurrences_with_code.aggregate(ratio=
+    #     models.Sum(models.F('pages_with_code')) /
+    #             (models.Sum(models.F('pages_without_code')) + models.Sum(models.F('pages_with_code'))))
