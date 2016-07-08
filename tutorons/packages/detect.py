@@ -22,7 +22,7 @@ class PackageExtractor(object):
             words = re.findall(r"\b[^\W\d_]+-?'?[^\W\d_]+\b", line)
 
             for word in words:
-                if word in package_list: # Picked up on a package name
+                if word.lower() in package_list: # Picked up on a package name
                     first_char = char_index + string.index(line, word)
                     last_char = char_index + string.index(line, word) + len(word) - 1
                     r = Region(node, first_char, last_char, word)

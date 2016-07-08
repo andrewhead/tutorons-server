@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 from __future__ import unicode_literals
-from django.core.cache import cache
+from django.core.cache import cache as dcache
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import models, connection
 from django.contrib.postgres.aggregates import general
@@ -17,8 +17,14 @@ from bs4 import BeautifulSoup
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 default_requests_session = cache.get_session(timeout=1)
 default_requests_session.headers['User-Agent'] =\
-    "Andrew Head (for academic analysis) <andrewhead@eecs.berekeley.edu, Austin Le (for academic" +\
+    "Andrew Head (for academic analysis) <andrewhead@eecs.berkeley.edu, Austin Le (for academic" +\
     " analysis) <austinhle@berkeley.edu>"
+
+DOCUMENTED_SINCE_SUFFIX = '__documented'
+RESPONSE_TIME_SUFFIX = '__response'
+RESOLUTION_TIME_SUFFIX = '__resolution'
+NUM_QUESTIONS_SUFFIX = '__questions'
+RESULTS_WITH_CODE_SUFFIX = '__results_with_code'
 
 def make_request(method, *args, **kwargs):
     MAX_ATTEMPTS = 5
@@ -80,6 +86,10 @@ def explain(package):
 
 
 def get_documented_since(p):
+    documented_since = dcache.get(p + DOCUMENTED_SINCE_SUFFIX)
+    if documented_since is not None:
+        return documented_since
+
     documented_since = (SearchResult.objects
         .filter(search_id=models.F('search__id'))
         .filter(web_page_version__url=models.F('url'))
@@ -87,10 +97,15 @@ def get_documented_since(p):
         .filter(search__package=p)
         .aggregate(models.Min('web_page_version__timestamp'))['web_page_version__timestamp__min']
     )
+    dcache.set(p + DOCUMENTED_SINCE_SUFFIX, documented_since, None)
     return documented_since
 
 
 def get_response_time(p):
+    response_time = dcache.get(p + RESPONSE_TIME_SUFFIX)
+    if response_time is not None:
+        return response_time
+
     response_times = (IssueEvent.objects
         .filter(issue_id=models.F('issue__id'))
         .filter(issue__project_id=models.F('issue__project__id'))
@@ -110,18 +125,22 @@ def get_response_time(p):
             num_valid += 1
 
     seconds = total_seconds // num_valid
-
     hours = seconds // (60 * 60)
-
     minutes_divisor = seconds % (60 * 60)
     minutes = minutes_divisor // 60
-
     seconds = minutes_divisor % 60
 
-    return '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
+    response_time = '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
+
+    dcache.set(p + RESPONSE_TIME_SUFFIX, response_time, None)
+    return response_time
 
 
 def get_resolution_time(p):
+    resolution_time = dcache.get(p + RESPONSE_TIME_SUFFIX)
+    if resolution_time is not None:
+        return resolution_time
+
     resolution_times = (Issue.objects
         .filter(project_id=models.F('project__id'))
         .filter(fetch_index=1)
@@ -137,19 +156,21 @@ def get_resolution_time(p):
             num_valid += 1
 
     seconds = total_seconds // num_valid
-
     hours = seconds // (60 * 60)
-
     minutes_divisor = seconds % (60 * 60)
     minutes = minutes_divisor // 60
-
     seconds = minutes_divisor % 60
 
-    return '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
+    resolution_time = '{0} hours, {1} minutes, {2} seconds'.format(hours, minutes, seconds)
+    dcache.set(p + RESOLUTION_TIME_SUFFIX, resolution_time, None)
+    return resolution_time
 
 
 def get_num_questions(p):
-    # TODO: Fetch num_questions by doing a join between the `tag` table, the `questionsnapshottag` table, and the `questionsnapshot` tables
+    num_questions = dcache.get(p + NUM_QUESTIONS_SUFFIX)
+    if num_questions is not None:
+        return num_questions
+
     unique_questions = (QuestionSnapshotTag.objects
         .filter(question_snapshot_id=models.F('question_snapshot__id'))
         .filter(question_snapshot__fetch_index=13)
@@ -157,12 +178,18 @@ def get_num_questions(p):
         .filter(question_snapshot__title__icontains=p)
         .annotate(num_tags=models.Count('question_snapshot__id'))
     )
-    return len(unique_questions)
+
+    num_questions = len(unique_questions)
+    dcache.set(p + NUM_QUESTIONS_SUFFIX, num_questions, None)
+    return num_questions
 
 
 def get_results_with_code(p):
-    cursor = connection.cursor()
+    results_with_code = dcache.get(p + RESULTS_WITH_CODE_SUFFIX)
+    if results_with_code is not None:
+        return results_with_code
 
+    cursor = connection.cursor()
     cursor.execute(
         """
         SELECT SUM(pages_with_code) / (SUM(pages_with_code) + SUM(pages_without_code)) AS ratio
@@ -178,7 +205,7 @@ def get_results_with_code(p):
                 JOIN searchresultcontent ON content_id = webpagecontent.id
                 JOIN searchresult ON searchresult.id = search_result_id
                 JOIN search ON search_id = search.id
-                WHERE search.fetch_index = 13 AND package = 'nodemailer'
+                WHERE search.fetch_index = 13 AND package = %s
                 GROUP BY webpagecontent.id
                 ) AS pages_have_code
               JOIN searchresultcontent ON content_id = web_page_content_id
@@ -187,11 +214,14 @@ def get_results_with_code(p):
               WHERE search.fetch_index = 13
               GROUP BY web_page_url
         ) AS page_occurrences_with_code
-        """
+        """,
+        [p]
     )
 
     results = cursor.fetchall()
-    return results[0][0]
+    results_with_code = results[0][0]
+    dcache.set(p + RESULTS_WITH_CODE_SUFFIX, results_with_code, None)
+    return results_with_code
 
     # pages_have_code = (SearchResultContent.objects
     #     .select_related('content__code')

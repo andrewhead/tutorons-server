@@ -13,4 +13,9 @@ cursor.execute("SELECT DISTINCT(package) FROM search")
 results = cursor.fetchall()
 
 # Call str() on each package in the list to convert from unicode string to regular string.
-package_list = [str(package[0]) for package in results if package[0] is not None]
+package_list = set()
+for package in results:
+    if package[0]:
+        package_list.add(str(package[0]).lower())
+
+print('Currently supporting the following packages: ' + str(package_list))
