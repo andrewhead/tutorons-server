@@ -6,44 +6,31 @@ import logging
 import unittest
 
 from tutorons.common.java.simplenlg import realiser
-from tutorons.css.explain import explain_attribute, explain_class, explain_hash,\
-    explain_type_selector, explain_universal, explain_pseudo, explain_simple_selector_sequence,\
-    explain_selector, explain_selectors_group
-from parsers.css.CssLexer import CssLexer
-from parsers.css.CssParser import CssParser
+from tutorons.xpath.explain import explain_node_test
+from parsers.xpath.xpathLexer import xpathLexer
+from parsers.xpath.xpathParser import xpathParser
 from parsers.common.util import parse_plaintext
 
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
-def parse_selector(selector, rule_name):
+def parse_xpath(xpath, rule_name):
     '''
-    The selector here can be partial.  And this method returns partial
+    The xpath here can be partial.  And this method returns partial
     parse results: it can be parsed as just a specific rule from the
     grammar, as specified by `rule_name`.
     '''
-    return parse_plaintext(selector, CssLexer, CssParser, rule_name)
+    return parse_plaintext(xpath, xpathLexer, xpathParser, rule_name)
 
 
-class AttributeExplanationTest(unittest.TestCase):
+class NodeTestExplanationTest(unittest.TestCase):
 
-    def test_explain_name_attribute_by_default(self):
-        attribute = parse_selector('[myattr=foo]', 'attribute')
-        clause = explain_attribute(attribute)
-        self.assertEqual(
-            str(realiser.realise(clause)),
-            "has a 'myattr' attribute that equals 'foo'"
-        )
-
-    def test_attribute_special_names(self):
-        attribute = parse_selector('[href^=\'http://\']', 'attribute')
-        clause = explain_attribute(attribute)
-        self.assertEqual(
-            str(realiser.realise(clause)),
-            "has a link that starts with 'http://'"
-        )
-
+    def test_explain_name_test(self):
+        name_test = parse_selector('../@lang', 'main')
+        clause = explain_node_test(name_test)
+        print 'yoooo'
+        print str(realiser.realise(clause)
 
 # class ClassExplanationTest(unittest.TestCase):
 
