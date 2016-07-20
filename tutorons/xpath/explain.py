@@ -59,12 +59,15 @@ def explain_relative_location_path(relative_location_path):
     pass
 
 def explain_step(step):
+    print('in step')
     # a step consists of an (axis specifier), node test and (predicate)
-    clause = nlg_factory.createClause()
+    clause = nlg_factory.createNounPhrase()
 
     preModifier = explain_axis_specifier(step.children[0])
+    print('preModifier: ' + preModifier)
     clause.addPreModifier(preModifier)
 
+    # alter noun if it's an attribute deal
     noun = explain_node_test(step.children[1])
     clause.setNoun(noun)
 
@@ -75,63 +78,75 @@ def explain_step(step):
     return clause
 
 def explain_axis_specifier(axis_specifier):
+    print(type(axis_specifier))
     if axis_specifier.getChildCount() == 0:
         return 'children of'
     else:
         AXIS_NAMES = {
             'ancestor': 'ancestors of' ,
-            'ancestor-or-self': ' [self_name] and ancestors of',
-            'attribute': 'attributes of',
-            '@': 'attributes of',
+            'ancestor-or-self': ' [self_name] and ancestors of', ## fix
+            'attribute': 'attributes of', ## fix
+            '@': 'attributes of', ## fix
             'child': 'children of',
             'descendant': 'descendants of',
-            'descendant-or-self': '[self_name] and descendants of',
+            'descendant-or-self': '[self_name] and descendants of', ## fix
             'following': 'nodes after',
             'following-sibling': 'siblings that appear before',
             'namespace': 'nodes in the namespace of',
             'parent': 'the parent of',
             'preceding': 'nodes before',
             'preceding-sibling': 'siblings that appear before',
-            'self': '[self_name]',
+            'self': '[self_name]', ## fix
         }
         return AXIS_NAMES[axis_specifier.children[0].getText()]
 
 def explain_node_test(node_test):
 
-    node_test = get_interesting_nodes(node_test)
-    
-    def _lookup_type_name(type_):
-        TYPE_NAMES = {
-            'p': 'paragraph',
-            'div': 'container',
-            'strong': 'bolded text segment',
-            'a': 'link',
-            'img': 'image',
-            'pre': 'preformatted text block',
-            'table': 'table',
-            'tr': 'row',
-            'td': 'cell',
-        }
-        return TYPE_NAMES.get(type_, type_)
-
     noun = nlg_factory.createNounPhrase('node')
 
-    # Look up a 'fancier' name for this node, if we can
-    type_ = node_test.children[-1].getText()
-    type_name = _lookup_type_name(type_)
-
-    # Only reset the type of noun ('node') to the type name
-    # if we were able to find a more specific name during lookup.
-    if type_name != type_:
-        noun.setNoun(type_name)
-    else:
-        type_adjective = nlg_factory.createAdjectivePhrase('\'' + _lookup_type_name(type_) + '\'')
+    # simple NodeType case
+    # print(type(node_test.children[0]))
+    if isinstance(node_test.children[0], TerminalNode):
+        node_type = node_test.children[0].getText()
+        print 'I found a simple nodetype!: ' + node_type
+        if node_type == 'node':
+            node_type = 'all '
+        type_adjective = nlg_factory.createAdjectivePhrase(node_type)
         noun.addPreModifier(type_adjective)
+        noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
+        return noun
 
-    # Make sure to pluralize the count
-    noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
+    else:
+        def _lookup_type_name(type_):
+            TYPE_NAMES = {
+                'p': 'paragraph',
+                'div': 'container',
+                'strong': 'bolded text segment',
+                'a': 'link',
+                'img': 'image',
+                'pre': 'preformatted text block',
+                'table': 'table',
+                'tr': 'row',
+                'td': 'cell',
+            }
+            return TYPE_NAMES.get(type_, type_)
 
-    return noun
+        # Look up a 'fancier' name for this node, if we can
+        type_ = node_test.children[0].getText()
+        type_name = _lookup_type_name(type_)
+
+        # Only reset the type of noun ('node') to the type name
+        # if we were able to find a more specific name during lookup.
+        if type_name != type_:
+            noun.setNoun(type_name)
+        else:
+            type_adjective = nlg_factory.createAdjectivePhrase('\'' + _lookup_type_name(type_) + '\'')
+            noun.addPreModifier(type_adjective)
+
+        # Make sure to pluralize the count
+        noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
+
+        return noun
 
 def explain_predicate(predicate):
 
