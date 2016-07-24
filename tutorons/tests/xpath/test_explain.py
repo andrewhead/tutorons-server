@@ -6,7 +6,8 @@ import logging
 import unittest
 
 from tutorons.common.java.simplenlg import realiser
-from tutorons.xpath.explain import explain_node_test, explain_step
+from tutorons.xpath.explain import explain_node_test, explain_step, explain_absolute_location_path, \
+    explain_relative_location_path
 from parsers.xpath.xpathLexer import xpathLexer
 from parsers.xpath.xpathParser import xpathParser
 from parsers.common.util import parse_plaintext
@@ -42,12 +43,14 @@ class NodeTestExplanationTest(unittest.TestCase):
             "comment nodes"
         )
 
-        node_type = parse_xpath('processing-instruction()', 'nodeTest')
-        clause = explain_node_test(node_type)
-        self.assertEqual(
-            str(realiser.realise(clause)),
-            "processing-instruction nodes"
-        )
+        # processing-instruction takes in an argument
+        # node_type = parse_xpath('processing-instruction()', 'nodeTest')
+        # clause = explain_node_test(node_type)
+        # self.assertEqual(
+        #     str(realiser.realise(clause)),
+        #     "processing-instruction nodes"
+        # )
+
 
         node_type = parse_xpath('node()', 'nodeTest')
         clause = explain_node_test(node_type)
@@ -76,19 +79,27 @@ class NodeTestExplanationTest(unittest.TestCase):
 class AxisSepcifierExplanationTest(unittest.TestCase):
 
     def test_explain_child(self):
-            axis_spec = parse_xpath('child::text()', 'step')
-            clause = explain_step(axis_spec)
-            self.assertEqual(
-                str(realiser.realise(clause)),
-                "children of text nodes"
-            )
+        axis_spec = parse_xpath('child::text()', 'step')
+        clause = explain_step(axis_spec)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "text nodes"
+        )
+
+    def test_explain_ancestor(self):
+        axis_spec = parse_xpath('ancestor::text()', 'step')
+        clause = explain_step(axis_spec)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "ancestors of text nodes"
+        )
 
     def test_explain_self(self):
             axis_spec = parse_xpath('self::text()', 'step')
             clause = explain_step(axis_spec)
             self.assertEqual(
                 str(realiser.realise(clause)),
-                "halp?"
+                "if such nodes are text nodes"
             )
 
     def test_explain_ancestors_or_self(self):
@@ -96,7 +107,7 @@ class AxisSepcifierExplanationTest(unittest.TestCase):
             clause = explain_step(axis_spec)
             self.assertEqual(
                 str(realiser.realise(clause)),
-                "curr node and ancestors of text nodes"
+                "text nodes and ancestors of such nodes"
             )
 
     def test_explain_descendants_or_self(self):
@@ -104,17 +115,53 @@ class AxisSepcifierExplanationTest(unittest.TestCase):
             clause = explain_step(axis_spec)
             self.assertEqual(
                 str(realiser.realise(clause)),
-                "curr node and descendants of text nodes"
+                "text nodes and descendants of such nodes"
             )
 
     def test_explain_attribute(self):
-            axis_spec = parse_xpath('@text', 'step')
+            axis_spec = parse_xpath('@name', 'step')
             clause = explain_step(axis_spec)
             self.assertEqual(
                 str(realiser.realise(clause)),
-                "nodes with a text attribute"
+                "'name' attributes"
             )
 
+
+class LocationPathExplanationTest(unittest.TestCase):
+
+    def test_explain_root(self):
+        abs_path = parse_xpath('/text()', 'absoluteLocationPathNoroot')
+        clause = explain_absolute_location_path(abs_path)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "text nodes from the root node"
+        )
+
+    def test_explain_descendant(self):
+        abs_path = parse_xpath('//text()', 'absoluteLocationPathNoroot')
+        clause = explain_absolute_location_path(abs_path)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "text nodes from anywhere in the tree"
+        )  
+
+    def test_multiple_steps(self):
+        multiple_steps = parse_xpath('/text()/comment()', 'absoluteLocationPathNoroot')
+        clause = explain_absolute_location_path(multiple_steps)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "comment nodes from text nodes from the root node"
+        )
+
+class RelativeLocationPathExplanationTest(unittest.TestCase):
+
+    def test_abbreviated_step(self):
+        abbreviated_step = parse_xpath('../@lang', 'relativeLocationPath')
+        clause = explain_relative_location_path(abbreviated_step)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "'lang' attributes from the parent of the current node"
+        )
 
 # class ClassExplanationTest(unittest.TestCase):
 

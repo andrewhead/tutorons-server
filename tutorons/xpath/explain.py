@@ -26,6 +26,7 @@ def get_interesting_nodes(node):
     return node
 
 def explain(xpath):
+
     explainer = xpathExplainer()
     try:
         parse_tree = parse_plaintext(xpath, xpathLexer, xpathParser, 'main')
@@ -44,61 +45,121 @@ def explain(xpath):
         return None
 
 def explain_location_path(location_path):
-    # phrase = None
 
-    # for child in path.getChildren():
-    #     if isinstance(child, xpathParser.absoluteLocationPathNoroot):
-    #         # add 'from the root node'
-    #     else:
-    #         explanation = explain_relative_location_path(child)
-    #         # explain relative location path
-    #         # 
-    pass
+    child = location_path.getChild(0)
+    if isinstance(child, xpathParser.AbsoluteLocationPathNorootContext):
+        return explain_absolute_location_path(child)
+    else:
+        return explain_relative_location_path(child)
+
+def explain_absolute_location_path(absolute_location_path):
+    # print "in abs_loc_path: " + absolute_location_path.getChild(0).getText()
+    clause = explain_relative_location_path(absolute_location_path.getChild(1))
+
+    if absolute_location_path.getChild(0).getText() == '/':
+        modifier = 'from the root node'
+    else:
+        modifier = 'from anywhere in the tree'
+
+    clause.addPostModifier(modifier)
+
+    return clause
 
 def explain_relative_location_path(relative_location_path):
-    pass
+    
+    phrase = None
+
+    for child in relative_location_path.children:
+        # print "curr_child_text: " + child.getText()
+        if isinstance(child, xpathParser.StepContext):
+            child_explanation = explain_step(child)
+            # print str(child_explanation.getClass().getSimpleName()) + " : " + realiser.realiseSentence(child_explanation)
+            if not phrase:
+                phrase = nlg_factory.createCoordinatedPhrase()
+                phrase.addCoordinate(child_explanation)
+            else:
+                child_explanation.addComplement(phrase)
+                phrase = child_explanation
+        elif child.getText() == '/':
+            preposition = nlg_factory.createPrepositionPhrase('from')
+            preposition.addComplement(phrase)
+            phrase = preposition
+        else:
+            preposition = nlg_factory.createPrepositionPhrase('from descendants of')
+            preposition.addComplement(phrase)
+            phrase = preposition
+        # print realiser.realiseSentence(phrase)
+    return phrase
 
 def explain_step(step):
-    print('in step')
+    # print('in step')
     # a step consists of an (axis specifier), node test and (predicate)
+    if isinstance(step.children[0], xpathParser.AbbreviatedStepContext):
+        return explain_abbreviated_step(step.children[0])
+    
     clause = nlg_factory.createNounPhrase()
-
-    preModifier = explain_axis_specifier(step.children[0])
-    print('preModifier: ' + preModifier)
-    clause.addPreModifier(preModifier)
-
-    # alter noun if it's an attribute deal
     noun = explain_node_test(step.children[1])
-    clause.setNoun(noun)
+    axis_specifier = step.children[0]
 
+    # axis specifier is optional
+    if axis_specifier.getChildCount() == 0 :
+        noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
+        clause.setNoun(noun)
+        return clause
+
+    complement = nlg_factory.createNounPhrase()
+
+    axis_name = axis_specifier.children[0].getText()
+    
+    # change noun from 'node' to 'attribute'
+    if axis_name == 'attribute' or axis_name== '@':
+        noun.setNoun('attribute')
+    elif axis_name == 'descendant-or-self':
+        complement = nlg_factory.createNounPhrase('and descendants of such nodes')
+    elif axis_name == 'ancestor-or-self':
+        complement = nlg_factory.createNounPhrase('and ancestors of such nodes')
+    elif axis_name == 'self':
+        complement = nlg_factory.createNounPhrase('if such nodes are')
+        noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
+        complement.addComplement(noun)
+        return complement
+    else:
+        preModifier = explain_axis_specifier(axis_name) # incorporate into step or maintain separate?
+        clause.addPreModifier(preModifier)
+
+    noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL) # do features unset after resetting noun?
+    clause.setNoun(noun)
+    clause.setComplement(complement)
+
+    # predicate is also optional
     if step.getChildCount() == 3:
         modifier = explain_predicate(step.children[2])
         clause.addModifier(modifier)
 
     return clause
 
-def explain_axis_specifier(axis_specifier):
-    print(type(axis_specifier))
-    if axis_specifier.getChildCount() == 0:
-        return 'children of'
+def explain_abbreviated_step(abbreviated_step):
+
+    if abbreviated_step.getText() == '.':
+        return nlg_factory.createNounPhrase('the current node')
     else:
-        AXIS_NAMES = {
-            'ancestor': 'ancestors of' ,
-            'ancestor-or-self': ' [self_name] and ancestors of', ## fix
-            'attribute': 'attributes of', ## fix
-            '@': 'attributes of', ## fix
-            'child': 'children of',
-            'descendant': 'descendants of',
-            'descendant-or-self': '[self_name] and descendants of', ## fix
-            'following': 'nodes after',
-            'following-sibling': 'siblings that appear before',
-            'namespace': 'nodes in the namespace of',
-            'parent': 'the parent of',
-            'preceding': 'nodes before',
-            'preceding-sibling': 'siblings that appear before',
-            'self': '[self_name]', ## fix
-        }
-        return AXIS_NAMES[axis_specifier.children[0].getText()]
+        return nlg_factory.createNounPhrase('the parent of the current node')
+
+def explain_axis_specifier(axis_specifier):
+    # print(type(axis_specifier))
+    AXIS_NAMES = {
+        'ancestor': 'ancestors of' ,
+        'child': '',
+        'descendant': 'descendants of',
+        'following': 'nodes after',
+        'following-sibling': 'siblings that appear before',
+        'namespace': 'nodes in the namespace of',
+        'parent': 'the parent of',
+        'preceding': 'nodes before',
+        'preceding-sibling': 'siblings that appear before',
+        'self': 'self', ## fix
+    }
+    return AXIS_NAMES[axis_specifier]
 
 def explain_node_test(node_test):
 
@@ -108,12 +169,11 @@ def explain_node_test(node_test):
     # print(type(node_test.children[0]))
     if isinstance(node_test.children[0], TerminalNode):
         node_type = node_test.children[0].getText()
-        print 'I found a simple nodetype!: ' + node_type
+        # print 'I found a simple nodetype!: ' + node_type
         if node_type == 'node':
             node_type = 'all '
         type_adjective = nlg_factory.createAdjectivePhrase(node_type)
-        noun.addPreModifier(type_adjective)
-        noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
+        noun.setPreModifier(type_adjective)
         return noun
 
     else:
@@ -175,15 +235,15 @@ def explain_expr(expr):
 def explain_orExpr(or_expr):
     coordinated_phrase = nlg_factory.createCoordinatedPhrase()
     coordinated_phrase.setFeature(Feature.CONJUNCTION, "or")
-    coordinated_phrase.addCoordinate(explain_expr(getChild(0)))
-    coordinated_phrase.addCoordinate(explain_expr(getChild(2)))
+    coordinated_phrase.addCoordinate(explain_expr(or_expr.getChild(0)))
+    coordinated_phrase.addCoordinate(explain_expr(or_expr.getChild(2)))
     return coordinated_phrase
 
 def explain_andExpr(and_expr):
     coordinated_phrase = nlg_factory.createCoordinatedPhrase()
     coordinated_phrase.setFeature(Feature.CONJUNCTION, "or")
-    coordinated_phrase.addCoordinate(explain_expr(getChild(0)))
-    coordinated_phrase.addCoordinate(explain_expr(getChild(2)))
+    coordinated_phrase.addCoordinate(explain_expr(and_expr.getChild(0)))
+    coordinated_phrase.addCoordinate(explain_expr(and_expr.getChild(2)))
     return coordinated_phrase
 
 def explain_equalityExpr(equality_expr):
@@ -192,8 +252,8 @@ def explain_equalityExpr(equality_expr):
         coordinated_phrase.setFeature(Feature.CONJUNCTION, "equals")
     else:
         coordinated_phrase.setFeature(Feature.CONJUNCTION, "does not equal")
-    coordinated_phrase.addCoordinate(explain_expr(getChild(0)))
-    coordinated_phrase.addCoordinate(explain_expr(getChild(2)))
+    coordinated_phrase.addCoordinate(explain_expr(equality_expr.getChild(0)))
+    coordinated_phrase.addCoordinate(explain_expr(equality_expr.getChild(2)))
     return coordinated_phrase
 
 def explain_relationalExpr(relational_expr):
@@ -206,8 +266,8 @@ def explain_relationalExpr(relational_expr):
         coordinated_phrase.setFeature(Feature.CONJUNCTION, "less than or equal to")
     elif equality_expr.getChild(1).symbol.type == xpathLexer.GE:
         coordinated_phrase.setFeature(Feature.CONJUNCTION, "greater than or equal to")
-    coordinated_phrase.addCoordinate(explain_expr(getChild(0)))
-    coordinated_phrase.addCoordinate(explain_expr(getChild(2)))
+    coordinated_phrase.addCoordinate(explain_expr(relational_expr.getChild(0)))
+    coordinated_phrase.addCoordinate(explain_expr(relational_expr.getChild(2)))
     return coordinated_phrase
 
 def explain_additiveExpr(additive_expr):
