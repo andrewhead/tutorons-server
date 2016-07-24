@@ -67,37 +67,49 @@ def explain_absolute_location_path(absolute_location_path):
 
 def explain_relative_location_path(relative_location_path):
     
-    phrase = None
-
-    for child in relative_location_path.children:
-        # print "curr_child_text: " + child.getText()
+    clause = None
+    child_clause = nlg_factory.createNounPhrase()
+    print relative_location_path.children
+    for i in reversed(range(len(relative_location_path.children))):
+        child = relative_location_path.children[i]
+        print child.getText()
+        if clause:
+            print  "Clause: "+ realiser.realiseSentence(clause)
+        
+        # explain step contexts
         if isinstance(child, xpathParser.StepContext):
-            child_explanation = explain_step(child)
-            # print str(child_explanation.getClass().getSimpleName()) + " : " + realiser.realiseSentence(child_explanation)
-            if not phrase:
-                phrase = nlg_factory.createCoordinatedPhrase()
-                phrase.addCoordinate(child_explanation)
-            else:
-                child_explanation.addComplement(phrase)
-                phrase = child_explanation
-        elif child.getText() == '/':
-            preposition = nlg_factory.createPrepositionPhrase('from')
-            preposition.addComplement(phrase)
-            phrase = preposition
-        else:
-            preposition = nlg_factory.createPrepositionPhrase('from descendants of')
-            preposition.addComplement(phrase)
-            phrase = preposition
-        # print realiser.realiseSentence(phrase)
-    return phrase
 
-def explain_step(step):
+            if isinstance(child.children[0], xpathParser.AbbreviatedStepContext):
+                child_clause = explain_abbreviated_step(child.children[0])
+            else:
+                child_clause = nlg_factory.createNounPhrase()
+                child_clause = explain_step(child, child_clause)
+
+        # explain / and //
+        else:
+            prev_sibling = relative_location_path.children[i+1]
+            if prev_sibling and not isinstance(prev_sibling.children[0], xpathParser.AbbreviatedStepContext):
+                print 'in here cause im an idiot'
+                print type(prev_sibling)
+                if child.getText() == '/':
+                    preposition = nlg_factory.createPrepositionPhrase('from')
+                else:
+                    preposition = nlg_factory.createPrepositionPhrase('from descendants of')
+                child_clause.addPostModifier(preposition)
+            if not clause:
+                clause = nlg_factory.createNounPhrase()
+            clause.addComplement(child_clause)
+    if not clause:
+        clause = nlg_factory.createNounPhrase()
+    clause.addComplement(child_clause)
+
+    return clause
+
+def explain_step(step, clause):
     # print('in step')
     # a step consists of an (axis specifier), node test and (predicate)
-    if isinstance(step.children[0], xpathParser.AbbreviatedStepContext):
-        return explain_abbreviated_step(step.children[0])
+    # explaining a step returns a clause
     
-    clause = nlg_factory.createNounPhrase()
     noun = explain_node_test(step.children[1])
     axis_specifier = step.children[0]
 
@@ -119,7 +131,7 @@ def explain_step(step):
     elif axis_name == 'ancestor-or-self':
         complement = nlg_factory.createNounPhrase('and ancestors of such nodes')
     elif axis_name == 'self':
-        complement = nlg_factory.createNounPhrase('if such nodes are')
+        complement = nlg_factory.createNounPhrase('if they are')
         noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
         complement.addComplement(noun)
         return complement
@@ -141,12 +153,13 @@ def explain_step(step):
 def explain_abbreviated_step(abbreviated_step):
 
     if abbreviated_step.getText() == '.':
-        return nlg_factory.createNounPhrase('the current node')
+        return nlg_factory.createNounPhrase('') #it's just the current node?
     else:
-        return nlg_factory.createNounPhrase('the parent of the current node')
+        return nlg_factory.createNounPhrase('parents of ')
 
 def explain_axis_specifier(axis_specifier):
-    # print(type(axis_specifier))
+    # returns a phrase used as a preModifier
+
     AXIS_NAMES = {
         'ancestor': 'ancestors of' ,
         'child': '',
@@ -157,7 +170,6 @@ def explain_axis_specifier(axis_specifier):
         'parent': 'the parent of',
         'preceding': 'nodes before',
         'preceding-sibling': 'siblings that appear before',
-        'self': 'self', ## fix
     }
     return AXIS_NAMES[axis_specifier]
 

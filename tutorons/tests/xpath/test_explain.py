@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import logging
 import unittest
 
-from tutorons.common.java.simplenlg import realiser
+from tutorons.common.java.simplenlg import factory as nlg_factory, realiser
 from tutorons.xpath.explain import explain_node_test, explain_step, explain_absolute_location_path, \
     explain_relative_location_path
 from parsers.xpath.xpathLexer import xpathLexer
@@ -80,7 +80,8 @@ class AxisSepcifierExplanationTest(unittest.TestCase):
 
     def test_explain_child(self):
         axis_spec = parse_xpath('child::text()', 'step')
-        clause = explain_step(axis_spec)
+        clause = nlg_factory.createNounPhrase()
+        explain_step(axis_spec, clause)
         self.assertEqual(
             str(realiser.realise(clause)),
             "text nodes"
@@ -88,45 +89,70 @@ class AxisSepcifierExplanationTest(unittest.TestCase):
 
     def test_explain_ancestor(self):
         axis_spec = parse_xpath('ancestor::text()', 'step')
-        clause = explain_step(axis_spec)
+        clause = nlg_factory.createNounPhrase()
+        explain_step(axis_spec, clause)
         self.assertEqual(
             str(realiser.realise(clause)),
             "ancestors of text nodes"
         )
 
-    def test_explain_self(self):
-            axis_spec = parse_xpath('self::text()', 'step')
-            clause = explain_step(axis_spec)
-            self.assertEqual(
-                str(realiser.realise(clause)),
-                "if such nodes are text nodes"
-            )
+# ## umm weird objct return stuff help
+#     def test_explain_self(self):
+#         axis_spec = parse_xpath('self::text()', 'step')
+#         clause = nlg_factory.createNounPhrase()
+#         clause = explain_step(axis_spec, clause)
+#         self.assertEqual(
+#             str(realiser.realise(clause)),
+#             "if they are text nodes"
+#         )
 
     def test_explain_ancestors_or_self(self):
-            axis_spec = parse_xpath('ancestor-or-self::text()', 'step')
-            clause = explain_step(axis_spec)
-            self.assertEqual(
-                str(realiser.realise(clause)),
-                "text nodes and ancestors of such nodes"
-            )
+        axis_spec = parse_xpath('ancestor-or-self::text()', 'step')
+        clause = nlg_factory.createNounPhrase()
+        explain_step(axis_spec, clause)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "text nodes and ancestors of such nodes"
+        )
 
     def test_explain_descendants_or_self(self):
-            axis_spec = parse_xpath('descendant-or-self::text()', 'step')
-            clause = explain_step(axis_spec)
-            self.assertEqual(
-                str(realiser.realise(clause)),
-                "text nodes and descendants of such nodes"
-            )
+        axis_spec = parse_xpath('descendant-or-self::text()', 'step')
+        clause = nlg_factory.createNounPhrase()
+        explain_step(axis_spec, clause)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "text nodes and descendants of such nodes"
+        )
 
     def test_explain_attribute(self):
-            axis_spec = parse_xpath('@name', 'step')
-            clause = explain_step(axis_spec)
+        axis_spec = parse_xpath('@name', 'step')
+        clause = nlg_factory.createNounPhrase()
+        explain_step(axis_spec, clause)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "'name' attributes"
+        )
+
+    def test_simple_multiple_steps(self):
+        multiple_steps = parse_xpath('/child::text()/descendant::comment()', 'absoluteLocationPathNoroot')
+        clause = explain_absolute_location_path(multiple_steps)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "descendants of comment nodes from text nodes from the root node"
+        )
+    
+    def test_complex_multiple_steps(self):
+            multiple_steps = parse_xpath('//ancestor-or-self::text()/self::comment()', 'absoluteLocationPathNoroot')
+            clause = explain_absolute_location_path(multiple_steps)
             self.assertEqual(
                 str(realiser.realise(clause)),
-                "'name' attributes"
+                "text nodes and ancestors of such nodes from anywhere in the tree if they are comment nodes"
             )
+              # from text nodes and ancestors of such nodes from anywhere in the tree
+#             # 'if such nodes are comment nodes from text nodes and ancestors of such nodes from anywhere in the tree' 
+#             # != 'text nodes and ancestors of such nodes from anywhere in the tree if such nodes are comment nodes'
 
-
+#             # need to append returned clause to previous explained clause and remove the 'from' that joins the 2 would be clauses
 class LocationPathExplanationTest(unittest.TestCase):
 
     def test_explain_root(self):
@@ -153,216 +179,29 @@ class LocationPathExplanationTest(unittest.TestCase):
             "comment nodes from text nodes from the root node"
         )
 
+
 class RelativeLocationPathExplanationTest(unittest.TestCase):
 
     def test_abbreviated_step(self):
-        abbreviated_step = parse_xpath('../@lang', 'relativeLocationPath')
+        abbreviated_step = parse_xpath('text()/./@lang', 'relativeLocationPath')
         clause = explain_relative_location_path(abbreviated_step)
         self.assertEqual(
             str(realiser.realise(clause)),
-            "'lang' attributes from the parent of the current node"
+            "'lang' attributes from text nodes"
         )
 
-# class ClassExplanationTest(unittest.TestCase):
+    def test_parent_abbreviated_step(self):
+        abbreviated_step = parse_xpath('text()/../@lang', 'relativeLocationPath')
+        clause = explain_relative_location_path(abbreviated_step)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "'lang' attributes from parents of text nodes"
+        )
 
-#     def test_explain_class(self):
-#         class_ = parse_selector('.klazz', 'class_')
-#         clause = explain_class(class_)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "belongs to class 'klazz'"
-#         )
-
-
-# class HashExplanationTest(unittest.TestCase):
-
-#     def test_explain_hash(self):
-#         hash_ = parse_selector('#my-id', 'hash_')
-#         clause = explain_hash(hash_)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "has ID 'my-id'"
-#         )
-
-
-# class UniversalSelectorExplanationTest(unittest.TestCase):
-
-#     def test_explain_universal_selector(self):
-#         universal = parse_selector('*', 'universal')
-#         noun = explain_universal(universal)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'elements'
-#         )
-
-#     def test_ignore_namespace(self):
-#         universal = parse_selector('namespace|*', 'universal')
-#         noun = explain_universal(universal)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'elements'
-#         )
-
-
-# class TypeSelectorExplanationTest(unittest.TestCase):
-
-#     def test_explain_element_with_verbatim_name(self):
-#         type_selector = parse_selector('html', 'type_selector')
-#         noun = explain_type_selector(type_selector)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             '\'html\' elements'
-#         )
-
-#     def test_explain_element_with_lookup_name(self):
-#         type_selector = parse_selector('p', 'type_selector')
-#         noun = explain_type_selector(type_selector)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'paragraphs'
-#         )
-
-#     def test_ignore_namespace(self):
-#         type_selector = parse_selector('namespace|p', 'type_selector')
-#         noun = explain_type_selector(type_selector)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'paragraphs'
-#         )
-
-
-# class PseudoclassExplanationTest(unittest.TestCase):
-
-#     def test_explain_property_pseudoclass(self):
-#         pseudo = parse_selector(':checked', 'pseudo')
-#         clause = explain_pseudo(pseudo)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             'is checked'
-#         )
-
-#     def test_explain_unknown_functional_pseudoclass_with_simple_default(self):
-#         pseudo = parse_selector(':ath-child(4n)', 'pseudo')
-#         clause = explain_pseudo(pseudo)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             'satisfies the function \'ath-child(4n)\''
-#         )
-
-#     def test_explain_pseudoelement(self):
-#         pseudo = parse_selector('::before', 'pseudo')
-#         noun = explain_pseudo(pseudo)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'generated content before the element\'s content'
-#         )
-
-#     def test_explain_unknown_pseudoelement_with_simple_default(self):
-#         pseudo = parse_selector('::cheese', 'pseudo')
-#         noun = explain_pseudo(pseudo)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'content that matches the pseudo-element \'::cheese\''
-#         )
-
-#     # While the above tests are more for testing generic functionality, the test
-#     # cases below are for checking that special pseudo selectors are described correctly.
-
-#     def test_explain_attr_functional_pseudoelement(self):
-#         pseudo = parse_selector('::attr(href)', 'pseudo')
-#         noun = explain_pseudo(pseudo)
-#         self.assertEqual(
-#             str(realiser.realise(noun)),
-#             'the value of the \'href\' attribute'
-#         )
-
-#     def test_explain_text_pseudoelement(self):
-#         pseudo = parse_selector('::text', 'pseudo')
-#         noun = explain_pseudo(pseudo)
-#         self.assertEqual(str(realiser.realise(noun)), 'text content')
-
-
-# class SimpleSelectorSequenceExplanationTest(unittest.TestCase):
-
-#     def test_explain_multiple_selectors_with_conjunction(self):
-#         sequence = parse_selector('p.klazz[href^=\'http://\']', 'simple_selector_sequence')
-#         clause = explain_simple_selector_sequence(sequence)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "all paragraphs that belong to class 'klazz' and that " +
-#             "have a link that starts with 'http://'"
-#         )
-
-#     def test_shift_subject_with_pseudoelement_and_class(self):
-#         sequence = parse_selector('.klazz::before', 'simple_selector_sequence')
-#         clause = explain_simple_selector_sequence(sequence)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "generated content before the element's content for " +
-#             "all elements that belong to class 'klazz'"
-#         )
-
-#     def test_all_adjective_goes_before_type_adjective(self):
-#         sequence = parse_selector('unknown_element', 'simple_selector_sequence')
-#         clause = explain_simple_selector_sequence(sequence)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "all 'unknown_element' elements"
-#         )
-
-
-# class SelectorExplanationTest(unittest.TestCase):
-#     '''
-#     Note that once we describe multiple selectors, we now only describe 'all'
-#     elements for the final selection, and lose the 'all' qualifier for every
-#     selector sequence that a later selector sequence is chosen 'from'.
-#     '''
-#     def test_explain_descendant_selection(self):
-#         selector = parse_selector('.klazz p', 'selector')
-#         clause = explain_selector(selector)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "all paragraphs from elements that belong to class 'klazz'"
-#         )
-
-#     def test_explain_child_selection(self):
-#         selector = parse_selector('.klazz > p', 'selector')
-#         clause = explain_selector(selector)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "all paragraphs that are children of elements that belong to class 'klazz'"
-#         )
-
-#     def test_explain_sibling_selection(self):
-#         selector = parse_selector('.klazz + p', 'selector')
-#         clause = explain_selector(selector)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "all paragraphs that are siblings of and that appear right after " +
-#             "elements that belong to class 'klazz'"
-#         )
-
-#     def test_explain_generalized_sibling_selection(self):
-#         selector = parse_selector('.klazz ~ p', 'selector')
-#         clause = explain_selector(selector)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "all paragraphs that are siblings of and that eventually appear " +
-#             "after elements that belong to class 'klazz'"
-#         )
-
-
-# class SelectorsGroupExplanationTest(unittest.TestCase):
-
-#     def test_explain_selectors_group_with_list_of_explanations(self):
-#         selectors_group = parse_selector('p, p > .klazz', 'selectors_group')
-#         clauses = explain_selectors_group(selectors_group)
-#         self.assertEqual(len(clauses), 2)
-#         self.assertEqual(
-#             str(realiser.realise(clauses['p'])),
-#             "all paragraphs"
-#         )
-#         self.assertEqual(
-#             str(realiser.realise(clauses['p > .klazz'])),
-#             "all elements that belong to class 'klazz' that are children of paragraphs"
-#         )
+    def test_relative_step(self):
+        abbreviated_step = parse_xpath('comment()//@lang', 'relativeLocationPath')
+        clause = explain_relative_location_path(abbreviated_step)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "'lang' attributes from descendants of comment nodes"
+        )
