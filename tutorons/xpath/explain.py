@@ -69,13 +69,12 @@ def explain_relative_location_path(relative_location_path):
     
     clause = None
     child_clause = nlg_factory.createNounPhrase()
-    print relative_location_path.children
+    complement = None  # complement to add to the next node to be explained
+
     for i in reversed(range(len(relative_location_path.children))):
         child = relative_location_path.children[i]
         print child.getText()
-        if clause:
-            print  "Clause: "+ realiser.realiseSentence(clause)
-        
+
         # explain step contexts
         if isinstance(child, xpathParser.StepContext):
 
@@ -83,22 +82,47 @@ def explain_relative_location_path(relative_location_path):
                 child_clause = explain_abbreviated_step(child.children[0])
             else:
                 child_clause = nlg_factory.createNounPhrase()
-                child_clause = explain_step(child, child_clause)
-
-        # explain / and //
+                if not complement:
+                    child_clause, complement = explain_step(child, child_clause)
+                    # if complement:
+                    #     print 'complement made and counter started!'
+                    #     complement_counter = 1
+                else:
+                    child_clause, _unused = explain_step(child, child_clause)
+                    child_clause.addComplement(complement)
+                    complement = None
+                    print 'complement should already be added to this clause: ' + realiser.realiseSentence(child_clause)
+                
+        # explain '/' and '//' and add child clauses as complements to the main clause
         else:
             prev_sibling = relative_location_path.children[i+1]
-            if prev_sibling and not isinstance(prev_sibling.children[0], xpathParser.AbbreviatedStepContext):
-                print 'in here cause im an idiot'
-                print type(prev_sibling)
+
+            # decide on whether to add a post modifier
+            if prev_sibling and not isinstance(prev_sibling.children[0], xpathParser.AbbreviatedStepContext) and not complement:
+                print 'in here'
                 if child.getText() == '/':
                     preposition = nlg_factory.createPrepositionPhrase('from')
                 else:
                     preposition = nlg_factory.createPrepositionPhrase('from descendants of')
                 child_clause.addPostModifier(preposition)
+
             if not clause:
                 clause = nlg_factory.createNounPhrase()
+            # if complement:
+            #     print 'complement: ' + realiser.realiseSentence(complement)
+            #     if complement_counter == 1:
+            #         complement_counter -= 1
+            #         print 'decerementing counter'
+            #     else:
+            #         clause.addComplement(child_clause)
+            #         print 'complement added to next clause to be added'
+            #         complement = None
+            # else: # maybe this should leave?
             clause.addComplement(child_clause)
+
+    # add the last clause to be explained
+    if complement:
+        child_clause.addComplement(complement)
     if not clause:
         clause = nlg_factory.createNounPhrase()
     clause.addComplement(child_clause)
@@ -108,7 +132,7 @@ def explain_relative_location_path(relative_location_path):
 def explain_step(step, clause):
     # print('in step')
     # a step consists of an (axis specifier), node test and (predicate)
-    # explaining a step returns a clause
+    # explaining a step returns a clause or a complement
     
     noun = explain_node_test(step.children[1])
     axis_specifier = step.children[0]
@@ -117,7 +141,7 @@ def explain_step(step, clause):
     if axis_specifier.getChildCount() == 0 :
         noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
         clause.setNoun(noun)
-        return clause
+        return clause, None
 
     complement = nlg_factory.createNounPhrase()
 
@@ -134,7 +158,7 @@ def explain_step(step, clause):
         complement = nlg_factory.createNounPhrase('if they are')
         noun.setFeature(Feature.NUMBER, NumberAgreement.PLURAL)
         complement.addComplement(noun)
-        return complement
+        return '' , complement
     else:
         preModifier = explain_axis_specifier(axis_name) # incorporate into step or maintain separate?
         clause.addPreModifier(preModifier)
@@ -148,7 +172,7 @@ def explain_step(step, clause):
         modifier = explain_predicate(step.children[2])
         clause.addModifier(modifier)
 
-    return clause
+    return clause, None
 
 def explain_abbreviated_step(abbreviated_step):
 

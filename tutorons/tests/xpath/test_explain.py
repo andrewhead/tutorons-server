@@ -96,15 +96,15 @@ class AxisSepcifierExplanationTest(unittest.TestCase):
             "ancestors of text nodes"
         )
 
-# ## umm weird objct return stuff help
-#     def test_explain_self(self):
-#         axis_spec = parse_xpath('self::text()', 'step')
-#         clause = nlg_factory.createNounPhrase()
-#         clause = explain_step(axis_spec, clause)
-#         self.assertEqual(
-#             str(realiser.realise(clause)),
-#             "if they are text nodes"
-#         )
+## umm weird objct return stuff help
+    # def test_explain_self(self):
+    #     axis_spec = parse_xpath('self::text()', 'step')
+    #     clause = nlg_factory.createNounPhrase()
+    #     clause = explain_step(axis_spec, clause)
+    #     self.assertEqual(
+    #         str(realiser.realise(clause)),
+    #         "if they are text nodes"
+    #     )
 
     def test_explain_ancestors_or_self(self):
         axis_spec = parse_xpath('ancestor-or-self::text()', 'step')
@@ -141,18 +141,22 @@ class AxisSepcifierExplanationTest(unittest.TestCase):
             "descendants of comment nodes from text nodes from the root node"
         )
     
-    def test_complex_multiple_steps(self):
+    def test_basic_multiple_steps(self):
             multiple_steps = parse_xpath('//ancestor-or-self::text()/self::comment()', 'absoluteLocationPathNoroot')
             clause = explain_absolute_location_path(multiple_steps)
             self.assertEqual(
                 str(realiser.realise(clause)),
-                "text nodes and ancestors of such nodes from anywhere in the tree if they are comment nodes"
+                "text nodes and ancestors of such nodes if they are comment nodes from anywhere in the tree"
             )
-              # from text nodes and ancestors of such nodes from anywhere in the tree
-#             # 'if such nodes are comment nodes from text nodes and ancestors of such nodes from anywhere in the tree' 
-#             # != 'text nodes and ancestors of such nodes from anywhere in the tree if such nodes are comment nodes'
+            
+    def test_complex_multiple_steps(self):
+        multiple_steps = parse_xpath('/node()//ancestor-or-self::text()/self::comment()', 'absoluteLocationPathNoroot')
+        clause = explain_absolute_location_path(multiple_steps)
+        self.assertEqual(
+            str(realiser.realise(clause)),
+            "text nodes and ancestors of such nodes if they are comment nodes from descendants of all nodes from the root node"
+            )
 
-#             # need to append returned clause to previous explained clause and remove the 'from' that joins the 2 would be clauses
 class LocationPathExplanationTest(unittest.TestCase):
 
     def test_explain_root(self):
