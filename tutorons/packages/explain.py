@@ -106,7 +106,7 @@ def get_response_time(p):
     if response_time is not None:
         return response_time
 
-    response_times = (IssueEvent.objects
+    response_times = (IssueComment.objects
         .filter(issue_id=models.F('issue__id'))
         .filter(issue__project_id=models.F('issue__project__id'))
         .filter(issue__project__fetch_index=1)
@@ -175,7 +175,7 @@ def get_num_questions(p):
         .filter(question_snapshot_id=models.F('question_snapshot__id'))
         .filter(question_snapshot__fetch_index=13)
         .filter(tag_id=models.F('tag__id'))
-        .filter(question_snapshot__title__icontains=p)
+        .filter(tag__tag_name__icontains=p)
         .annotate(num_tags=models.Count('question_snapshot__id'))
     )
 
