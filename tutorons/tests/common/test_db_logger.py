@@ -32,9 +32,9 @@ class DbLoggerTest(django.test.TestCase):
     def test_single_region(self):
         string = "<html> <body> <code>abs(2)</code> </body> </html>"
         self.get_python_regions(string)
-        b = Block.objects.all()[0]
-        q = ServerQuery.objects.all()[0]
-        r = Region.objects.all()[0]
+        b = Block.objects.using('logging').all()[0]
+        q = ServerQuery.objects.using('logging').all()[0]
+        r = Region.objects.using('logging').all()[0]
         self.assertEqual(b.block_type, 'code')
         self.assertEqual(q.path, '/python/scan')
         self.assertEqual(r.start, 0)
@@ -43,23 +43,23 @@ class DbLoggerTest(django.test.TestCase):
     def test_multiple_regions(self):
         string = "<html> <body> <code>abs(2)\nlen('fdsjkfds')\nbin(1)</code> </body> </html>"
         self.get_python_regions(string)
-        r = Region.objects.all()
+        r = Region.objects.using('logging').all()
         self.assertEqual(len(r), 3)
 
     def test_multiple_queries(self):
         string = "<html> <body> <code>abs(2)\nlen('fdsjkfds')\nbin(1)</code> </body> </html>"
         self.get_python_regions(string)
         self.get_python_regions(string)
-        b = Block.objects.all()
+        b = Block.objects.using('logging').all()
         self.assertEqual(len(b), 1)
-        q = ServerQuery.objects.all()
+        q = ServerQuery.objects.using('logging').all()
         self.assertEqual(len(q), 2)
 
     def test_multiple_documents(self):
         string = "<html> <body> <code>abs(2)\nlen('fdsjkfds')\nbin(1)</code> </body> </html>"
         self.get_python_regions(string)
         self.get_python_regions(string, "test1.com")
-        b = Block.objects.all()
+        b = Block.objects.using('logging').all()
         self.assertEqual(len(b), 2)
 
     def test_multiple_tutorons(self):
@@ -73,5 +73,5 @@ class DbLoggerTest(django.test.TestCase):
         ])
         self.get_python_regions(string)
         self.get_css_regions(string)
-        q = ServerQuery.objects.all()
+        q = ServerQuery.objects.using('logging').all()
         self.assertNotEqual(q[0].path, q[1].path)

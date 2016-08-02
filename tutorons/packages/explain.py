@@ -6,7 +6,7 @@ from django.core.cache import cache as dcache
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import models, connection
 from django.contrib.postgres.aggregates import general
-from tutorons.packages.models import WebPageVersion, WebPageContent, Search, SearchResult, SearchResultContent, Code, QuestionSnapshotTag, IssueEvent, Issue
+from tutorons.packages.models import WebPageVersion, WebPageContent, Search, SearchResult, SearchResultContent, Code, QuestionSnapshotTag, IssueEvent, Issue, IssueComment
 import cache
 import logging
 import slumber
@@ -111,8 +111,9 @@ def get_response_time(p):
         .filter(issue__project_id=models.F('issue__project__id'))
         .filter(issue__project__fetch_index=1)
         .filter(issue__fetch_index=1)
-        .filter(fetch_index=10)
+        .filter(fetch_index=4)
         .filter(issue__project__name__icontains=p)
+        .filter(~models.Q(user_id=models.F('issue__user_id')))
         .annotate(t1=models.F('created_at'))
         .annotate(t2=models.F('issue__created_at'))
     )
