@@ -34,4 +34,6 @@ class PackageExtractor(object):
                     regions.append(r)
                     char_index += (len(line) + 1)  # every line has at least 1 char: the newline
 
+        print(str(regions))
+
         return regions

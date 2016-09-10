@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 import logging
 import unittest
 import json
-from django.test import Client
+from django.test import Client, TestCase
+from django.db import connection
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
@@ -16,13 +17,13 @@ class PackageDetectionTest(unittest.TestCase):
 
     def get_regions(self, document):
         resp = self.client.post(
-            '/package/scan',
+            '/packages/scan',
             data={'origin': 'www.test.com', 'document': document})
         regions = json.loads(resp.content)['regions']
         return regions
 
     def test_single_package(self):
-        string = "Use the nodemailer package to send emails."
+        string = "<p>Use the nodemailer package to send emails.</p>"
         regions = self.get_regions(string)
 
         self.assertEqual(len(regions), 1)
@@ -34,7 +35,7 @@ class PackageDetectionTest(unittest.TestCase):
 
     def test_single_package_case_insensitive(self):
         # Case 1
-        string = "Try the MONGOOSE package in this case."
+        string = "<p>Try the MONGOOSE package in this case.</p>"
         regions = self.get_regions(string)
 
         self.assertEqual(len(regions), 1)
@@ -45,7 +46,7 @@ class PackageDetectionTest(unittest.TestCase):
         self.assertEqual(r.string, 'MONGOOSE')
 
         # Case 2
-        string = "Try the MongOOsE package in this case."
+        string = "<p>Try the MongOOsE package in this case.</p>"
         regions = self.get_regions(string)
 
         self.assertEqual(len(regions), 1)
@@ -56,7 +57,7 @@ class PackageDetectionTest(unittest.TestCase):
         self.assertEqual(r.string, 'MongOOsE')
 
     def test_multiple_packages(self):
-        string = "Choose between mysql or KaRmA for this tutorial."
+        string = "<p>Choose between mysql or KaRmA for this tutorial.</p>"
         regions = self.get_regions(string)
 
         self.assertEqual(len(regions), 2)
