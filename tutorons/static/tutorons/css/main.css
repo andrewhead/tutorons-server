@@ -1,14 +1,22 @@
+body {
+  background: #eaf2ff;
+  padding-top: 1em;
+}
+
 .main-title {
-  font-family: "Lucida Console", Monaco, monospace;
+  font-family: "Ubuntu Mono", "Consolas", Monaco, monospace;
   font-size: 64px;
   margin: 20px auto;
 }
 
 .central-div {
+  border-radius: 20px;
+  background: white;
   margin: 0px auto;
   margin-top: 40px;
   width: 60%;
   max-width: 700px;
+  padding: 1em 3em;
 }
 
 p {
@@ -20,7 +28,7 @@ h2, h3, h4, h5, h6 {
 }
 
 p, h2, h3, h4, h5, h6, li {
-  font-family: Helvetica, sans-serif;
+  font-family: Lato, "Helvetica Neue", Helvetica, sans-serif;
   line-height: 1.3em;
 }
 
@@ -29,22 +37,26 @@ h2 {
 }
 
 code {
-  font-family: "Lucida Console", Monaco, monospace;
+  font-family: "Ubuntu Mono", "Consolas", Monaco, monospace;
 }
 
 pre {
-  font-family: "Lucida Console", Monaco, monospace;
-  background-color: #E1EFFF;
-  border: 1px dashed black;
-  padding-top: .6em;
-  padding-bottom: .6em;
-  padding-left: 15px;
-  margin-top: 10px 0;
+  font-family: "Ubuntu Mono", "Consolas", Monaco, monospace;
+  background-color: #eff0f1;
+  border: 1px solid #898f99;
   font-size: 14px;
-  overflow: scroll;
+  overflow: auto;
   line-height: 1.2em;
+}
+
+.paper-title {
+  font-weight: bolder;
 }
 
 .img-inline {
   height: 0.9em;
+}
+
+.icon {
+  height: 16px;
 }

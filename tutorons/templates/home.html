@@ -3,6 +3,10 @@
     <head>
         <title>Tutorons</title>
         <link rel='icon' href="{% static "tutorons/img/favicon.png" %}" />
+        <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.13.0/build/styles/default.min.css">
+        <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.13.0/build/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
         <script src="//tutorons.com/static/tutorons-library.js"></script>
         <script>
           document.addEventListener("DOMContentLoaded", function (event) {
@@ -22,36 +26,28 @@
             </p>
             -->
             <p>
-            <b>Tutorons automatically detect and explain code embedded in tutorial pages.</b>
-            They make context-relevant descriptions of the purpose and syntax of code available available from a tooltip with a single click.
+            Tutorons automatically detect and explain code in programming tutorials on the web.
+            They build context-relevant explanations to describe the purpose and syntax of code.
             </p>
             <p>
-            Go ahead and see what these explanations look like.
-            Click on the highlighted code below to view automatically generated explanations.
+            See some of the explanations Tutorons can generate by clicking on highlighted code in the snippets below.
+            The highlighted code was detected and explained dynamically by Tutorons when this page loaded.
+            The examples below include explanations for a variety of small languages like wget, CSS selectors, regular expressions, and Python built-in functions.
             </p>
-            <pre><code>wget -A".pdf" -r -l1 -p -k http://eecs.berkeley.edu/~andrewhead</code></pre>
-            <pre><code>$('table tr td').css('font-size', '12px');</code></pre>
+            <pre><code class='bash'>wget -A".pdf" -r -l1 -p -k http://eecs.berkeley.edu/~andrewhead</code></pre>
+            <pre><code class='python'>soup.select('div#sidebar a[href^=youtube]')[0].get_text()</code></pre>
             <pre><code>RewriteRule ^(scripts|assets|daemons)($|/) - [L]</code></pre>
-            <pre><code>[item for item in range(len(a)) if a[item] == 'bar']</code></pre>
+            <pre><code class='python'>[item for item in range(len(a)) if a[item] == 'bar']</code></pre>
+            <p>Curious about how Tutorons were designed and built? Read our paper:</p>
+            <div>
+                <p><span class="paper-title"><a href="http://andrewhead.info/pdf/tutorons.pdf">Tutorons: Generating Context-Relevant, On-Demand Explanations and Demonstrations of Online Code.</a> </span>Andrew Head, Codanda Appachu, Marti Hearst, Björn Hartmann. VL/HCC '15. <img class="icon" title="Honorable mention" alt="" src="{% static "tutorons/img/badge.svg" %}"> This paper received an Honorable Mention for Best Paper. </p>
+            </div>
             <p>
-            This highlighted code was detected by Tutorons that read this page and searched for code.
-            The Tutorons then built explanations for the code and returned them to your browser, where they could be viewed in a tooltip.
-            </p>
-            <h2>Start browsing with Tutorons</h2>
+            <h2>Add Tutorons to your tutorial</h2>
             <p>
-            To start seeing automatic explanations for wget, CSS selectors, regular expressions, and Python built-ins everywhere you navigate online, install the <a href="{% static "tutorons-addon.xpi" %}">Firefox addon</a>.
-            <!--Just open the file to install into Firefox.-->
-            Then click on the <img class='img-inline' src="{% static "tutorons/img/addon_icon.png" %}"/> icon to enable automatic detection of code and insertion of explanations.
+            To enable Tutorons, and thus context-relevant explanations, for code in your tutorial, add the Tutorons library script to the header of your web page's HTML:
             </p>
-            <p>
-            Give the new plugin a spin by viewing some explanations for wget <a href="http://riceball.com/d/content/screen-scraping-wget-and-mailarchiva">on this tutorial</a> and some explanations for regular expressions <a href="http://webmasters.stackexchange.com/questions/9457/apache-domain-redirect-to-subfolder">on this tutorial</a>.  Explanations may take a few seconds to appear as the Tutorons work to detect the code.
-            </p>
-            <h2>Add context-relevant explanations to your tutorial</h2>
-            <p>
-            By adding Tutorons to your webpage, visitors to your page will be able to click on snippets of wget, CSS selectors, regular expressions, and Python built-ins to see automatic explanations of the code.
-            To enable Tutorons for your webpage, add the following lines to the <code>&lt;head&gt;</code> of your page.
-            </p>
-            <pre><code>&lt;script src="//tutorons.com/static/tutorons-library.js"&gt;&lt;/script&gt;
+            <pre><code class='html'>&lt;script src="//tutorons.com/static/tutorons-library.js"&gt;&lt;/script&gt;
 &lt;script&gt;
   document.addEventListener("DOMContentLoaded", function (event) {
     var tutoronsConnection = new tutorons.TutoronsConnection(window);
@@ -60,32 +56,25 @@
 &lt;/script&gt;
 </code></pre>
             <p>
-            You can download the Tutorons library for local use from <a href="{% static "tutorons-library.js" %}">here</a>.
-            You can also feel free to fork the libary.  The source is <a href="https://github.com/andrewhead/tutorons-library">here</a>.
+            If you want to enable explanations for another language not currently included in Tutorons, you may need to build a custom explainer. See the next section.
             </p>
-            <h2>Build your own Tutorons</h2>
-            <p>The Tutorons project is built from two components:</p>
-            <ul>
-                <li><a href='https://github.com/andrewhead/tutorons-server'>Tutorons server</a>:
-                    A server that receives requests requests to explain HTML pages and returns explanations of code.
-                </li>
-                <li><a href='https://github.com/andrewhead/tutorons-library'>Tutorons library</a>:
-                    A library and browser addon that can be used to fetch and display explanations of code as a programmer browses the web.
-                </li>
-            </ul>
+            <h2>Build Tutorons for a new language</h2>
             <p>
             <!--If you are interested in working to improve detection and explanation of code on the web, download the local versions of the software and start playing around with it.-->
-            For personal use, you can build a Tutoron for a language of your choice by programming a Tutorons server that runs locally, and then rebuilding the Firefox addon with an added endpoint that points to your local server.
-            The current Tutorons server code for the wget command, CSS selectors, regular expressions, and Python built-ins should serve as inspiration for building new Tutorons.
+            If you want to enable explanations for a language not yet supported by Tutorons, you'll need to create an explainer. Currently, the recommended method for this is by extending <a href='https://github.com/andrewhead/tutorons-base'>this base implementation of a Tutorons server</a>. Follow <a href="https://github.com/andrewhead/tutorons-base/blob/master/docs/tutorial.md">this tutorial</a> to learn how to build on top of the Tutorons framework to write you own custom rules for detecting and generating explanations for a new language.
             </p>
+            <h2>Browse the web with the Tutorons browser extension</h2>
+            <p>
+            To see automatic explanations for wget, CSS selectors, regular expressions, and Python built-ins everywhere you navigate online, install the <a href="{% static "tutorons-addon.xpi" %}">Firefox addon</a>.
+            <!--Just open the file to install into Firefox.-->
+            Then click on the <img class='img-inline' src="{% static "tutorons/img/addon_icon.png" %}"/> icon to enable automatic detection of code and insertion of explanations.
+            Give the new plugin a spin by viewing some explanations for wget <a href="http://riceball.com/d/content/screen-scraping-wget-and-mailarchiva">on this tutorial</a> and some explanations for regular expressions <a href="http://webmasters.stackexchange.com/questions/9457/apache-domain-redirect-to-subfolder">on this tutorial</a>.  Explanations may take a few seconds to appear as the Tutorons work to detect the code.
+            </p>
+            <!--<a href="https://github.com/andrewhead/tutorons-server"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>-->
             <h2>Contribute</h2>
             <p>
-            If you're passionate about context-relevant programming documentation for the web and want to contribute, feel free to contact me [head dot andrewm at gmail dot com], or send along a pull request for a feature you're working on.
+            Check out our GitHub projects for the Tutorons <a href="https://github.com/andrewhead/tutorons-base">backend</a> and <a href="https://github.com/andrewhead/tutorons-library">frontend</a>. Pull requests, bug fixes, and suggestions are most welcome!
             </p>
-            <p>
-            I welcome comments about the format of explanations, new languages to support, or other suggestions you have about Tutorons.
-            </p>
-            <a href="https://github.com/andrewhead/tutorons-server"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
         </div>
     </body>
 </html>
