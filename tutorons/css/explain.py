@@ -64,7 +64,7 @@ def explain_attribute(attribute_node):
     }
 
     ATTRIBUTE_SUBJECTS = {
-        'href': 'link',
+        'href': 'URL',
     }
 
     state = 'seeking attribute'
